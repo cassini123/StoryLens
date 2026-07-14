@@ -1,0 +1,22 @@
+sequenceDiagram
+    participant U as 用户
+    participant UI as HTML / Agent
+    participant P as llm_proxy
+    participant E as TT专家 agents/*.md
+
+    U->>UI: 输入场景文字 + Enter
+    UI->>UI: matchExpertFromText() 可选
+    UI->>P: POST /parse { expertId? }
+    P->>E: 读取人格节选（交集内）
+    P-->>UI: 解析 + 第一轮 3 题
+    Note over U,UI: HCI：A/B/C/D 卡片，全部必选
+
+    U->>UI: 作答 Q1-Q3
+    UI->>P: POST /refine-questions
+    P-->>UI: 第二轮 3-5 题
+    U->>UI: 确认帧数 + LoRA 门控
+    Note over U,UI: HCI：操作门控，不可跳过
+
+    UI->>P: POST /generate-storyboard
+    UI->>UI: DRAFT 预览 + KG 展开
+    UI->>UI: RENDER 导出 PNG/JSON

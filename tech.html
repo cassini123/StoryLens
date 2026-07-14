@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoryLens 技术框架 · HCI 关系总览</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg:#fff; --fg:#000; --red:#FF3333; --yellow:#FFE600; --cyan:#00E5FF;
+  --green:#00C853; --orange:#FF9100; --pink:#FF4081; --blue:#2979FF; --purple:#AA00FF;
+  --shadow:4px 4px 0 var(--fg);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--fg);line-height:1.65}
+.b-box{border:2px solid var(--fg);box-shadow:var(--shadow);background:var(--bg)}
+.b-tag{display:inline-block;border:2px solid var(--fg);padding:2px 10px;font-size:11px;font-weight:700;text-transform:uppercase}
+header{background:var(--yellow);border-bottom:3px solid var(--fg);padding:32px 40px}
+header h1{font-size:2rem;font-weight:900;letter-spacing:-0.02em}
+header p{margin-top:8px;font-size:14px;opacity:.75}
+nav{position:sticky;top:0;z-index:100;background:var(--fg);color:var(--bg);padding:10px 40px;display:flex;gap:16px;flex-wrap:wrap;font-size:12px;font-weight:700}
+nav a{color:var(--cyan);text-decoration:none}
+nav a:hover{text-decoration:underline}
+main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
+section{margin-bottom:56px}
+section>h2{font-size:1.5rem;font-weight:900;border-left:6px solid var(--red);padding-left:14px;margin-bottom:20px}
+section>h3{font-size:1.1rem;font-weight:800;margin:24px 0 12px}
+.card{padding:20px;margin:12px 0}
+.card-cyan{background:var(--cyan)}.card-yellow{background:var(--yellow)}
+.card-green{background:var(--green)}.card-pink{background:var(--pink)}
+.card-orange{background:var(--orange)}.card-blue{background:var(--blue)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:768px){.grid2,.grid4{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}
+th,td{border:2px solid var(--fg);padding:10px 12px;text-align:left}
+th{background:var(--fg);color:var(--bg);font-weight:800}
+tr:nth-child(even){background:#f8f8f8}
+.mermaid{background:#fafafa;border:2px solid var(--fg);padding:20px;margin:16px 0;overflow-x:auto}
+.hci-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin:16px 0}
+.hci-item{padding:16px;border:2px solid var(--fg);box-shadow:var(--shadow)}
+.hci-item h4{font-size:14px;font-weight:900;margin-bottom:6px}
+.hci-item p{font-size:12px;line-height:1.5}
+.intersection-wrap{position:relative;padding:40px 20px;margin:24px 0;border:3px solid var(--fg);background:#fafafa;min-height:420px}
+.axis-h{position:absolute;bottom:30px;left:60px;right:40px;height:3px;background:var(--fg)}
+.axis-v{position:absolute;top:40px;bottom:60px;left:50px;width:3px;background:var(--fg)}
+.axis-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.axis-h .axis-label{position:absolute;right:0;bottom:10px}
+.axis-v .axis-label{position:absolute;top:-8px;left:-20px;writing-mode:vertical-rl;transform:rotate(180deg)}
+.diamond{position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);width:280px;height:280px;background:var(--pink);border:3px solid var(--fg);clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px}
+.diamond-inner{font-size:13px;font-weight:800;line-height:1.5}
+.mode-btn,.expert-btn{position:absolute;padding:8px 14px;border:2px solid var(--fg);box-shadow:3px 3px 0 var(--fg);font-size:11px;font-weight:700;white-space:nowrap}
+.expert-xin{top:60px;left:120px;background:var(--yellow)}
+.expert-lou{top:60px;left:380px;background:var(--blue);color:#fff}
+.expert-li{top:60px;right:380px;background:var(--green)}
+.expert-liu{top:60px;right:120px;background:var(--orange)}
+.mode-game{bottom:50px;left:140px;background:var(--cyan)}
+.mode-film{bottom:50px;left:340px;background:var(--yellow)}
+.mode-product{bottom:50px;right:340px;background:var(--green)}
+.mode-creative{bottom:50px;right:140px;background:var(--orange)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;font-size:12px}
+.legend span{padding:4px 10px;border:2px solid var(--fg);font-weight:700}
+footer{border-top:3px solid var(--fg);padding:24px 40px;background:var(--fg);color:var(--bg);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+code{background:#eee;padding:1px 6px;font-size:12px;border:1px solid #ccc}
+.toc{font-size:13px;line-height:2}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>StoryLens 技术框架总览</h1>
+  <p>主 Skill · 分镜交集域 · TT 专家 · HCI 人机交互设计 · 腾讯初赛技术说明</p>
+</header>
+
+<nav>
+  <a href="#arch">架构</a>
+  <a href="#intersection">交集域</a>
+  <a href="#hci">HCI ★</a>
+  <a href="#workflow">工作流</a>
+  <a href="#experts">TT专家</a>
+  <a href="#api">API</a>
+  <a href="#files">文件</a>
+</nav>
+
+<main>
+
+<!-- ═══ 0. 一句话 ═══ -->
+<section>
+  <div class="card card-yellow b-box">
+    <strong>一句话：</strong>StoryLens = 文字 → 两轮专家引导提问 → 分镜生成 → 知识图谱。
+    <strong>主 Skill</strong> 提供横向创作框架，<strong>TT 专家</strong> 提供纵向方法论纵深，
+    两者在 <strong>分镜制作交集域</strong> 内协同；HCI 设计确保 Agent 对话与 HTML 应用步骤完全一致。
+  </div>
+  <p class="toc" style="margin-top:16px">
+    配套文件：<code>storylens/skills/storyboard-production/SKILL.md</code> ·
+    <code>tech-summary.png</code> ·
+    <code>storylens/assets/storylens-generator.html</code>
+  </p>
+</section>
+
+<!-- ═══ 1. 三层架构 ═══ -->
+<section id="arch">
+  <h2>一、三层架构</h2>
+  <div class="mermaid">
+flowchart TB
+    subgraph 用户界面
+        A[index.html] --> B[storylens-generator.html<br/>三页 SPA · Brutalism]
+    end
+
+    subgraph Agent层
+        C[storylens/SKILL.md<br/>★ 主 Skill 路由]
+        D[skills/storyboard-production/<br/>分镜交集域 · 框定 H×V]
+        E[专家skill/ × 4<br/>TT 专家纵深]
+    end
+
+    subgraph 代理服务
+        F[llm_proxy :18902]
+        G[jimeng_proxy :18901]
+        H[image_proxy :18900]
+    end
+
+    B --> F & G & H
+    C --> D
+    D -.交集内节选.-> E
+    F -->|注入 agents/*.md| E
+  </div>
+
+  <table>
+    <tr><th>层级</th><th>路径</th><th>职责</th><th>与 HCI 关系</th></tr>
+    <tr><td>入口</td><td><code>index.html</code></td><td>跳转主应用</td><td>零配置直达</td></tr>
+    <tr><td>主应用</td><td><code>storylens-generator.html</code></td><td>分镜 UI + 全部前端逻辑</td><td>三页渐进式流程</td></tr>
+    <tr><td>主 Skill</td><td><code>storylens/SKILL.md</code></td><td>Agent 工作流规范</td><td>与 HTML 步骤同步</td></tr>
+    <tr><td>分镜交集 Skill</td><td><code>skills/storyboard-production/</code></td><td>H×V 框定范围</td><td>防止专家越界/跳步</td></tr>
+    <tr><td>TT 专家</td><td><code>专家skill/{4位}/</code></td><td>人格 + 方法论</td><td>可选增强层</td></tr>
+    <tr><td>LLM 代理</td><td><code>llm_proxy_server.py</code></td><td>解析 / 提问 / 生成</td><td>结构化 JSON 输出</td></tr>
+  </table>
+</section>
+
+<!-- ═══ 2. 交集域 ═══ -->
+<section id="intersection">
+  <h2>二、横向 × 纵向 · 分镜制作交集域（大前提）</h2>
+  <p>每位 TT 专家都有<strong>纵向</strong>（个人方法论纵深）和与主能力<strong>横向</strong>（4 种创作模式）的交叉。
+  系统只在<strong>交集</strong>内调用专家——不是把专家全库搬进来，而是按当前分镜场景截取有效切片。</p>
+
+  <div class="intersection-wrap b-box">
+    <div class="axis-v"><span class="axis-label">纵向 V · TT 专家</span></div>
+    <div class="axis-h"><span class="axis-label">横向 H · 主能力模式 →</span></div>
+    <div class="expert-btn expert-xin">🌻 辛向阳 · 交互/行为</div>
+    <div class="expert-btn expert-lou">👓 娄永琪 · 产品创新</div>
+    <div class="expert-btn expert-li">🍐 李何槿 · 可持续</div>
+    <div class="expert-btn expert-liu">6 柳喆俊 · 严肃游戏</div>
+    <div class="mode-btn mode-game">🎮 游戏设计</div>
+    <div class="mode-btn mode-film">🎬 影视分镜</div>
+    <div class="mode-btn mode-product">📐 产品概念</div>
+    <div class="mode-btn mode-creative">🎨 创作灵感</div>
+    <div class="diamond"><div class="diamond-inner">★ 分镜制作<br>交集域 H∩V ★<br><span style="font-size:11px;font-weight:600">有效输出边界</span></div></div>
+  </div>
+
+  <h3>交集矩阵（节选）</h3>
+  <table>
+    <tr><th>主能力 ↓ \ 专家 →</th><th>🌻 辛向阳</th><th>👓 娄永琪</th><th>🍐 李何槿</th><th>6 柳喆俊</th></tr>
+    <tr><td>🎮 游戏设计</td><td>交互行为视觉节拍</td><td>游戏化产品 Pitch</td><td>可持续主题关卡</td><td>严肃游戏教学场景</td></tr>
+    <tr><td>🎬 影视分镜</td><td>用户旅程→镜头调度</td><td>方案视觉叙事</td><td>循环经济故事板</td><td>教育/VR 体验分镜</td></tr>
+    <tr><td>📐 产品概念</td><td>交互逻辑可视化</td><td><strong>OPC/Pitch/CMF 主协同</strong></td><td>可持续产品场景</td><td>游戏化产品演示</td></tr>
+    <tr><td>🎨 创作灵感</td><td>同人交互体验</td><td>社会创新视觉叙事</td><td>旧物改造故事</td><td>自媒体游戏内容</td></tr>
+  </table>
+
+  <div class="mermaid">
+flowchart LR
+    subgraph 横向H["横向 H · 主能力（SKILL_MODES）"]
+        H1[🎮 游戏设计]
+        H2[🎬 影视分镜]
+        H3[📐 产品概念]
+        H4[🎨 创作灵感]
+    end
+
+    subgraph 交集["★ 分镜制作交集域"]
+        X[parse / refine / generate / KG / 导出]
+    end
+
+    subgraph 纵向V["纵向 V · TT 专家（可选）"]
+        V1[🌻 辛向阳]
+        V2[👓 娄永琪]
+        V3[🍐 李何槿]
+        V4[6 柳喆俊]
+    end
+
+    H1 & H2 & H3 & H4 --> X
+    V1 & V2 & V3 & V4 -.人格注入.-> X
+
+    style X fill:#FF4081,stroke:#000,stroke-width:3px
+  </div>
+
+  <div class="legend">
+    <span style="background:var(--cyan)">In：分镜流程内</span>
+    <span style="background:var(--red);color:#fff">Out：纯咨询/跳步/全量专家Skill</span>
+    <span style="background:var(--pink)">典型组合：产品概念 + 娄永琪</span>
+  </div>
+</section>
+
+<!-- ═══ 3. HCI ★★★ ═══ -->
+<section id="hci">
+  <h2>三、HCI 人机交互设计 ★ 核心</h2>
+  <p>StoryLens 的 HCI 设计目标：<strong>让非专业用户也能在专家级引导下完成分镜，同时保留进阶用户的专家叠加能力</strong>。
+  Agent 对话侧与 HTML 应用侧遵循同一交互模型——这是本系统的 HCI 基石。</p>
+
+  <div class="hci-grid">
+    <div class="hci-item" style="background:var(--cyan)">
+      <h4>1. 渐进披露 Progressive Disclosure</h4>
+      <p>第一轮固定三维卡片（表达/场景/人物）→ 第二轮 LLM 细化 3–5 题。不一次性抛出全部问题，符合 Miller 法则（7±2）。</p>
+    </div>
+    <div class="hci-item" style="background:var(--yellow)">
+      <h4>2. 结构化选择 Structured Choice</h4>
+      <p>A/B/C 预设 + D 自由文本。降低输入成本，同时保留表达自由度——Recognition over Recall。</p>
+    </div>
+    <div class="hci-item" style="background:var(--red);color:#fff">
+      <h4>3. 操作门控 Action Gating</h4>
+      <p>LoRA 加载确认是生图前的<strong>硬性门控</strong>。用户必须明确风格意图后才能进入 DRAFT/RENDER，防止误触生成。</p>
+    </div>
+    <div class="hci-item" style="background:var(--green)">
+      <h4>4. 可选增强 Optional Enhancement</h4>
+      <p>TT 专家非强制。新手走通用流程；进阶用户手动选专家或关键词自动匹配——Scaffolding 脚手架设计。</p>
+    </div>
+    <div class="hci-item" style="background:var(--blue);color:#fff">
+      <h4>5. 跨界面一致 Cross-Surface Parity</h4>
+      <p>Cursor Agent 步骤 ≡ HTML 三页流程。用户在任何入口都获得相同心智模型——Consistency 一致性原则。</p>
+    </div>
+    <div class="hci-item" style="background:var(--orange)">
+      <h4>6. 即时反馈 Immediate Feedback</h4>
+      <p>解析摘要、专家匹配提示、KG 三视图（SVG 环图 + D3 力导向 + 可展开树）。Visibility of System Status。</p>
+    </div>
+    <div class="hci-item" style="background:var(--pink)">
+      <h4>7. 错误容忍 Error Tolerance</h4>
+      <p>生图四重回退：即梦 → Buddy Cloud → SD WebUI → Canvas Mock。降级而非失败——Graceful Degradation。</p>
+    </div>
+    <div class="hci-item" style="background:#f0f0f0">
+      <h4>8. 用户控制 User Control</h4>
+      <p>专家可取消、历史记录 v2（20 条）、帧数可调 1–24。Undo/Redo 语义通过版本历史实现。</p>
+    </div>
+  </div>
+
+  <h3>HCI 交互流 · Agent ≡ HTML</h3>
+  <div class="mermaid">
+sequenceDiagram
+    participant U as 用户
+    participant UI as HTML / Agent
+    participant P as llm_proxy
+    participant E as TT专家 agents/*.md
+
+    U->>UI: 输入场景文字 + Enter
+    UI->>UI: matchExpertFromText() 可选
+    UI->>P: POST /parse { expertId? }
+    P->>E: 读取人格节选（交集内）
+    P-->>UI: 解析 + 第一轮 3 题
+    Note over U,UI: HCI：A/B/C/D 卡片，全部必选
+
+    U->>UI: 作答 Q1-Q3
+    UI->>P: POST /refine-questions
+    P-->>UI: 第二轮 3-5 题
+    U->>UI: 确认帧数 + LoRA 门控
+    Note over U,UI: HCI：操作门控，不可跳过
+
+    UI->>P: POST /generate-storyboard
+    UI->>UI: DRAFT 预览 + KG 展开
+    UI->>UI: RENDER 导出 PNG/JSON
+  </div>
+
+  <h3>三页状态机（Brutalism UI）</h3>
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> INPUT: 打开应用
+    INPUT --> INPUT: Enter解析 + 两轮提问 + LoRA确认
+    INPUT --> DRAFT: 确认帧数 & LoRA
+    DRAFT --> DRAFT: 预览分镜 / 切换风格 / 展开KG
+    DRAFT --> RENDER: 渲染完成
+    RENDER --> [*]: 导出 PNG/JSON/CSV/PDF
+
+    note right of INPUT: 01 INPUT · 渐进披露
+    note right of DRAFT: 02 DRAFT · 即时反馈KG
+    note right of RENDER: 03 RENDER · 交付物
+  </div>
+
+  <h3>主 Skill 与 TT 专家 · HCI 双层模型</h3>
+  <div class="mermaid">
+flowchart TB
+    subgraph UI层["HTML 界面层"]
+        SF[#skillFloat 4按钮<br/>横向主能力]
+        EA[#expertAvatars 4头像<br/>纵向TT专家]
+        AP[AI 提问面板<br/>chips + 对话]
+    end
+
+    subgraph 逻辑层
+        SM[activeSkillMode]
+        AE[activeExpert / matchedExpert]
+        INT[交集域校验<br/>storyboard-production]
+    end
+
+    SF --> SM
+    EA --> AE
+    SM & AE --> INT
+    INT --> AP
+
+    style INT fill:#FF4081,stroke:#000,stroke-width:2px
+  </div>
+</section>
+
+<!-- ═══ 4. 工作流 ═══ -->
+<section id="workflow">
+  <h2>四、5 阶段工作流（不可跳步）</h2>
+  <div class="mermaid">
+flowchart TD
+    Start([用户输入场景]) --> Enter[Enter 触发解析]
+    Enter --> Match{TT 专家匹配}
+    Match -->|手动/自动/无| Parse[POST /parse]
+    Parse --> R1[第一轮：表达/场景/人物]
+    R1 --> R1A[用户 A/B/C/D]
+    R1A --> R2[POST /refine-questions]
+    R2 --> R2A[用户作答]
+    R2A --> Frame[确认帧数 1-24]
+    Frame --> LoRA{LoRA 门控}
+    LoRA --> Draft[02 DRAFT 生成分镜]
+    Draft --> Gen[四重回退生图]
+    Gen --> Output[03 RENDER 导出]
+
+    style LoRA fill:#FF3333,color:#fff
+    style Draft fill:#00C853
+  </div>
+</section>
+
+<!-- ═══ 5. TT 专家 ═══ -->
+<section id="experts">
+  <h2>五、TT 专家协同</h2>
+  <div class="grid2">
+    <div class="card card-yellow b-box">
+      <strong>🌻 辛向阳</strong><br>
+      交互设计 · 行为逻辑 · IDR<br>
+      <span class="b-tag">+ 影视分镜 / 产品概念</span>
+    </div>
+    <div class="card card-blue b-box" style="color:#fff">
+      <strong>👓 娄永琪</strong><br>
+      设计驱动创新 · Pitch · CMF<br>
+      <span class="b-tag">+ 产品概念 ★主协同</span>
+    </div>
+    <div class="card card-green b-box">
+      <strong>🍐 李何槿</strong><br>
+      可持续 · 循环经济 · 品牌<br>
+      <span class="b-tag">+ 产品概念 / 创作灵感</span>
+    </div>
+    <div class="card card-orange b-box">
+      <strong>6 柳喆俊</strong><br>
+      严肃游戏 · PBL · VR 教育<br>
+      <span class="b-tag">+ 游戏设计 / 影视分镜</span>
+    </div>
+  </div>
+
+  <h3>三种激活路径</h3>
+  <table>
+    <tr><th>路径</th><th>触发</th><th>HCI 表现</th></tr>
+    <tr><td>手动选择</td><td>点击 #expertAvatars 头像</td><td>标题变「StoryLens + 专家名」，chips 切换</td></tr>
+    <tr><td>关键词自动</td><td>EXPERT_KEYWORD_MAP 打分</td><td>解析时自动选中 + UI 同步高亮</td></tr>
+    <tr><td>Agent 侧</td><td>「用娄永琪的方法评审」</td><td>读取 专家skill/ 完整 Skill（交集外可全量）</td></tr>
+  </table>
+</section>
+
+<!-- ═══ 6. API ═══ -->
+<section id="api">
+  <h2>六、API 与代理</h2>
+  <table>
+    <tr><th>服务</th><th>端口</th><th>端点</th><th>说明</th></tr>
+    <tr><td>LLM 代理</td><td>18902</td><td>/parse, /refine-questions, /generate-storyboard</td><td>注入专家人格</td></tr>
+    <tr><td>即梦生图</td><td>18901</td><td>/generate, /lora/list</td><td>默认引擎</td></tr>
+    <tr><td>Buddy Cloud</td><td>18900</td><td>/generate</td><td>备用云端</td></tr>
+  </table>
+  <p style="font-size:13px;margin-top:12px">生图回退链：即梦 AI → Buddy Cloud → SD WebUI → Canvas Mock SVG</p>
+</section>
+
+<!-- ═══ 7. 文件 ═══ -->
+<section id="files">
+  <h2>七、关键文件索引</h2>
+  <table>
+    <tr><th>文件</th><th>角色</th></tr>
+    <tr><td><code>storylens/SKILL.md</code></td><td>主 Skill · Agent 路由</td></tr>
+    <tr><td><code>storylens/skills/storyboard-production/SKILL.md</code></td><td>分镜交集域 · H×V 框定</td></tr>
+    <tr><td><code>storylens/skills/storyboard-production/intersection-matrix.md</code></td><td>完整矩阵 + HCI 映射</td></tr>
+    <tr><td><code>storylens/assets/storylens-generator.html</code></td><td>主应用 SPA</td></tr>
+    <tr><td><code>专家skill/{4位}/agents/*.md</code></td><td>TT 专家人格（代理层注入）</td></tr>
+    <tr><td><code>tech.html</code></td><td>本技术说明页</td></tr>
+    <tr><td><code>tech-summary.png</code></td><td>答辩用关系总览图</td></tr>
+  </table>
+</section>
+
+</main>
+
+<footer>
+  <span>StoryLens · TT设计×腾讯初赛 · 2026</span>
+  <span>HCI = Agent ≡ HTML · 交集域 = H×V · 专家可选增强</span>
+</footer>
+
+<script>
+mermaid.initialize({ startOnLoad:true, theme:'neutral', flowchart:{ curve:'basis' }, securityLevel:'loose' });
+</script>
+</body>
+</html>

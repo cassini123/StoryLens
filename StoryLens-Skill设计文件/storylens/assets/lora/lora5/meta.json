@@ -1,0 +1,14 @@
+{
+  "name": "lora5",
+  "trigger": "sks storylens",
+  "steps": 1000,
+  "time": "2026/7/8 18:23:43",
+  "files": 4,
+  "images": [
+    "IMG_6408.JPG",
+    "IMG_6411.JPG",
+    "IMG_6409.JPG",
+    "IMG_6410.JPG"
+  ],
+  "type": "pseudo_lora"
+}

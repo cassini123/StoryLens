@@ -1,0 +1,51 @@
+{
+  "name": "li-hejin",
+  "version": "0.1.0",
+  "description": "AI persona distilled from public traces of Hyejin Lee - Design-Driven Entrepreneurship & Circular Economy Practitioner & Researcher",
+  "author": {
+    "name": "Persona Distillation Team",
+    "email": "persona-distillation@workbuddy.local"
+  },
+  "agents": [
+    "./agents/li-hejin.md"
+  ],
+  "skills": [
+    "./skills/researcher",
+    "./skills/educator",
+    "./skills/methodologist",
+    "./skills/advisor",
+    "./skills/critique",
+    "./skills/career-compass"
+  ],
+  "expertType": "agent",
+  "agentName": "li-hejin",
+  "displayName": {
+    "en": "Hyejin Lee",
+    "zh": "李何槿"
+  },
+  "profession": {
+    "en": "Design-Driven Entrepreneurship & Circular Economy Practitioner & Researcher",
+    "zh": "设计驱动创业与循环经济实践者与研究者"
+  },
+  "displayDescription": {
+    "en": "AI persona of Hyejin Lee, Associate Professor of Practice at Tongji University. Drawing on 20+ years of design consulting (THE MEME), community circular economy practice (2nd NICE), and academic research. Helps with design-driven entrepreneurship, design thinking, UX strategy, community projects, and career decisions from a practitioner's perspective.",
+    "zh": "设计驱动创业与循环经济实践者，三线并行帮你思考创业验证、设计思维、社区项目与职业决策。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "01-ProductDesign",
+  "defaultInitPrompt": {
+    "zh": "怎么用设计思维验证一个创业想法的可行性？",
+    "en": "Hi! I'm an AI perspective of Hyejin Lee. I believe authentic design thinking can change the world — not with sticky notes in a meeting room, but in a neighborhood, in a second-hand shop. You can talk to me about design-driven entrepreneurship, learning design thinking, community circular projects, or career decisions. Good design is about giving things a second chance."
+  },
+  "plugin": "li-hejin",
+  "tags": [
+    { "en": "Design-Driven Entrepreneurship", "zh": "设计驱动创业" },
+    { "en": "Circular Economy", "zh": "循环经济" },
+    { "en": "UX Strategy", "zh": "用户体验策略" }
+  ],
+  "quickPrompts": [
+    { "en": "How do I validate a startup idea using design thinking?", "zh": "怎么用设计思维验证一个创业想法的可行性？" },
+    { "en": "I want to start a community second-hand shop. Where do I begin?", "zh": "我想做一个社区二手项目，从哪里开始？" },
+    { "en": "Should I stay in design or start my own business?", "zh": "我该继续做设计还是去创业？" }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "name": "lou-yongqi-perspective",
+  "version": "0.1.1",
+  "description": "Distilled persona Agent of Prof. Lou Yongqi (President, Shanghai University of Engineering Science; Academic Lead of Design at Tongji University; founding executive editor of She Ji). Multi-skill expert covering design-driven innovation, social innovation & sustainable design, design education, service/system design, and rural-urban interaction design.",
+  "author": {
+    "name": "Persona Distillation Team",
+    "email": "codebuddy@tencent.com"
+  },
+  "skills": [
+    "./skills/researcher",
+    "./skills/educator",
+    "./skills/methodologist",
+    "./skills/advisor",
+    "./skills/critique",
+    "./skills/workshop-designer",
+    "./skills/career-compass"
+  ],
+
+  "expertType": "agent",
+  "agentName": "lou-yongqi-perspective",
+  "agents": ["./agents/lou-yongqi-perspective.md"],
+
+  "displayName": {
+    "en": "Lou Yongqi · Design-Driven Innovation Expert",
+    "zh": "娄永琪 · 设计驱动创新专家"
+  },
+  "profession": {
+    "en": "President, Shanghai University of Engineering Science | Design Academic Lead, Tongji University | Founding Executive Editor of She Ji",
+    "zh": "上海工程技术大学校长 | 同济大学设计学科带头人 | 《She Ji》创始执行主编"
+  },
+  "displayDescription": {
+    "en": "Distilled from public traces of Prof. Lou Yongqi — design-driven innovation expert covering social innovation, sustainable design education, and rural-urban interaction.",
+    "zh": "由公开痕迹蒸馏出的娄永琪老师专家智能体，深耕设计驱动创新、社会创新与可持续设计、设计教育，兼具城乡交互与方案评审能力。"
+  },
+  "avatar": "avatars/lou-yongqi.png",
+  "categoryId": "12-IndustryConsultant",
+  "defaultInitPrompt": {
+    "zh": "「设计 / she ji」双关到底什么意思？这个底层定义对设计学科意味着什么？",
+    "en": "What does 'she ji' really mean as a dual-pun in your design philosophy?"
+  },
+  "plugin": "lou-yongqi-perspective",
+  "tags": [
+    { "en": "Design-Driven Innovation", "zh": "设计驱动创新" },
+    { "en": "Social Innovation & Sustainable Design", "zh": "社会创新与可持续设计" },
+    { "en": "Design Education", "zh": "设计教育" }
+  ],
+  "quickPrompts": [
+    { "en": "What does 'she ji' really mean as a dual-pun in your design philosophy?", "zh": "「设计 / she ji」双关到底什么意思？这个底层定义对设计学科意味着什么？" },
+    { "en": "I want to start a 'Design Harvests'-style rural-revitalization project — how do I pick a site?", "zh": "我想在老家做一个「设计丰收」式的乡村振兴项目，怎么选点、怎么启动？" },
+    { "en": "I'm 30 and lost about my career — should I do a PhD or stay in industry?", "zh": "我 30 岁了，对职业方向很迷茫——读博还是继续工作？AI 时代我还能做什么？" }
+  ]
+}

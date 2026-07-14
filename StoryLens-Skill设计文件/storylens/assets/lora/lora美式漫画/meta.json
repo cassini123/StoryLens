@@ -1,0 +1,20 @@
+{
+  "name": "lora美式漫画",
+  "trigger": "American comic style, bold ink lines, graphic novel aesthetic, high contrast cel shading",
+  "steps": 0,
+  "time": "2026-07-09 00:06:54",
+  "files": 9,
+  "images": [
+    "IMG_6355.jpg",
+    "IMG_6356.jpg",
+    "IMG_6359.jpg",
+    "IMG_6360.jpg",
+    "IMG_6362.jpg",
+    "IMG_6367.jpg",
+    "IMG_6368.jpg",
+    "IMG_6398.jpg",
+    "IMG_6404.jpg"
+  ],
+  "type": "pseudo_lora",
+  "bindStyle": "anime"
+}

@@ -1,0 +1,11 @@
+{
+  "name": "test_storylens_style",
+  "trigger": "sks storylens",
+  "steps": 1000,
+  "time": "2026-07-08 16:36:35",
+  "files": 1,
+  "images": [
+    "ref1.jpg"
+  ],
+  "type": "pseudo_lora"
+}
