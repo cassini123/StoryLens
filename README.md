@@ -29,7 +29,7 @@ python3 -m http.server 8080
 - **多风格生图**：草图 / 渲染 / 动漫 / 街拍 / LoRA；支持 Buddy Cloud、即梦代理，未配置时回退 Canvas Mock
 - **知识图谱**：每帧 4–6 层可展开可视化
 - **专家协同**：辛向阳 · 娄永琪 · 李何槿 · 柳喆俊（Multi-Skill Agent）
-- **可加载 Skill**：Cursor / CodeBuddy 兼容，见 `storylens/SKILL.md` 与 `专家skill/`
+- **可加载 Skill**：LearnBuddy 兼容，见 `storylens/SKILL.md` 与 `专家skill/`
 
 ---
 
@@ -71,13 +71,13 @@ python3 image_proxy_server.py      # Buddy Cloud
 
 ---
 
-## 在 Cursor / Agent 中使用
+## 在 LearnBuddy / Agent 中使用
 
-1. 将 `storylens/` 放到 `.cursor/skills/`（或对话中 `@storylens/SKILL.md`）
+1. 将 `storylens/` 放到 LearnBuddy 的 skills 目录（或对话中 `@storylens/SKILL.md`）
 2. 按需加载 `专家skill/{专家名}/`
 3. 分镜流程须遵循 `skills/storyboard-production/SKILL.md` 中的交集域规则
 
-更细的结构与 CodeBuddy 插件说明见 [`StoryLens-Skill设计文件/README.md`](StoryLens-Skill设计文件/README.md)。
+更细的结构与插件说明见 [`StoryLens-Skill设计文件/README.md`](StoryLens-Skill设计文件/README.md)。
 
 ---
 
