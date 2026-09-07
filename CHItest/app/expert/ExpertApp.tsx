@@ -107,7 +107,7 @@ function RatingScreen({
     <Shell
       title="Expert evaluation"
       subtitle={expertLabel}
-      meta={`${trial.trial_id} · ${done} done · ${remaining} left`}
+      meta={`${done} done · ${remaining} left`}
     >
       <main className="eval">
         <section className="materials">
