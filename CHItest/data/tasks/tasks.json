@@ -1,0 +1,76 @@
+{
+  "tasks": [
+    {
+      "id": "T01",
+      "pair": "P01",
+      "title": "Train Station",
+      "setting": "train station",
+      "core": ["gaze", "spatial_relation", "character_relation"],
+      "brief": "A person enters a quiet train station and notices another person standing near a window. Design a single shot that clearly communicates who is looking at whom and where the two people are in relation to each other."
+    },
+    {
+      "id": "T02",
+      "pair": "P01",
+      "title": "Museum",
+      "setting": "museum",
+      "core": ["gaze", "spatial_relation", "character_relation"],
+      "brief": "A person enters a quiet museum gallery and notices another person standing near a tall window. Design a single shot that clearly communicates who is looking at whom and where the two people are in relation to each other."
+    },
+    {
+      "id": "T03",
+      "pair": "P02",
+      "title": "Café",
+      "setting": "café",
+      "core": ["camera_subject", "character_relation", "composition"],
+      "brief": "Two people sit at a small café table. One of them is speaking; the other is listening. Design a single shot that shows which person is closer to the camera and how the two bodies relate across the table."
+    },
+    {
+      "id": "T04",
+      "pair": "P02",
+      "title": "Bookstore",
+      "setting": "bookstore",
+      "core": ["camera_subject", "character_relation", "composition"],
+      "brief": "Two people stand on opposite sides of a bookstore aisle. One of them is holding a book; the other is watching. Design a single shot that shows which person is closer to the camera and how the two bodies relate across the aisle."
+    },
+    {
+      "id": "T05",
+      "pair": "P03",
+      "title": "Theater",
+      "setting": "theater",
+      "core": ["movement", "facing", "camera_subject"],
+      "brief": "A person walks down a theater aisle toward someone who is already seated. Design a single shot that shows the walking person's movement and which way each person is facing."
+    },
+    {
+      "id": "T06",
+      "pair": "P03",
+      "title": "Underground Station",
+      "setting": "underground station",
+      "core": ["movement", "facing", "camera_subject"],
+      "brief": "A person walks along an underground platform toward someone waiting near a pillar. Design a single shot that shows the walking person's movement and which way each person is facing."
+    },
+    {
+      "id": "T07",
+      "pair": "P04",
+      "title": "Hallway",
+      "setting": "hallway",
+      "core": ["depth", "foreground_background", "composition"],
+      "brief": "A person stands close to the camera in a long hallway while another person appears farther down the corridor. Design a single shot that makes the near–far relationship and the space between them clear."
+    },
+    {
+      "id": "T08",
+      "pair": "P04",
+      "title": "Gallery",
+      "setting": "gallery",
+      "core": ["depth", "foreground_background", "composition"],
+      "brief": "A person stands close to the camera in a long gallery while another person appears farther down the row of artworks. Design a single shot that makes the near–far relationship and the space between them clear."
+    },
+    {
+      "id": "T09",
+      "pair": "TRANSFER",
+      "title": "Ferry Deck",
+      "setting": "ferry deck",
+      "core": ["gaze", "spatial_relation", "transfer"],
+      "brief": "A person steps onto a ferry deck and suddenly notices someone standing by the railing. Describe the shot as clearly as possible."
+    }
+  ]
+}
