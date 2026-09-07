@@ -48,3 +48,8 @@ Runtime data lives in the browser. Use Export to download:
 
 Use `#/participant?short=1` for a dry-run of one Direct task, one Sketch task, then Transfer.
 
+## Docs
+
+- [User guide, architecture, sketch API hook](docs/user-guide.md)
+- [Experiment protocol](docs/experiment-protocol.md)
+
