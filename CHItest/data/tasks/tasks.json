@@ -11,7 +11,7 @@
       "secondary_target": [
         "object"
       ],
-      "image_path": "data/tasks/images/environment/E01.svg",
+      "image_path": "data/tasks/images/environment/E01.png",
       "title": "空剧院"
     },
     {
@@ -25,7 +25,7 @@
       "secondary_target": [
         "camera"
       ],
-      "image_path": "data/tasks/images/environment/E02.svg",
+      "image_path": "data/tasks/images/environment/E02.png",
       "title": "轮渡甲板"
     },
     {
@@ -39,7 +39,7 @@
       "secondary_target": [
         "object"
       ],
-      "image_path": "data/tasks/images/environment/E03.svg",
+      "image_path": "data/tasks/images/environment/E03.png",
       "title": "书店门口"
     },
     {
@@ -53,7 +53,7 @@
       "secondary_target": [
         "relation"
       ],
-      "image_path": "data/tasks/images/environment/E04.svg",
+      "image_path": "data/tasks/images/environment/E04.png",
       "title": "公园长椅"
     },
     {
@@ -67,7 +67,7 @@
       "secondary_target": [
         "camera"
       ],
-      "image_path": "data/tasks/images/environment/E05.svg",
+      "image_path": "data/tasks/images/environment/E05.png",
       "title": "前后景"
     },
     {
@@ -82,7 +82,7 @@
         "spatial",
         "camera"
       ],
-      "image_path": "data/tasks/images/character_space/C01.svg",
+      "image_path": "data/tasks/images/character_space/C01.png",
       "title": "火车站窗边"
     },
     {
@@ -96,7 +96,7 @@
       "secondary_target": [
         "emotion"
       ],
-      "image_path": "data/tasks/images/character_space/C02.svg",
+      "image_path": "data/tasks/images/character_space/C02.png",
       "title": "咖啡馆对坐"
     },
     {
@@ -110,7 +110,7 @@
       "secondary_target": [
         "spatial"
       ],
-      "image_path": "data/tasks/images/character_space/C03.svg",
+      "image_path": "data/tasks/images/character_space/C03.png",
       "title": "庭院对望"
     },
     {
@@ -124,7 +124,7 @@
       "secondary_target": [
         "spatial"
       ],
-      "image_path": "data/tasks/images/character_space/C04.svg",
+      "image_path": "data/tasks/images/character_space/C04.png",
       "title": "街角三人"
     },
     {
@@ -138,7 +138,7 @@
       "secondary_target": [
         "spatial"
       ],
-      "image_path": "data/tasks/images/camera/A01.svg",
+      "image_path": "data/tasks/images/camera/A01.png",
       "title": "楼梯仰拍"
     },
     {
@@ -152,7 +152,7 @@
       "secondary_target": [
         "object"
       ],
-      "image_path": "data/tasks/images/camera/A02.svg",
+      "image_path": "data/tasks/images/camera/A02.png",
       "title": "博物馆展墙"
     },
     {
@@ -166,7 +166,7 @@
       "secondary_target": [
         "spatial"
       ],
-      "image_path": "data/tasks/images/camera/A03.svg",
+      "image_path": "data/tasks/images/camera/A03.png",
       "title": "俯视走廊"
     },
     {
@@ -180,7 +180,7 @@
       "secondary_target": [
         "emotion"
       ],
-      "image_path": "data/tasks/images/camera/A04.svg",
+      "image_path": "data/tasks/images/camera/A04.png",
       "title": "地铁来车"
     },
     {
@@ -194,7 +194,7 @@
       "secondary_target": [
         "relation"
       ],
-      "image_path": "data/tasks/images/camera/A05.svg",
+      "image_path": "data/tasks/images/camera/A05.png",
       "title": "长椅分神"
     },
     {
@@ -208,7 +208,7 @@
       "secondary_target": [
         "object"
       ],
-      "image_path": "data/tasks/images/composition/D01.svg",
+      "image_path": "data/tasks/images/composition/D01.png",
       "title": "柱后半隐"
     },
     {
@@ -222,7 +222,7 @@
       "secondary_target": [
         "object"
       ],
-      "image_path": "data/tasks/images/composition/D02.svg",
+      "image_path": "data/tasks/images/composition/D02.png",
       "title": "门后身影"
     },
     {
@@ -236,7 +236,7 @@
       "secondary_target": [
         "relation"
       ],
-      "image_path": "data/tasks/images/composition/D03.svg",
+      "image_path": "data/tasks/images/composition/D03.png",
       "title": "走廊走向"
     },
     {
@@ -250,7 +250,7 @@
       "secondary_target": [
         "relation"
       ],
-      "image_path": "data/tasks/images/composition/D04.svg",
+      "image_path": "data/tasks/images/composition/D04.png",
       "title": "画廊穿过"
     },
     {
@@ -264,7 +264,7 @@
       "secondary_target": [
         "spatial"
       ],
-      "image_path": "data/tasks/images/composition/D05.svg",
+      "image_path": "data/tasks/images/composition/D05.png",
       "title": "餐桌三人"
     },
     {
@@ -278,7 +278,7 @@
       "secondary_target": [
         "camera"
       ],
-      "image_path": "data/tasks/images/composition/D06.svg",
+      "image_path": "data/tasks/images/composition/D06.png",
       "title": "玻璃内外"
     }
   ]

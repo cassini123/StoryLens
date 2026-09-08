@@ -65,4 +65,4 @@ T1 将原图作为条件图；T2/T3 将原图与草图拼成条件图后与文�
 
 ## 5. 20 张原图
 
-放到 `CHItest/public/data/tasks/images/`，命名见 `data/tasks/images/README.md`。JPG 或 PNG。现在仓库里是 SVG 占位图。
+放到 `CHItest/public/data/tasks/images/`，命名见 `data/tasks/images/README.md`。当前为 PNG 原图。
