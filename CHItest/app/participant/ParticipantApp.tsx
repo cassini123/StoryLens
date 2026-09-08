@@ -50,6 +50,7 @@ import { MAX_ROUNDS } from '../shared/types'
 import { SessionChrome } from '../shared/SessionChrome'
 import { useI18n, type Locale } from '../shared/i18n'
 import { Button, Field, FooterBar, Likert } from '../shared/ui'
+import { ThanksCard, ThanksPreview } from './ThanksCard'
 
 const emptyDemo: Demographics = {
   cinematography_experience: '',
@@ -84,10 +85,15 @@ export function ParticipantApp() {
   const [setupId, setSetupId] = useState(nextParticipantId(existing))
   const [demo, setDemo] = useState<Demographics>(emptyDemo)
   const [health, setHealth] = useState<JimengHealth | null>(null)
+  const previewCard = /(?:\?|&)card=1\b/.test(window.location.hash)
 
   useEffect(() => {
     void checkJimengHealth().then(setHealth)
   }, [])
+
+  if (previewCard) {
+    return <ThanksPreview />
+  }
 
   if (!session) {
     const ready =
@@ -334,25 +340,7 @@ function ParticipantFlow({
 
   if (session.runtime.step === 'complete') {
     return (
-      <SessionChrome
-        session={session}
-        title={t.completeTitle}
-        extra={session.participant_id}
-        onSessionChange={setSession}
-      >
-        <main className="page">
-          <p className="lead">{t.completeLead}</p>
-          <div className="stack">
-            <Button fill onClick={() => void downloadParticipantPacket(session)}>
-              {t.downloadData}
-            </Button>
-          </div>
-        </main>
-        <FooterBar style={{ justifyContent: 'space-between' }}>
-          <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
-          <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
-        </FooterBar>
-      </SessionChrome>
+      <CompleteScreen session={session} setSession={setSession} onUpdate={update} />
     )
   }
 
@@ -779,6 +767,61 @@ function ParticipantFlow({
           ) : null}
         </div>
       </FooterBar>
+    </SessionChrome>
+  )
+}
+
+function CompleteScreen({
+  session,
+  setSession,
+  onUpdate,
+}: {
+  session: Session
+  setSession: (session: Session | null) => void
+  onUpdate: (mutator: (next: Session) => void) => void
+}) {
+  const { t } = useI18n()
+  const [cardOpen, setCardOpen] = useState(false)
+  return (
+    <SessionChrome
+      session={session}
+      title={t.completeTitle}
+      extra={session.participant_id}
+      onSessionChange={setSession}
+    >
+      <main className="page">
+        <p className="lead">{t.completeLead}</p>
+        <div className="stack">
+          <Button fill onClick={() => void downloadParticipantPacket(session)}>
+            {t.downloadData}
+          </Button>
+          <Button
+            onClick={() => {
+              setCardOpen(true)
+              onUpdate((next) => {
+                logEvent(next, 'thanks_card_open')
+              })
+            }}
+          >
+            {t.surprise}
+          </Button>
+        </div>
+      </main>
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
+        <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
+      </FooterBar>
+      {cardOpen ? (
+        <ThanksCard
+          participantId={session.participant_id}
+          onClose={() => setCardOpen(false)}
+          onDownload={(kind) =>
+            onUpdate((next) => {
+              logEvent(next, 'thanks_card_download', { kind })
+            })
+          }
+        />
+      ) : null}
     </SessionChrome>
   )
 }

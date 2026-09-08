@@ -18,7 +18,7 @@ npm run dev
 | --- | --- |
 | `#/` | 首页 |
 | `#/participant` | 被试：7 题。奇数编号 scaffold，偶数编号 control |
-| `#/participant?short=1` | 干跑：scaffold 为 T0/T1/T2/T3，control 为 T0/T1/T1′/T3 |
+| `#/participant?card=1&id=P001` | 致谢卡片预览（可换背景图后立刻看效果） |
 | `#/expert` | 四专家盲评（对照 Target Modification，不评像不像原图） |
 | `#/coding` | 研究者按 active dimensions 编码；主指标 P_norm |
 | `#/export` | 一次导出全部正式表（zip）/ event_log / auto_prompts / self_alignment / practice_control 等 |
@@ -48,7 +48,7 @@ npm run dev
 
 **T3** 新图，纯文字，与 T1 相同。无草图、无自动描述。
 
-随时可以 **满意，下一题**。T1/T2/T3 结束前有两道 1–7 自评（最终表达是否符合本意、生成结果是否符合本意），只作次要分析。
+随时可以 **满意，下一题**。T1/T2/T3 结束前有两道 1–7 自评（最终表达是否符合本意、生成结果是否符合本意），只作次要分析。全部完成后可点 **Surprise** 展开致谢卡片（按被试编号写入固定文案，可下载 PNG/JPG）。背景图在 `public/thanks/thanks-card-bg.jpg`，可直接替换。
 
 ---
 
