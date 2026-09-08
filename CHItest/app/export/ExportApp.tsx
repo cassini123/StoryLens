@@ -40,7 +40,12 @@ export function ExportApp() {
             const validation = markExportReadiness(session)
             return (
               <p key={`${session.session_id}-val`}>
-                {session.participant_id}: {validation.ok && session.completed_at ? 'export ready' : `validation failed (${validation.issues.length})`}
+                {session.participant_id}:{' '}
+                {validation.ok && session.completed_at
+                  ? 'export ready'
+                  : validation.ok
+                    ? 'validation passed, session incomplete'
+                    : `validation failed (${validation.issues.length})`}
                 {validation.issues.length
                   ? ` — ${validation.issues
                       .slice(0, 4)
