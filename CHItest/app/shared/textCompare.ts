@@ -46,3 +46,24 @@ export function pastedFromAuto(autoPrompt: string, pasted: string): boolean {
   if (!clip || !auto) return false
   return auto.includes(clip) || clip.includes(auto)
 }
+
+export function copiedCharacterCount(copiedSegments: string[], dest: string): number {
+  if (!dest) return 0
+  let remaining = dest
+  let count = 0
+  for (const segment of copiedSegments) {
+    const clip = segment.trim()
+    if (!clip) continue
+    const idx = remaining.indexOf(clip)
+    if (idx >= 0) {
+      count += clip.length
+      remaining = remaining.slice(0, idx) + remaining.slice(idx + clip.length)
+    }
+  }
+  return count
+}
+
+export function eventCopyRatio(copiedSegments: string[], dest: string): number | null {
+  if (!dest.trim()) return null
+  return Math.min(1, copiedCharacterCount(copiedSegments, dest) / dest.length)
+}

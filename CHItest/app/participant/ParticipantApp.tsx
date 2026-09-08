@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getImage, stageHasGeneration, stageHasSketch, stimulusUrl } from '../shared/config'
+import { getImage, stageHasSketch, stimulusUrl } from '../shared/config'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
 import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import {
@@ -7,8 +7,18 @@ import {
   addSketchAction,
   addSketchSnapshot,
   addTextVersion,
+  closeAutoPromptView,
+  closeResultView,
+  closeSketchEdit,
+  closeTextEdit,
+  createAutoPromptRecord,
   currentTask,
+  finalizeAutoPrompts,
   logEvent,
+  openAutoPromptView,
+  openResultView,
+  recordCopyEvent,
+  recordPasteEvent,
 } from '../shared/logging'
 import { composeConditioning } from '../shared/media'
 import { generateSketch } from '../shared/sketch/generate'
@@ -16,7 +26,9 @@ import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
 import { cloneScene } from '../shared/sketch/templates'
 import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
-import { buildTaskPlan, groupForParticipant, nextParticipantId, patternForParticipant } from '../shared/schedule'
+import { buildTaskPlan, groupForParticipant, isShortSession, nextParticipantId, patternForParticipant } from '../shared/schedule'
+import { createSessionBase, summarizeTask } from '../shared/sessionInit'
+import { markExportReadiness } from '../shared/validation'
 import { pastedFromAuto } from '../shared/textCompare'
 import { downloadParticipantPacket } from '../shared/export'
 import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
@@ -25,9 +37,7 @@ import type {
   Demographics,
   ExperienceLevel,
   ImageDef,
-  PlannedTask,
   Session,
-  SessionRuntime,
   SketchEdit,
   SketchScene,
   SubjectiveRatings,
@@ -49,45 +59,6 @@ const emptyDemo: Demographics = {
   film_years: '',
   ai_experience: '',
   image_gen_experience: '',
-}
-
-function emptyRuntime(): SessionRuntime {
-  return {
-    step: 'intro',
-    task_index: 0,
-    round: 0,
-    draft_text: '',
-    auto_prompt: '',
-    auto_prompt_id: '',
-    user_prompt_started: false,
-    auto_prompt_view_started: false,
-    working_scene: null,
-    baseline_scene: null,
-    generate_error: '',
-    selected_node_id: null,
-    last_output_image_id: '',
-    text_started: false,
-    sketch_editing: false,
-  }
-}
-
-function emptyTask(sessionId: string, participantId: string, planned: PlannedTask): TaskRun {
-  return {
-    participant_id: participantId,
-    session_id: sessionId,
-    task_id: planned.task_id,
-    image_id: planned.image_id,
-    stage: planned.stage,
-    block: planned.block,
-    round: 0,
-    rounds: [],
-    initial_text_version_id: '',
-    final_text_version_id: '',
-    satisfied_round: null,
-    started_at: '',
-    ended_at: '',
-    sketch_actions: [],
-  }
 }
 
 function persist(session: Session): Session {
@@ -212,26 +183,27 @@ export function ParticipantApp() {
                 return
               }
               const sessionId = `S${id.replace(/^P/i, '')}`
-              const plan = buildTaskPlan(id)
-              const created: Session = {
-                participant_id: id,
-                session_id: sessionId,
-                assignment_pattern: patternForParticipant(id),
-                experimental_group: groupForParticipant(id),
+              const group = groupForParticipant(id)
+              const plan = buildTaskPlan(id, group)
+              const created = createSessionBase({
+                participantId: id,
+                sessionId,
+                group,
+                pattern: patternForParticipant(id),
+                plan,
                 demographics: demo,
-                tasks: plan.map((item) => emptyTask(sessionId, id, item)),
-                event_log: [],
-                text_versions: [],
-                generations: [],
-                sketch_snapshots: [],
-                subjective: null,
-                started_at: nowIso(),
-                completed_at: null,
-                runtime: emptyRuntime(),
-                seq: 0,
-              }
+                shortSession: isShortSession(),
+                startedAt: nowIso(),
+              })
               logEvent(created, 'session_start')
               logEvent(created, 'participant_setup_complete')
+              logEvent(created, 'group_assignment', {
+                experimental_group: created.experimental_group,
+                assignment_pattern: created.assignment_pattern,
+                condition_order: created.condition_order,
+                task_sequence_version: created.task_sequence_version,
+                short_session: created.short_session,
+              })
               setSession(persist(created))
             }}
           >
@@ -317,6 +289,41 @@ function ParticipantFlow({
             next.completed_at = nowIso()
             next.runtime.step = 'complete'
             logEvent(next, 'session_end')
+            markExportReadiness(next)
+          })
+        }
+      />
+    )
+  }
+
+  if (session.runtime.step === 'self_report') {
+    return (
+      <SelfReport
+        session={session}
+        onSessionChange={setSession}
+        onRestart={() => confirmRestart(session, setSession, t.restartConfirm)}
+        onChange={(selfAlignment, resultAlignment) =>
+          update((next) => {
+            const active = currentTask(next)
+            if (!active) return
+            const stamp = nowIso()
+            active.self_alignment_rating = selfAlignment
+            active.self_alignment_timestamp = stamp
+            active.result_alignment_rating = resultAlignment
+            active.result_alignment_timestamp = stamp
+          })
+        }
+        onSubmit={() =>
+          update((next) => {
+            const active = currentTask(next)
+            if (active) {
+              logEvent(next, 'self_alignment_submit', {
+                self_alignment_rating: active.self_alignment_rating,
+                result_alignment_rating: active.result_alignment_rating,
+              })
+            }
+            endCurrentTask(next)
+            goToNextTask(next)
           })
         }
       />
@@ -359,7 +366,7 @@ function ParticipantFlow({
 
   const image = getImage(task.image_id)
   const lastGen = [...session.generations].reverse().find((item) => item.task_id === task.task_id)
-  const canGenerate = stageHasGeneration(task.stage) && session.runtime.round < MAX_ROUNDS && session.runtime.step !== 'generating'
+  const canGenerate = Boolean(task.ai_enabled) && session.runtime.round < MAX_ROUNDS && session.runtime.step !== 'generating'
   const canSatisfy =
     task.stage === 'T0'
       ? session.runtime.draft_text.trim().length > 0
@@ -373,6 +380,8 @@ function ParticipantFlow({
     next.runtime.auto_prompt_id = ''
     next.runtime.user_prompt_started = false
     next.runtime.auto_prompt_view_started = false
+    next.runtime.auto_prompt_view_id = ''
+    next.runtime.copied_from_auto = []
     next.runtime.working_scene = null
     next.runtime.baseline_scene = null
     next.runtime.generate_error = ''
@@ -380,6 +389,7 @@ function ParticipantFlow({
     next.runtime.last_output_image_id = ''
     next.runtime.text_started = false
     next.runtime.sketch_editing = false
+    next.runtime.result_viewing = false
     next.runtime.step = 'describe'
     const active = next.tasks[index]
     if (active && !active.started_at) active.started_at = nowIso()
@@ -410,17 +420,25 @@ function ParticipantFlow({
     if (type === 'initial' && !taskNow.initial_text_version_id) {
       taskNow.initial_text_version_id = version.text_version_id
     }
-    if (type !== 'auto') taskNow.final_text_version_id = version.text_version_id
+    if (type !== 'auto') {
+      taskNow.final_text_version_id = version.text_version_id
+      taskNow.final_text = version.text
+    }
+    if (type === 'initial') taskNow.initial_text = version.text
     const eventType = type === 'initial' ? 'initial_text_submit' : 'text_submit'
     logEvent(next, eventType, {
       text_version_id: version.text_version_id,
       text_length: version.text_length,
       text_type: type,
+      source: version.source,
     })
     if (type === 'refined' && stageHasSketch(taskNow.stage)) {
       logEvent(next, 'user_prompt_submit', {
         text_version_id: version.text_version_id,
         text_length: version.text_length,
+        previous_user_prompt: previous?.text ?? '',
+        current_user_prompt: version.text,
+        source_auto_prompt_id: next.runtime.auto_prompt_id,
       })
     }
     return version
@@ -428,60 +446,91 @@ function ParticipantFlow({
 
   function commitAutoPrompt(next: Session, loc: Locale) {
     const scene = next.runtime.working_scene
-    if (!scene || next.runtime.round < 1) return
+    const taskNow = currentTask(next)
+    if (!scene || !taskNow || !taskNow.auto_prompt_enabled || next.runtime.round < 1) return
     const baseline = next.runtime.baseline_scene
     const edited =
-      Boolean(currentTask(next)?.sketch_actions.length) ||
+      Boolean(taskNow.sketch_actions.length) ||
       (baseline != null && JSON.stringify(scene) !== JSON.stringify(baseline))
     if (!edited) return
     const text = sceneToAutoPrompt(scene, loc, next.runtime.baseline_scene)
     if (!text || text === next.runtime.auto_prompt) return
+    closeAutoPromptView(next)
+    const snapshot = addSketchSnapshot(next, scene, sceneToSvg(scene), 'pre_auto_prompt')
+    logEvent(next, 'sketch_snapshot_created', {
+      snapshot_id: snapshot.snapshot_id,
+      kind: 'pre_auto_prompt',
+    })
     next.runtime.auto_prompt = text
-    const taskNow = currentTask(next)
     const previous = [...next.text_versions]
       .reverse()
-      .find((item) => item.task_id === taskNow?.task_id && item.text_type === 'auto')
-    const version = addTextVersion(next, text, 'auto', previous?.text_version_id || next.runtime.auto_prompt_id)
-    next.runtime.auto_prompt_id = version.text_version_id
+      .find((item) => item.task_id === taskNow.task_id && item.text_type === 'auto')
+    const version = addTextVersion(next, text, 'auto', previous?.text_version_id || '')
+    const record = createAutoPromptRecord(next, text, snapshot.snapshot_id, next.runtime.draft_text)
     logEvent(next, 'auto_prompt_generated', {
+      auto_prompt_id: record.auto_prompt_id,
       text_version_id: version.text_version_id,
       text_length: version.text_length,
+      source_sketch_snapshot_id: snapshot.snapshot_id,
     })
-    if (!next.runtime.auto_prompt_view_started) {
-      next.runtime.auto_prompt_view_started = true
-      logEvent(next, 'auto_prompt_view_start', { text_version_id: version.text_version_id })
+    openAutoPromptView(next, { auto_prompt_id: record.auto_prompt_id, text_version_id: version.text_version_id })
+  }
+
+  function closeTaskInstruments(next: Session) {
+    closeSketchEdit(next)
+    closeAutoPromptView(next)
+    closeResultView(next)
+    closeTextEdit(next)
+  }
+
+  function endCurrentTask(next: Session) {
+    const active = currentTask(next)
+    if (!active) return
+    closeTaskInstruments(next)
+    if (next.runtime.draft_text.trim()) {
+      const version = saveDraftText(next, active.stage === 'T0' ? 'final' : 'final')
+      if (version) finalizeAutoPrompts(next, version.text, version.text_version_id)
     }
+    if (active.stage === 'T2' && next.runtime.working_scene) {
+      const snap = addSketchSnapshot(
+        next,
+        next.runtime.working_scene,
+        sceneToSvg(next.runtime.working_scene),
+        'post_user_revision',
+      )
+      logEvent(next, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind: 'post_user_revision' })
+    }
+    active.ended_at = nowIso()
+    logEvent(next, 'image_view_end')
+    logEvent(next, 'task_end')
+    logEvent(next, `${active.stage}_task_end`)
+    summarizeTask(next, active)
+    logEvent(next, 'next_task_click')
+  }
+
+  function goToNextTask(next: Session) {
+    const nextIndex = next.runtime.task_index + 1
+    if (nextIndex >= next.tasks.length) {
+      next.runtime.step = 'questionnaire'
+      return
+    }
+    prepareTask(next, nextIndex)
   }
 
   function finishTask() {
     update((next) => {
       const active = currentTask(next)
       if (!active) return
-      if (next.runtime.sketch_editing) {
-        next.runtime.sketch_editing = false
-        logEvent(next, 'sketch_edit_end')
-      }
-      if (next.runtime.auto_prompt_view_started) {
-        logEvent(next, 'auto_prompt_view_end')
-        next.runtime.auto_prompt_view_started = false
-      }
-      if (next.runtime.step === 'review') logEvent(next, 'generated_image_view_end')
-      if (next.runtime.draft_text.trim()) saveDraftText(next, 'final')
-      active.ended_at = nowIso()
-      if (stageHasGeneration(active.stage)) {
-        active.satisfied_round = active.satisfied_round ?? next.runtime.round
-        logEvent(next, 'satisfied_click', { round: next.runtime.round })
-      }
-      logEvent(next, 'image_view_end')
-      logEvent(next, 'task_end')
-      logEvent(next, `${active.stage}_task_end`)
-      logEvent(next, 'next_task_click')
-      const nextIndex = next.runtime.task_index + 1
-      if (nextIndex >= next.tasks.length) {
-        next.runtime.step = 'questionnaire'
+      if (active.stage === 'T0') {
+        if (next.runtime.draft_text.trim()) saveDraftText(next, 'initial')
+        endCurrentTask(next)
+        goToNextTask(next)
         return
       }
-      prepareTask(next, nextIndex)
+      closeTaskInstruments(next)
+      active.satisfied_round = next.runtime.round
+      logEvent(next, 'satisfied_click', { round: next.runtime.round })
+      next.runtime.step = 'self_report'
     })
   }
 
@@ -490,30 +539,45 @@ function ParticipantFlow({
     if (!text) return
     const live = structuredClone(session)
     const active = currentTask(live)
-    if (!active) return
+    if (!active || !active.ai_enabled) return
     const nextRound = Math.min(MAX_ROUNDS, live.runtime.round + 1)
-    if (live.runtime.step === 'review') logEvent(live, 'generated_image_view_end')
-    if (live.runtime.sketch_editing) {
-      live.runtime.sketch_editing = false
-      logEvent(live, 'sketch_edit_end')
-    }
+    closeResultView(live)
+    closeSketchEdit(live)
+    closeAutoPromptView(live)
+    closeTextEdit(live)
     live.runtime.round = nextRound
     active.round = nextRound
     logEvent(live, 'generate_click')
     logEvent(live, 'round_start', { round: nextRound })
-    if (stageHasSketch(active.stage)) commitAutoPrompt(live, locale)
-    if (nextRound > 1 && stageHasSketch(active.stage)) {
-      saveDraftText(live, 'refined')
-    } else {
-      saveDraftText(live, nextRound === 1 ? 'initial' : 'refined')
-    }
+    if (active.auto_prompt_enabled) commitAutoPrompt(live, locale)
+    const textType: TextType = nextRound === 1 ? 'initial' : 'refined'
+    const version = saveDraftText(live, textType)
+    if (version) finalizeAutoPrompts(live, version.text, version.text_version_id)
     const researchSnap = live.runtime.working_scene
-      ? addSketchSnapshot(live, live.runtime.working_scene, sceneToSvg(live.runtime.working_scene), 'after')
+      ? addSketchSnapshot(
+          live,
+          live.runtime.working_scene,
+          sceneToSvg(live.runtime.working_scene),
+          nextRound === 1 ? 'after' : 'post_user_revision',
+        )
       : null
+    if (researchSnap) {
+      logEvent(live, 'sketch_snapshot_created', { snapshot_id: researchSnap.snapshot_id, kind: researchSnap.kind })
+    }
     live.runtime.step = 'generating'
     live.runtime.generate_error = ''
     const started = nowIso()
-    logEvent(live, 'generation_start', { api_input: 'image+text', sketch_sent: false })
+    const apiPayload = {
+      api_input: 'image+text' as const,
+      sketch_sent: false,
+      prompt: text,
+      input_image_id: active.image_id,
+      input_text: text,
+      image_count: 1,
+      model: 'jimeng_t2i_v40',
+      model_version: 'jimeng_t2i_v40',
+    }
+    logEvent(live, 'generation_start', { ...apiPayload, sketch_included: false })
     persist(live)
     setSession(live)
 
@@ -539,8 +603,12 @@ function ParticipantFlow({
       model_version: 'jimeng_t2i_v40',
       input_image_id: active.image_id,
       input_text: text,
-      input_text_version_id: active.final_text_version_id,
+      input_text_version_id: version?.text_version_id || active.final_text_version_id,
       input_sketch_snapshot_id: '',
+      source_sketch_snapshot_id: researchSnap?.snapshot_id || '',
+      sketch_sent: false,
+      api_input: 'image+text',
+      api_payload: { ...apiPayload, image_count: images.length, jimeng_task_id: result.meta.jimeng_task_id },
       output_image_id: '',
       success,
       error: result.meta.error,
@@ -552,7 +620,7 @@ function ParticipantFlow({
     live.runtime.generate_error = result.meta.error
     live.runtime.step = 'review'
     live.runtime.user_prompt_started = false
-    live.runtime.auto_prompt_view_started = false
+    live.runtime.text_started = false
     active.rounds.push({
       round: live.runtime.round,
       text_version_id: active.final_text_version_id,
@@ -566,14 +634,12 @@ function ParticipantFlow({
       generation_id: generation.generation_id,
       success,
       latency_ms: generation.latency_ms,
+      sketch_sent: false,
+      api_input: 'image+text',
     })
     logEvent(live, success ? 'generation_success' : 'generation_failure', { error: result.meta.error })
     logEvent(live, 'round_end', { round: live.runtime.round })
-    logEvent(live, 'generated_image_view')
-    logEvent(live, 'generated_image_view_start')
-    if (stageHasSketch(active.stage) && live.runtime.working_scene) {
-      commitAutoPrompt(live, locale)
-    }
+    openResultView(live)
     persist(live)
     setSession(structuredClone(live))
   }
@@ -584,14 +650,15 @@ function ParticipantFlow({
         next.runtime.text_started = true
         logEvent(next, 'text_input_start')
       }
-      const sketchStage = currentTask(next) && stageHasSketch(currentTask(next)!.stage) && next.runtime.round >= 1
+      const sketchStage = currentTask(next)?.auto_prompt_enabled && next.runtime.round >= 1
       if (sketchStage && !next.runtime.user_prompt_started && value !== next.runtime.auto_prompt) {
         next.runtime.user_prompt_started = true
-        logEvent(next, 'user_prompt_edit_start')
-        if (next.runtime.auto_prompt_view_started) {
-          logEvent(next, 'auto_prompt_view_end')
-          next.runtime.auto_prompt_view_started = false
-        }
+        const previous = [...next.text_versions].reverse().find((item) => item.task_id === currentTask(next)?.task_id && item.text_type !== 'auto')
+        logEvent(next, 'user_prompt_edit_start', {
+          previous_user_prompt: previous?.text ?? next.runtime.draft_text,
+          source_auto_prompt_id: next.runtime.auto_prompt_id,
+        })
+        closeAutoPromptView(next)
       }
       next.runtime.draft_text = value
     })
@@ -599,9 +666,15 @@ function ParticipantFlow({
     changeTimer.current = window.setTimeout(() => {
       const latest = getSession(session.participant_id)
       if (!latest) return
-      const sketchStage = currentTask(latest) && stageHasSketch(currentTask(latest)!.stage) && latest.runtime.round >= 1
+      const sketchStage = currentTask(latest)?.auto_prompt_enabled && latest.runtime.round >= 1
+      const previous = [...latest.text_versions]
+        .reverse()
+        .find((item) => item.task_id === currentTask(latest)?.task_id && item.text_type !== 'auto')
       logEvent(latest, sketchStage ? 'user_prompt_change' : 'text_change', {
         text_length: latest.runtime.draft_text.length,
+        previous_user_prompt: previous?.text ?? '',
+        current_user_prompt: latest.runtime.draft_text,
+        source_auto_prompt_id: latest.runtime.auto_prompt_id,
       })
       persist(latest)
     }, 800)
@@ -640,7 +713,7 @@ function ParticipantFlow({
   }
 
   const generating = session.runtime.step === 'generating'
-  const showSketch = stageHasSketch(task.stage)
+  const showSketch = Boolean(task.sketch_enabled)
   const prompt =
     task.stage === 'T0'
       ? t.observeT0
@@ -684,14 +757,12 @@ function ParticipantFlow({
           onSketchChange={onSketchChange}
           onCopyAuto={() =>
             update((next) => {
-              logEvent(next, 'copy', { source: 'auto_prompt', text_length: next.runtime.auto_prompt.length })
+              recordCopyEvent(next, 'auto_prompt', next.runtime.auto_prompt)
             })
           }
           onPasteUser={(pasted) =>
             update((next) => {
-              const fromAuto = pastedFromAuto(next.runtime.auto_prompt, pasted)
-              logEvent(next, 'paste', { text_length: pasted.length, from_auto: fromAuto })
-              if (fromAuto) logEvent(next, 'paste_from_auto_prompt', { text_length: pasted.length })
+              recordPasteEvent(next, pasted, pastedFromAuto(next.runtime.auto_prompt, pasted))
             })
           }
           onSelect={(id) =>
@@ -835,6 +906,53 @@ function GeneratedImage({ trialId }: { trialId: string }) {
   }, [trialId])
   if (!src) return <div className="empty-sketch">{t.loadingGenerated}</div>
   return <img className="generated" src={src} alt="" />
+}
+
+function SelfReport({
+  session,
+  onChange,
+  onRestart,
+  onSubmit,
+  onSessionChange,
+}: {
+  session: Session
+  onChange: (selfAlignment: number | null, resultAlignment: number | null) => void
+  onRestart: () => void
+  onSubmit: () => void
+  onSessionChange: (session: Session) => void
+}) {
+  const { t } = useI18n()
+  const task = currentTask(session)
+  const ready = Boolean(task?.self_alignment_rating && task?.result_alignment_rating)
+  return (
+    <SessionChrome
+      session={session}
+      title={t.selfReportTitle}
+      extra={session.participant_id}
+      onSessionChange={onSessionChange}
+    >
+      <main className="page">
+        <Likert
+          label={t.selfAlignment}
+          hint={t.selfAlignmentHint}
+          value={task?.self_alignment_rating ?? null}
+          onChange={(n) => onChange(n, task?.result_alignment_rating ?? null)}
+        />
+        <Likert
+          label={t.resultAlignment}
+          hint={t.resultAlignmentHint}
+          value={task?.result_alignment_rating ?? null}
+          onChange={(n) => onChange(task?.self_alignment_rating ?? null, n)}
+        />
+      </main>
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <Button onClick={onRestart}>{t.startOver}</Button>
+        <Button fill disabled={!ready} onClick={onSubmit}>
+          {t.continue}
+        </Button>
+      </FooterBar>
+    </SessionChrome>
+  )
 }
 
 function Questionnaire({

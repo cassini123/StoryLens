@@ -12,7 +12,7 @@ import {
   withinTaskDelta,
 } from './metrics'
 import { loadStore } from './store'
-import { copyRatio, levenshtein, textSimilarity } from './textCompare'
+import { markExportReadiness } from './validation'
 import type { ExperimentalGroup, IntentCoding, Session, Stage, TaskBlock, TaskRun, Timepoint } from './types'
 
 function csvEscape(value: unknown): string {
@@ -98,6 +98,10 @@ export function participantRows(sessions: Session[]): Record<string, unknown>[] 
     session_id: session.session_id,
     assignment_pattern: session.assignment_pattern,
     experimental_group: session.experimental_group,
+    condition_order: session.condition_order?.join('>') ?? '',
+    task_sequence_version: session.task_sequence_version ?? '',
+    short_session: session.short_session ? 1 : 0,
+    export_ready: session.export_ready ? 1 : 0,
     background: session.demographics.visual_experience,
     AI_familiarity: session.demographics.ai_familiarity,
     cinematography_experience: session.demographics.cinematography_experience,
@@ -115,25 +119,46 @@ export function taskRows(sessions: Session[], codings: IntentCoding[]): Record<s
       const image = getImage(task.image_id)
       const pInitial = codingFor(codings, task.task_id, 'initial')?.precision_total ?? null
       const pFinal = codingFor(codings, task.task_id, 'final')?.precision_total ?? null
+      const measures = measuresForTask(session, task)
       return {
         participant_id: session.participant_id,
         session_id: session.session_id,
         task_id: task.task_id,
         stage: task.stage,
         block: task.block,
-        experimental_group: session.experimental_group,
+        experimental_group: task.experimental_group ?? session.experimental_group,
         image_id: task.image_id,
+        category: image.group,
         group: image.group,
         difficulty: image.difficulty,
+        primary_target: image.primary_target.join('|'),
+        secondary_target: image.secondary_target.join('|'),
+        target_modification_specification: JSON.stringify(image.target_modification_specification ?? image.target_modification ?? {}),
+        ai_enabled: task.ai_enabled ? 1 : 0,
+        sketch_enabled: task.sketch_enabled ? 1 : 0,
+        auto_prompt_enabled: task.auto_prompt_enabled ? 1 : 0,
+        ...measures,
+        number_of_rounds: measures.number_of_rounds,
         round_count: task.rounds.length,
-        satisfied_round: task.satisfied_round ?? '',
+        satisfied_round: measures.round_of_satisfaction ?? '',
+        initial_text_version_id: task.initial_text_version_id,
+        final_text_version_id: task.final_text_version_id,
+        initial_text: task.initial_text,
+        final_text: task.final_text,
+        total_task_time_ms: task.total_task_time_ms ?? measures.task_time ?? '',
+        text_edit_time_ms: task.text_edit_time_ms ?? measures.text_active_edit_time ?? '',
+        generation_wait_time_ms: task.generation_wait_time_ms ?? measures.generation_wait_time ?? '',
+        result_view_time_ms: task.result_view_time_ms ?? measures.result_view_time ?? '',
+        sketch_edit_time_ms: task.sketch_edit_time_ms ?? measures.sketch_edit_time ?? '',
+        auto_prompt_view_time_ms: task.auto_prompt_view_time_ms ?? measures.auto_prompt_view_time ?? '',
+        self_alignment_rating: task.self_alignment_rating ?? '',
+        result_alignment_rating: task.result_alignment_rating ?? '',
         started_at: task.started_at,
         ended_at: task.ended_at,
         P_initial: pInitial ?? '',
         P_final: pFinal ?? '',
         P_norm: codingNorm(codingFor(codings, task.task_id, 'final'), task.image_id) ?? '',
         delta_P: withinTaskDelta(pFinal, pInitial) ?? '',
-        ...measuresForTask(session, task),
       }
     }),
   )
@@ -240,7 +265,12 @@ export function generationRows(sessions: Session[]): Record<string, unknown>[] {
       model_version: item.model_version,
       input_image_id: item.input_image_id,
       input_text: item.input_text,
+      input_text_version_id: item.input_text_version_id,
       input_sketch_snapshot_id: item.input_sketch_snapshot_id,
+      source_sketch_snapshot_id: item.source_sketch_snapshot_id,
+      sketch_sent: item.sketch_sent,
+      api_input: item.api_input,
+      api_payload: JSON.stringify(item.api_payload ?? {}),
       output_image_id: item.output_image_id,
       success: item.success,
       error: item.error,
@@ -250,39 +280,65 @@ export function generationRows(sessions: Session[]): Record<string, unknown>[] {
 
 export function autoPromptRows(sessions: Session[]): Record<string, unknown>[] {
   return sessions.flatMap((session) =>
-    session.tasks.flatMap((task) => {
-      const autos = session.text_versions.filter((item) => item.task_id === task.task_id && item.text_type === 'auto')
-      const users = session.text_versions.filter(
-        (item) => item.task_id === task.task_id && (item.text_type === 'refined' || item.text_type === 'final'),
-      )
-      const rounds = [...new Set([...autos, ...users].map((item) => item.round))].sort((a, b) => a - b)
-      return rounds
-        .map((round) => {
-          const pAuto = [...autos].reverse().find((item) => item.round === round)
-          const pUser = [...users].reverse().find((item) => item.round === round)
-          if (!pAuto && !pUser) return null
-          return {
-            participant_id: session.participant_id,
-            session_id: session.session_id,
-            task_id: task.task_id,
-            stage: task.stage,
-            image_id: task.image_id,
-            round,
-            p_auto: pAuto?.text ?? '',
-            p_auto_id: pAuto?.text_version_id ?? '',
-            p_auto_length: pAuto?.text_length ?? '',
-            p_auto_timestamp: pAuto?.timestamp ?? '',
-            p_user: pUser?.text ?? '',
-            p_user_id: pUser?.text_version_id ?? '',
-            p_user_length: pUser?.text_length ?? '',
-            p_user_timestamp: pUser?.timestamp ?? '',
-            edit_distance: pAuto && pUser ? levenshtein(pAuto.text, pUser.text) : '',
-            text_similarity: pAuto && pUser ? textSimilarity(pAuto.text, pUser.text) : '',
-            copy_ratio: pAuto && pUser ? copyRatio(pAuto.text, pUser.text) : '',
-          }
-        })
-        .filter((row): row is NonNullable<typeof row> => row != null)
-    }),
+    (session.auto_prompts ?? []).map((item) => ({
+      auto_prompt_id: item.auto_prompt_id,
+      participant_id: item.participant_id,
+      session_id: item.session_id,
+      task_id: item.task_id,
+      round: item.round,
+      timestamp: item.timestamp_generated,
+      timestamp_generated: item.timestamp_generated,
+      source_sketch_snapshot_id: item.source_sketch_snapshot_id,
+      auto_prompt: item.auto_prompt,
+      auto_prompt_length: item.auto_prompt_length,
+      user_prompt_before: item.user_prompt_before,
+      user_prompt_after: item.user_prompt_after,
+      user_prompt_version_id: item.user_prompt_version_id,
+      p_auto: item.auto_prompt,
+      p_user: item.user_prompt_after,
+      edit_distance: item.edit_distance ?? '',
+      text_similarity: item.text_similarity ?? '',
+      copy_ratio: item.copy_ratio ?? '',
+      copied_segments: JSON.stringify(item.copied_segments ?? []),
+    })),
+  )
+}
+
+export function textVersionRows(sessions: Session[]): Record<string, unknown>[] {
+  return sessions.flatMap((session) =>
+    session.text_versions.map((item) => ({
+      text_version_id: item.text_version_id,
+      participant_id: item.participant_id,
+      session_id: item.session_id,
+      task_id: item.task_id,
+      stage: item.stage,
+      round: item.round,
+      timestamp: item.timestamp,
+      text: item.text,
+      text_type: item.text_type,
+      previous_text_version_id: item.previous_text_version_id,
+      source: item.source,
+      text_length: item.text_length,
+    })),
+  )
+}
+
+export function selfAlignmentRows(sessions: Session[]): Record<string, unknown>[] {
+  return sessions.flatMap((session) =>
+    session.tasks
+      .filter((task) => task.stage !== 'T0')
+      .map((task) => ({
+        participant_id: session.participant_id,
+        session_id: session.session_id,
+        task_id: task.task_id,
+        stage: task.stage,
+        round: task.satisfied_round ?? task.round,
+        timestamp: task.self_alignment_timestamp,
+        self_alignment_rating: task.self_alignment_rating ?? '',
+        self_alignment_timestamp: task.self_alignment_timestamp,
+        result_alignment_rating: task.result_alignment_rating ?? '',
+        result_alignment_timestamp: task.result_alignment_timestamp,
+      })),
   )
 }
 
@@ -296,6 +352,7 @@ export function interactionRows(sessions: Session[]): Record<string, unknown>[] 
         task_id: action.task_id,
         round: action.round,
         timestamp: action.timestamp,
+        associated_generation_round: action.associated_generation_round,
         action_type: action.action_type,
         target_id: action.target_id,
         before_state: JSON.stringify(action.before_state ?? null),
@@ -386,6 +443,9 @@ export function timelinePayload(session: Session) {
     session_end: session.completed_at,
     assignment_pattern: session.assignment_pattern,
     experimental_group: session.experimental_group,
+    condition_order: session.condition_order,
+    task_sequence_version: session.task_sequence_version,
+    short_session: session.short_session,
     events: session.event_log.map((event) => ({
       timestamp: event.timestamp,
       relative_time_ms: event.relative_time_ms,
@@ -395,6 +455,26 @@ export function timelinePayload(session: Session) {
       event_type: event.event_type,
       payload: event.payload,
     })),
+  }
+}
+
+export function assertExportable(sessions: Session[], requireComplete = true): void {
+  const blocking: string[] = []
+  for (const session of sessions) {
+    const result = markExportReadiness(session)
+    if (requireComplete && !session.completed_at) {
+      blocking.push(`${session.participant_id}: session is not complete`)
+    }
+    if (!result.ok) {
+      blocking.push(
+        `${session.participant_id}: ${result.issues.map((item) => `${item.code}${item.task_id ? `@${item.task_id}` : ''}`).join('; ')}`,
+      )
+    }
+  }
+  if (blocking.length) {
+    const message = `Export is not complete. Fix validation first:\n${blocking.join('\n')}`
+    if (typeof window !== 'undefined') window.alert(message)
+    throw new Error(message)
   }
 }
 
@@ -419,15 +499,35 @@ export function buildExportPayload() {
     generations: generationRows(store.sessions),
     sketch_interactions: interactionRows(store.sessions),
     auto_prompts: autoPromptRows(store.sessions),
+    text_versions: textVersionRows(store.sessions),
+    events: eventLogRows(store.sessions),
+    self_alignment: selfAlignmentRows(store.sessions),
     sketch_snapshots: snapshotPayload(store.sessions),
     expert_ratings: expertRows(store.ratings),
     practice_control: practiceControlAnalysis(store.sessions, store.codings),
     timelines: store.sessions.map(timelinePayload),
+    validations: store.sessions.map((session) => ({
+      participant_id: session.participant_id,
+      ...markExportReadiness(session),
+      export_ready: session.export_ready,
+    })),
   }
 }
 
 export function downloadParticipantCsv(): void {
   download('participants.csv', toCsv(participantRows(loadStore().sessions)), 'text/csv')
+}
+
+export function downloadEventsCsv(): void {
+  download('events.csv', toCsv(eventLogRows(loadStore().sessions)), 'text/csv')
+}
+
+export function downloadTextVersionsCsv(): void {
+  download('text_versions.csv', toCsv(textVersionRows(loadStore().sessions)), 'text/csv')
+}
+
+export function downloadSelfAlignmentCsv(): void {
+  download('self_alignment.csv', toCsv(selfAlignmentRows(loadStore().sessions)), 'text/csv')
 }
 
 export function downloadTaskCsv(): void {
@@ -473,10 +573,18 @@ export function downloadTimelinesJson(): void {
 }
 
 export function downloadFullJson(): void {
+  const sessions = loadStore().sessions.filter((item) => item.completed_at)
+  assertExportable(sessions)
   download('chitest-export.json', JSON.stringify(buildExportPayload(), null, 2), 'application/json')
 }
 
 export async function downloadParticipantPacket(session: Session): Promise<void> {
+  const validation = markExportReadiness(session)
+  if (!validation.ok) {
+    const message = `Export is not complete for ${session.participant_id}:\n${validation.issues.map((item) => item.message).join('\n')}`
+    if (typeof window !== 'undefined') window.alert(message)
+    throw new Error(message)
+  }
   const imageIds = session.generations.map((item) => item.generation_id)
   const images = await getGeneratedImages(imageIds)
   download(
@@ -485,6 +593,8 @@ export async function downloadParticipantPacket(session: Session): Promise<void>
       {
         study: experiment.study.title,
         exported_at: new Date().toISOString(),
+        export_ready: session.export_ready,
+        validation,
         ...timelinePayload(session),
         demographics: session.demographics,
         tasks: session.tasks,
@@ -496,7 +606,12 @@ export async function downloadParticipantPacket(session: Session): Promise<void>
         sketch_snapshots: session.sketch_snapshots,
         sketch_interactions: interactionRows([session]),
         auto_prompts: autoPromptRows([session]),
+        self_alignment: selfAlignmentRows([session]),
         measures: measuresForSession(session),
+        task_measures: session.tasks.map((task) => ({
+          task_id: task.task_id,
+          ...measuresForTask(session, task),
+        })),
       },
       null,
       2,

@@ -27,4 +27,4 @@ Odd participant IDs → scaffold; even IDs → control. Assignment is recorded, 
 
 ## Logging
 
-`chitest.store.v6`. Event timeline, append-only text versions, copy/paste from Auto Prompt, sketch snapshots (process only), generation I/O without sketch input. Primary cross-task metric: **P_norm**.
+`chitest.store.v7`. Session metadata records `experimental_group`, `assignment_pattern`, `condition_order`, `task_sequence_version`. Event timeline, append-only text versions, Auto Prompt records with view start/end, copy/paste, sketch snapshots (process only), generation I/O with `sketch_sent=false`. Secondary self-alignment ratings. Export is blocked if validation fails. Primary cross-task metric: **P_norm**.

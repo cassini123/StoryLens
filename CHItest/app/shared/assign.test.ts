@@ -36,6 +36,13 @@ describe('stratified 7-task assignment', () => {
     ])
   })
 
+  it('keeps executed stages identical to stored condition_order', () => {
+    const scaffold = assignImages(images, 'P001')
+    const control = assignImages(images, 'P002')
+    expect(scaffold.map((item) => item.stage)).toEqual(['T0', 'T1', 'T1', 'T2', 'T2', 'T3', 'T3'])
+    expect(control.map((item) => item.stage)).toEqual(['T0', 'T1', 'T1', 'T1', 'T1', 'T3', 'T3'])
+  })
+
   it('gives control participants T0×1 T1×4 T3×2 and no T2', () => {
     const plan = assignImages(images, 'P002')
     expect(plan).toHaveLength(7)

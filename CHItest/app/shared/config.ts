@@ -1,6 +1,7 @@
 import experimentJson from '../../config/experiment.json'
 import stimuliJson from '../../data/tasks/stimuli.json'
 import targetModsJson from '../../data/tasks/target_modifications.json'
+import { stageCapabilities } from './protocol'
 import type { ExperimentConfig, ImageDef, PrecisionDim, Stage, TaskDef } from './types'
 
 export const experiment = experimentJson as ExperimentConfig
@@ -55,9 +56,13 @@ export function getExpert(expertId: string) {
 }
 
 export function stageHasSketch(stage: Stage): boolean {
-  return stage === 'T2'
+  return stageCapabilities(stage).sketch_enabled
 }
 
 export function stageHasGeneration(stage: Stage): boolean {
-  return stage !== 'T0'
+  return stageCapabilities(stage).ai_enabled
+}
+
+export function stageHasAutoPrompt(stage: Stage): boolean {
+  return stageCapabilities(stage).auto_prompt_enabled
 }

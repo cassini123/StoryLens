@@ -1,12 +1,17 @@
+import { associatedGenerationRound, normalizeSketchActionType } from './protocol'
 import { cloneScene } from './sketch/templates'
 import { nowIso } from './time'
+import { eventCopyRatio, levenshtein, textSimilarity } from './textCompare'
 import type {
+  AutoPromptRecord,
   GenerationRecord,
   Session,
   SketchAction,
   SketchScene,
   SketchSnapshot,
+  SnapshotKind,
   Stage,
+  TextSource,
   TextType,
   TextVersion,
   TimelineEvent,
@@ -57,6 +62,7 @@ export function addTextVersion(
   text: string,
   textType: TextType,
   previousId = '',
+  source: TextSource = textType === 'auto' ? 'system' : 'user',
 ): TextVersion {
   const task = currentTask(session)
   if (!task) throw new Error('No active task for text version')
@@ -71,6 +77,7 @@ export function addTextVersion(
     text,
     text_type: textType,
     previous_text_version_id: previousId,
+    source,
     text_length: text.length,
   }
   session.text_versions.push(version)
@@ -81,7 +88,7 @@ export function addSketchSnapshot(
   session: Session,
   scene: SketchScene,
   svg: string,
-  kind: SketchSnapshot['kind'],
+  kind: SnapshotKind,
 ): SketchSnapshot {
   const task = currentTask(session)
   if (!task) throw new Error('No active task for sketch snapshot')
@@ -110,28 +117,35 @@ export function addSketchAction(
 ): SketchAction {
   const task = currentTask(session)
   if (!task) throw new Error('No active task for sketch action')
+  const normalized = normalizeSketchActionType(actionType)
+  const associated = associatedGenerationRound(session.runtime.round)
   const action: SketchAction = {
     sketch_event_id: nextSeq(session, 'sa'),
     participant_id: session.participant_id,
     session_id: session.session_id,
     task_id: task.task_id,
     round: session.runtime.round,
+    associated_generation_round: associated,
     timestamp: nowIso(),
-    action_type: actionType,
+    action_type: normalized,
     target_id: targetId,
     before_state: beforeState,
     after_state: afterState,
   }
   task.sketch_actions.push(action)
-  logEvent(session, `sketch_${actionType}`, {
+  logEvent(session, `sketch_${normalized}`, {
     target_id: targetId,
     before_state: beforeState,
     after_state: afterState,
+    associated_generation_round: associated,
   })
   return action
 }
 
-export function addGeneration(session: Session, record: Omit<GenerationRecord, 'generation_id' | 'participant_id' | 'session_id'>): GenerationRecord {
+export function addGeneration(
+  session: Session,
+  record: Omit<GenerationRecord, 'generation_id' | 'participant_id' | 'session_id'>,
+): GenerationRecord {
   const generation: GenerationRecord = {
     ...record,
     generation_id: nextSeq(session, 'gen'),
@@ -140,6 +154,155 @@ export function addGeneration(session: Session, record: Omit<GenerationRecord, '
   }
   session.generations.push(generation)
   return generation
+}
+
+export function closeAutoPromptView(session: Session, extra: Record<string, unknown> = {}): void {
+  if (!session.runtime.auto_prompt_view_started) return
+  const start = [...session.event_log]
+    .reverse()
+    .find((item) => item.event_type === 'auto_prompt_view_start' && item.task_id === currentTask(session)?.task_id)
+  const timestamp = nowIso()
+  const viewTime = start ? Math.max(0, relativeMs(session, timestamp) - start.relative_time_ms) : 0
+  logEvent(session, 'auto_prompt_view_end', {
+    auto_prompt_id: session.runtime.auto_prompt_id,
+    view_id: session.runtime.auto_prompt_view_id,
+    auto_prompt_view_time_ms: viewTime,
+    ...extra,
+  })
+  session.runtime.auto_prompt_view_started = false
+  session.runtime.auto_prompt_view_id = ''
+}
+
+export function openAutoPromptView(session: Session, extra: Record<string, unknown> = {}): void {
+  if (session.runtime.auto_prompt_view_started) closeAutoPromptView(session)
+  session.runtime.auto_prompt_view_started = true
+  session.runtime.auto_prompt_view_id = nextSeq(session, 'apv')
+  logEvent(session, 'auto_prompt_view_start', {
+    auto_prompt_id: session.runtime.auto_prompt_id,
+    text_version_id: session.runtime.auto_prompt_id,
+    view_id: session.runtime.auto_prompt_view_id,
+    ...extra,
+  })
+}
+
+export function closeResultView(session: Session): void {
+  if (!session.runtime.result_viewing) return
+  logEvent(session, 'result_view_end')
+  logEvent(session, 'generated_image_view_end')
+  session.runtime.result_viewing = false
+}
+
+export function openResultView(session: Session): void {
+  closeResultView(session)
+  session.runtime.result_viewing = true
+  logEvent(session, 'generated_image_view')
+  logEvent(session, 'generated_image_view_start')
+  logEvent(session, 'result_view_start')
+}
+
+export function closeSketchEdit(session: Session): void {
+  if (!session.runtime.sketch_editing) return
+  session.runtime.sketch_editing = false
+  logEvent(session, 'sketch_edit_end')
+}
+
+export function closeTextEdit(session: Session): void {
+  if (session.runtime.user_prompt_started) {
+    logEvent(session, 'user_prompt_edit_end')
+    session.runtime.user_prompt_started = false
+  }
+  if (session.runtime.text_started) {
+    logEvent(session, 'text_edit_end')
+    session.runtime.text_started = false
+  }
+}
+
+export function recordCopyEvent(
+  session: Session,
+  source: 'auto_prompt' | 'user_prompt' | 'external',
+  text: string,
+): void {
+  logEvent(session, 'copy', { source, text_length: text.length })
+  logEvent(session, 'copy_event', {
+    source,
+    target: source === 'auto_prompt' ? 'clipboard' : 'clipboard',
+    copied_text_length: text.length,
+    timestamp: nowIso(),
+  })
+}
+
+export function recordPasteEvent(
+  session: Session,
+  pasted: string,
+  fromAuto: boolean,
+): void {
+  const source = fromAuto ? 'auto_prompt' : 'external'
+  logEvent(session, 'paste', { text_length: pasted.length, from_auto: fromAuto, source })
+  logEvent(session, 'paste_event', {
+    source,
+    target: 'user_prompt',
+    copied_text_length: fromAuto ? pasted.length : 0,
+    paste_length: pasted.length,
+    timestamp: nowIso(),
+  })
+  if (fromAuto) {
+    session.runtime.copied_from_auto.push(pasted)
+    logEvent(session, 'paste_from_auto_prompt', { text_length: pasted.length })
+    const open = openAutoPrompt(session)
+    if (open) open.copied_segments.push(pasted)
+  }
+}
+
+function openAutoPrompt(session: Session): AutoPromptRecord | undefined {
+  return [...session.auto_prompts].reverse().find((item) => item.auto_prompt_id === session.runtime.auto_prompt_id)
+}
+
+export function createAutoPromptRecord(
+  session: Session,
+  text: string,
+  snapshotId: string,
+  userPromptBefore: string,
+): AutoPromptRecord {
+  const task = currentTask(session)
+  if (!task) throw new Error('No active task for auto prompt')
+  const record: AutoPromptRecord = {
+    auto_prompt_id: nextSeq(session, 'ap'),
+    participant_id: session.participant_id,
+    session_id: session.session_id,
+    task_id: task.task_id,
+    round: associatedGenerationRound(session.runtime.round),
+    timestamp_generated: nowIso(),
+    source_sketch_snapshot_id: snapshotId,
+    auto_prompt: text,
+    auto_prompt_length: text.length,
+    user_prompt_before: userPromptBefore,
+    user_prompt_after: '',
+    user_prompt_version_id: '',
+    edit_distance: null,
+    text_similarity: null,
+    copy_ratio: null,
+    copied_segments: [],
+  }
+  session.auto_prompts.push(record)
+  session.runtime.auto_prompt_id = record.auto_prompt_id
+  return record
+}
+
+export function finalizeAutoPrompts(
+  session: Session,
+  userText: string,
+  userVersionId: string,
+): void {
+  const task = currentTask(session)
+  if (!task) return
+  const open = session.auto_prompts.filter((item) => item.task_id === task.task_id && !item.user_prompt_after)
+  for (const record of open) {
+    record.user_prompt_after = userText
+    record.user_prompt_version_id = userVersionId
+    record.edit_distance = levenshtein(record.auto_prompt, userText)
+    record.text_similarity = textSimilarity(record.auto_prompt, userText)
+    record.copy_ratio = eventCopyRatio(record.copied_segments, userText)
+  }
 }
 
 export function replaceTask(session: Session, task: TaskRunLike): Session {

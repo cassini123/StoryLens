@@ -22,7 +22,13 @@ export interface SessionProgress {
 const DEFAULT_COUNTS: Record<Stage, number> = { T0: 1, T1: 2, T2: 2, T3: 2 }
 
 function inTaskStep(step: string): boolean {
-  return step === 'describe' || step === 'sketch_edit' || step === 'generating' || step === 'review'
+  return (
+    step === 'describe' ||
+    step === 'sketch_edit' ||
+    step === 'generating' ||
+    step === 'review' ||
+    step === 'self_report'
+  )
 }
 
 export function sessionProgress(session: Session | null): SessionProgress {

@@ -1,17 +1,20 @@
 import { assignImages, groupForParticipant, nextParticipantId, patternForParticipant, shortPlan } from './assign'
 import { experiment, images } from './config'
-import type { PlannedTask } from './types'
+import { conditionOrderFor } from './protocol'
+import type { ExperimentalGroup, PlannedTask } from './types'
 
-function shortSession(): boolean {
+export function isShortSession(): boolean {
   if (experiment.debug_short_session) return true
   if (typeof window === 'undefined') return false
   return /(?:\?|&)short=1\b/.test(window.location.hash)
 }
 
-export function buildTaskPlan(participantId = 'P000'): PlannedTask[] {
-  const group = groupForParticipant(participantId)
+export function buildTaskPlan(
+  participantId = 'P000',
+  group: ExperimentalGroup = groupForParticipant(participantId),
+): PlannedTask[] {
   const plan = assignImages(images, participantId, patternForParticipant(participantId), group)
-  return shortSession() ? shortPlan(plan) : plan
+  return isShortSession() ? shortPlan(plan) : plan
 }
 
-export { groupForParticipant, nextParticipantId, patternForParticipant }
+export { conditionOrderFor, groupForParticipant, nextParticipantId, patternForParticipant }

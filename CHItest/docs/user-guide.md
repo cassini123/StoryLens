@@ -23,7 +23,7 @@ npm run dev
 | `#/coding` | 研究者按 active dimensions 编码；主指标 P_norm |
 | `#/export` | event_log / auto_prompts / practice_control 等 |
 
-数据在当前浏览器。存储键 `chitest.store.v6`，旧进度不会自动接上。
+数据在当前浏览器。存储键 `chitest.store.v7`，旧进度（含 P001 试跑）不会自动接上，也不当作正式结果。
 
 ---
 
@@ -48,7 +48,7 @@ npm run dev
 
 **T3** 新图，纯文字，与 T1 相同。无草图、无自动描述。
 
-随时可以 **满意，下一题**。
+随时可以 **满意，下一题**。T1/T2/T3 结束前有两道 1–7 自评（最终表达是否符合本意、生成结果是否符合本意），只作次要分析。
 
 ---
 

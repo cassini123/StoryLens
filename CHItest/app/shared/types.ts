@@ -21,6 +21,8 @@ export const PRECISION_DIMS: PrecisionDim[] = [
 export const STAGES: Stage[] = ['T0', 'T1', 'T2', 'T3']
 export const MAX_ROUNDS = 3
 
+export const TASK_SEQUENCE_VERSION = 'formal-between-v1'
+
 export const STAGE_SEQUENCE: Record<ExperimentalGroup, Stage[]> = {
   scaffold: ['T0', 'T1', 'T1', 'T2', 'T2', 'T3', 'T3'],
   control: ['T0', 'T1', 'T1', 'T1', 'T1', 'T3', 'T3'],
@@ -31,6 +33,34 @@ export const BLOCK_SEQUENCE: Record<ExperimentalGroup, TaskBlock[]> = {
   control: ['baseline', 'early', 'early', 'middle', 'middle', 'transfer', 'transfer'],
 }
 
+export const SKETCH_ACTION_TYPES = [
+  'move',
+  'move_object',
+  'add',
+  'delete',
+  'rotate',
+  'resize',
+  'change_direction',
+  'change_gaze',
+  'change_layer',
+  'change_distance',
+  'camera_move',
+  'camera_rotate',
+] as const
+
+export type SketchActionType = (typeof SKETCH_ACTION_TYPES)[number]
+
+export type SnapshotKind =
+  | 'initial'
+  | 'before'
+  | 'after'
+  | 'generation'
+  | 'pre_auto_prompt'
+  | 'post_user_revision'
+
+export type TextSource = 'user' | 'system'
+export type ApiInput = 'image+text'
+
 export type ParticipantStep =
   | 'setup'
   | 'intro'
@@ -38,6 +68,7 @@ export type ParticipantStep =
   | 'sketch_edit'
   | 'generating'
   | 'review'
+  | 'self_report'
   | 'questionnaire'
   | 'complete'
 
@@ -189,6 +220,7 @@ export interface SketchAction {
   session_id: string
   task_id: string
   round: number
+  associated_generation_round: number
   timestamp: string
   action_type: string
   target_id: string
@@ -214,7 +246,7 @@ export interface SketchSnapshot {
   task_id: string
   stage: Stage
   round: number
-  kind: 'before' | 'after' | 'generation' | 'initial'
+  kind: SnapshotKind
   timestamp: string
   scene: SketchScene
   svg: string
@@ -255,6 +287,7 @@ export interface TextVersion {
   text: string
   text_type: TextType
   previous_text_version_id: string
+  source: TextSource
   text_length: number
 }
 
@@ -274,6 +307,10 @@ export interface GenerationRecord {
   input_text: string
   input_text_version_id: string
   input_sketch_snapshot_id: string
+  source_sketch_snapshot_id: string
+  sketch_sent: boolean
+  api_input: ApiInput
+  api_payload: Record<string, unknown>
   output_image_id: string
   success: boolean
   error: string
@@ -290,6 +327,36 @@ export interface TaskRound {
   ended_at: string
 }
 
+export interface AutoPromptRecord {
+  auto_prompt_id: string
+  participant_id: string
+  session_id: string
+  task_id: string
+  round: number
+  timestamp_generated: string
+  source_sketch_snapshot_id: string
+  auto_prompt: string
+  auto_prompt_length: number
+  user_prompt_before: string
+  user_prompt_after: string
+  user_prompt_version_id: string
+  edit_distance: number | null
+  text_similarity: number | null
+  copy_ratio: number | null
+  copied_segments: string[]
+}
+
+export interface ValidationIssue {
+  code: string
+  task_id?: string
+  message: string
+}
+
+export interface ValidationResult {
+  ok: boolean
+  issues: ValidationIssue[]
+}
+
 export interface TaskRun {
   participant_id: string
   session_id: string
@@ -297,13 +364,33 @@ export interface TaskRun {
   image_id: string
   stage: Stage
   block: TaskBlock
+  experimental_group: ExperimentalGroup
+  ai_enabled: boolean
+  sketch_enabled: boolean
+  auto_prompt_enabled: boolean
   round: number
   rounds: TaskRound[]
   initial_text_version_id: string
   final_text_version_id: string
+  initial_text: string
+  final_text: string
   satisfied_round: number | null
   started_at: string
   ended_at: string
+  self_alignment_rating: number | null
+  self_alignment_timestamp: string
+  result_alignment_rating: number | null
+  result_alignment_timestamp: string
+  generation_count: number
+  generation_success_count: number
+  total_task_time_ms: number | null
+  text_edit_time_ms: number | null
+  generation_wait_time_ms: number | null
+  result_view_time_ms: number | null
+  sketch_edit_time_ms: number | null
+  auto_prompt_view_time_ms: number | null
+  total_sketch_actions: number
+  copy_ratio: number | null
   sketch_actions: SketchAction[]
 }
 
@@ -325,6 +412,8 @@ export interface SessionRuntime {
   auto_prompt_id: string
   user_prompt_started: boolean
   auto_prompt_view_started: boolean
+  auto_prompt_view_id: string
+  copied_from_auto: string[]
   working_scene: SketchScene | null
   baseline_scene: SketchScene | null
   generate_error: string
@@ -332,6 +421,7 @@ export interface SessionRuntime {
   last_output_image_id: string
   text_started: boolean
   sketch_editing: boolean
+  result_viewing: boolean
 }
 
 export interface Session {
@@ -339,15 +429,21 @@ export interface Session {
   session_id: string
   assignment_pattern: AssignmentPattern
   experimental_group: ExperimentalGroup
+  condition_order: Stage[]
+  task_sequence_version: string
+  short_session: boolean
   demographics: Demographics
   tasks: TaskRun[]
   event_log: TimelineEvent[]
   text_versions: TextVersion[]
   generations: GenerationRecord[]
   sketch_snapshots: SketchSnapshot[]
+  auto_prompts: AutoPromptRecord[]
   subjective: SubjectiveRatings | null
   started_at: string
   completed_at: string | null
+  export_ready: boolean
+  validation: ValidationResult | null
   runtime: SessionRuntime
   seq: number
 }
@@ -409,9 +505,11 @@ export interface BehavioralMeasures {
   total_session_time: number | null
   task_time: number | null
   text_writing_time: number | null
+  text_active_edit_time: number | null
   generation_wait_time: number | null
   sketch_edit_time: number | null
   auto_prompt_view_time: number | null
+  auto_prompt_view_time_ms: number | null
   prompt_refinement_time: number | null
   result_view_time: number | null
   time_between_rounds: number | null
@@ -432,6 +530,7 @@ export interface BehavioralMeasures {
   average_generation_latency: number | null
   round_of_satisfaction: number | null
   time_to_satisfaction: number | null
+  copy_ratio: number | null
 }
 
 export interface StoreShape {

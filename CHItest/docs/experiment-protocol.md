@@ -21,7 +21,7 @@ Current visual state
 
 ## Between-subject groups
 
-Assignment is deterministic from participant ID (odd = scaffold, even = control) and is stored as `experimental_group`. Participants never see the group name.
+Assignment is deterministic from participant ID (odd = scaffold, even = control). Session metadata stores `experimental_group`, `assignment_pattern`, `condition_order`, and `task_sequence_version` (`formal-between-v1`). Do not infer group from `task_id`. Participants never see the group name.
 
 | Group | 7 tasks | Middle block |
 | --- | --- | --- |
@@ -86,4 +86,6 @@ Text versions are append-only (`initial` / `auto` / `refined` / `final`). Genera
 
 Export: participants, tasks, event_log, intents, generations, sketch_interactions, sketch_snapshots, auto_prompts (with edit distance / similarity / copy ratio), expert_ratings, full_session_timeline.json. Full JSON also includes `practice_control`.
 
-Local store key: `chitest.store.v6`.
+Local store key: `chitest.store.v7`. Pilot sessions on v6 (including P001) are instrumentation only and are not migrated.
+
+Export is blocked when validation fails (`export_ready=false`). Official tables: participants, tasks, events, text_versions, generations, sketch_interactions, sketch_snapshots, auto_prompts, expert_ratings, self_alignment, full_session_timeline.

@@ -1,5 +1,6 @@
 import {
   downloadEventLogCsv,
+  downloadEventsCsv,
   downloadExpertRatingsCsv,
   downloadFullJson,
   downloadGenerationsCsv,
@@ -7,9 +8,11 @@ import {
   downloadAutoPromptsCsv,
   downloadParticipantCsv,
   downloadParticipantPacket,
+  downloadSelfAlignmentCsv,
   downloadSketchInteractionsCsv,
   downloadSketchSnapshotsJson,
   downloadTaskCsv,
+  downloadTextVersionsCsv,
   downloadTimelinesJson,
 } from '../shared/export'
 import { clearAllData, loadStore } from '../shared/store'
@@ -35,6 +38,9 @@ export function ExportApp() {
           <Button onClick={downloadParticipantCsv}>Download participants.csv</Button>
           <Button onClick={downloadTaskCsv}>Download tasks.csv</Button>
           <Button onClick={downloadEventLogCsv}>Download event_log.csv</Button>
+          <Button onClick={downloadEventsCsv}>Download events.csv</Button>
+          <Button onClick={downloadTextVersionsCsv}>Download text_versions.csv</Button>
+          <Button onClick={downloadSelfAlignmentCsv}>Download self_alignment.csv</Button>
           <Button onClick={downloadIntentCsv}>Download intents.csv</Button>
           <Button onClick={downloadGenerationsCsv}>Download generations.csv</Button>
           <Button onClick={downloadSketchInteractionsCsv}>Download sketch_interactions.csv</Button>
