@@ -1,3 +1,4 @@
+import { cloneScene } from './sketch/templates'
 import { nowIso } from './time'
 import type {
   GenerationRecord,
@@ -93,7 +94,7 @@ export function addSketchSnapshot(
     round: session.runtime.round,
     kind,
     timestamp: nowIso(),
-    scene,
+    scene: cloneScene(scene),
     svg,
   }
   session.sketch_snapshots.push(snapshot)

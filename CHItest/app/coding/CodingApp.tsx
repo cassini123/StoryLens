@@ -30,6 +30,8 @@ function unitsFromTrials(trials: TaskRun[]): Unit[] {
     if (!session) continue
     const initial = textAt(session, trial, 'initial')
     const final = textAt(session, trial, 'final')
+    const auto = [...session.text_versions].reverse().find((item) => item.task_id === trial.task_id && item.text_type === 'auto')
+    if (auto?.text) units.push({ trial, timepoint: 'auto', text: auto.text })
     if (trial.stage !== 'T0' && initial) units.push({ trial, timepoint: 'initial', text: initial })
     if (final) units.push({ trial, timepoint: 'final', text: final })
   }
@@ -49,8 +51,9 @@ export function CodingApp() {
       <Shell title="Researcher coding" subtitle="Intent Precision 0–18">
         <main className="page">
           <p className="lead">
-            Code each description on six dimensions (0–18). Do not score length, jargon, or writing quality.
-            Condition is hidden.
+            Code each description on the image’s active dimensions only (0–3 each). Score whether the
+            text expresses that task’s intended modification — not whether it matches the still, uses
+            jargon, or is long. Condition is hidden.
           </p>
           <label className="field">
             <span>Coder ID</span>
@@ -117,25 +120,42 @@ function CodingForm({
   onSubmit: () => void
 }) {
   const image = getImage(unit.trial.image_id)
+  const active = image.target_dimensions.length ? image.target_dimensions : PRECISION_DIMS
   const [precision, setPrecision] = useState<PrecisionScores>(emptyPrecision)
   const [naturalness, setNaturalness] = useState<number | null>(null)
   const [copying, setCopying] = useState<number | null>(null)
-  const ready = precisionComplete(precision)
-  const total = precisionTotal(precision)
+  const ready = precisionComplete(precision, active)
+  const total = precisionTotal(precision, active)
+  const maxTotal = active.length * 3
 
   return (
     <Shell title="Researcher coding" subtitle={unit.timepoint} meta={`${done} done · ${remaining} left`}>
       <main className="eval">
         <section className="materials">
-          <h2>Picture</h2>
+          <h2>Picture (current visual state)</h2>
           <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
-          <h2>Description</h2>
+          <h2>Target modification</h2>
+          <p className="hint">
+            Score whether this description expresses the intended change below. Do not score
+            similarity to the still. Inactive dimensions are omitted.
+          </p>
+          {image.current_visual_state ? <p>{image.current_visual_state}</p> : null}
+          {image.target_modification ? (
+            <ul>
+              {Object.entries(image.target_modification).map(([key, value]) => (
+                <li key={key}>
+                  <strong>{key}:</strong> {value}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <h2>Description ({unit.timepoint})</h2>
           <pre className="intent-block">{unit.text || '—'}</pre>
         </section>
         <section className="scores">
-          <h2>Intent Precision (0–3 each, total {total ?? '—'} / 18)</h2>
-          <p className="hint">0 absent · 1 vague · 2 partial · 3 clear and executable</p>
-          {PRECISION_DIMS.map((dim) => (
+          <h2>Intent Precision (0–3 each, total {total ?? '—'} / {maxTotal})</h2>
+          <p className="hint">0 absent · 1 mentioned but vague · 2 core change is clear · 3 precise enough to execute. Active: {active.join(', ')}</p>
+          {active.map((dim) => (
             <DimScale
               key={dim}
               label={dim}
@@ -175,7 +195,7 @@ function CodingForm({
               timepoint: unit.timepoint,
               coder_id: coderId,
               precision,
-              precision_total: precisionTotal(precision),
+              precision_total: precisionTotal(precision, active),
               naturalness: unit.timepoint === 'final' ? naturalness : null,
               copying: unit.timepoint === 'final' ? copying : null,
               coded_at: nowIso(),

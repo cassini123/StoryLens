@@ -15,6 +15,7 @@ import { generateSketch } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
 import { cloneScene } from '../shared/sketch/templates'
+import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
 import { buildTaskPlan, nextParticipantId, patternForParticipant } from '../shared/schedule'
 import { downloadParticipantPacket } from '../shared/export'
 import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
@@ -34,7 +35,7 @@ import type {
 } from '../shared/types'
 import { MAX_ROUNDS } from '../shared/types'
 import { SessionChrome } from '../shared/SessionChrome'
-import { useI18n } from '../shared/i18n'
+import { useI18n, type Locale } from '../shared/i18n'
 import { Button, Field, FooterBar, Likert } from '../shared/ui'
 
 const emptyDemo: Demographics = {
@@ -55,7 +56,12 @@ function emptyRuntime(): SessionRuntime {
     task_index: 0,
     round: 0,
     draft_text: '',
+    auto_prompt: '',
+    auto_prompt_id: '',
+    user_prompt_started: false,
+    auto_prompt_view_started: false,
     working_scene: null,
+    baseline_scene: null,
     generate_error: '',
     selected_node_id: null,
     last_output_image_id: '',
@@ -242,8 +248,9 @@ function ParticipantFlow({
   session: Session
   setSession: (session: Session | null) => void
 }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const changeTimer = useRef<number | null>(null)
+  const sketchTimer = useRef<number | null>(null)
 
   function update(mutator: (next: Session) => void) {
     const next = structuredClone(session)
@@ -354,44 +361,106 @@ function ParticipantFlow({
       ? session.runtime.draft_text.trim().length > 0
       : session.generations.some((item) => item.task_id === task.task_id)
 
+  function prepareTask(next: Session, index: number) {
+    next.runtime.task_index = index
+    next.runtime.round = 0
+    next.runtime.draft_text = ''
+    next.runtime.auto_prompt = ''
+    next.runtime.auto_prompt_id = ''
+    next.runtime.user_prompt_started = false
+    next.runtime.auto_prompt_view_started = false
+    next.runtime.working_scene = null
+    next.runtime.baseline_scene = null
+    next.runtime.generate_error = ''
+    next.runtime.selected_node_id = null
+    next.runtime.last_output_image_id = ''
+    next.runtime.text_started = false
+    next.runtime.sketch_editing = false
+    next.runtime.step = 'describe'
+    const active = next.tasks[index]
+    if (active && !active.started_at) active.started_at = nowIso()
+    if (active && stageHasSketch(active.stage)) {
+      const record = generateSketch(active.image_id, '')
+      next.runtime.working_scene = record.output.scene
+      next.runtime.baseline_scene = cloneScene(record.output.scene)
+      const snap = addSketchSnapshot(next, record.output.scene, record.output.svg, 'initial')
+      logEvent(next, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind: 'initial' })
+    }
+    logEvent(next, 'task_start')
+    logEvent(next, `${active.stage}_task_start`)
+    logEvent(next, 'image_view_start')
+  }
+
   function startTask(index: number) {
     update((next) => {
-      next.runtime.task_index = index
-      next.runtime.round = 0
-      next.runtime.draft_text = ''
-      next.runtime.working_scene = null
-      next.runtime.generate_error = ''
-      next.runtime.last_output_image_id = ''
-      next.runtime.text_started = false
-      next.runtime.sketch_editing = false
-      next.runtime.step = 'describe'
-      const active = next.tasks[index]
-      if (active && !active.started_at) active.started_at = nowIso()
-      logEvent(next, 'task_start')
-      logEvent(next, `${active.stage}_task_start`)
-      logEvent(next, 'image_view_start')
+      prepareTask(next, index)
     })
   }
 
   function saveDraftText(next: Session, type: TextType) {
     const text = next.runtime.draft_text.trim()
     const taskNow = currentTask(next)
-    if (!taskNow) return null
+    if (!taskNow || !text) return null
     const previous = [...next.text_versions].reverse().find((item) => item.task_id === taskNow.task_id)
     const version = addTextVersion(next, text, type, previous?.text_version_id || '')
-    if (!taskNow.initial_text_version_id) taskNow.initial_text_version_id = version.text_version_id
-    taskNow.final_text_version_id = version.text_version_id
-    logEvent(next, type === 'initial' ? 'initial_text_submit' : 'text_submit', {
+    if (type === 'initial' && !taskNow.initial_text_version_id) {
+      taskNow.initial_text_version_id = version.text_version_id
+    }
+    if (type !== 'auto') taskNow.final_text_version_id = version.text_version_id
+    const eventType = type === 'initial' ? 'initial_text_submit' : 'text_submit'
+    logEvent(next, eventType, {
+      text_version_id: version.text_version_id,
+      text_length: version.text_length,
+      text_type: type,
+    })
+    if (type === 'refined' && stageHasSketch(taskNow.stage)) {
+      logEvent(next, 'user_prompt_submit', {
+        text_version_id: version.text_version_id,
+        text_length: version.text_length,
+      })
+    }
+    return version
+  }
+
+  function commitAutoPrompt(next: Session, loc: Locale) {
+    const scene = next.runtime.working_scene
+    const active = currentTask(next)
+    if (!scene || next.runtime.round < 1 || !active?.sketch_actions.length) return
+    const text = sceneToAutoPrompt(scene, loc, next.runtime.baseline_scene)
+    if (!text || text === next.runtime.auto_prompt) return
+    next.runtime.auto_prompt = text
+    const taskNow = currentTask(next)
+    const previous = [...next.text_versions]
+      .reverse()
+      .find((item) => item.task_id === taskNow?.task_id && item.text_type === 'auto')
+    const version = addTextVersion(next, text, 'auto', previous?.text_version_id || next.runtime.auto_prompt_id)
+    next.runtime.auto_prompt_id = version.text_version_id
+    logEvent(next, 'auto_prompt_generated', {
       text_version_id: version.text_version_id,
       text_length: version.text_length,
     })
-    return version
+    if (!next.runtime.auto_prompt_view_started) {
+      next.runtime.auto_prompt_view_started = true
+      logEvent(next, 'auto_prompt_view_start', { text_version_id: version.text_version_id })
+    }
+    if (!next.runtime.user_prompt_started) {
+      next.runtime.draft_text = text
+    }
   }
 
   function finishTask() {
     update((next) => {
       const active = currentTask(next)
       if (!active) return
+      if (next.runtime.sketch_editing) {
+        next.runtime.sketch_editing = false
+        logEvent(next, 'sketch_edit_end')
+      }
+      if (next.runtime.auto_prompt_view_started) {
+        logEvent(next, 'auto_prompt_view_end')
+        next.runtime.auto_prompt_view_started = false
+      }
+      if (next.runtime.step === 'review') logEvent(next, 'generated_image_view_end')
       if (next.runtime.draft_text.trim()) saveDraftText(next, 'final')
       active.ended_at = nowIso()
       if (stageHasGeneration(active.stage)) {
@@ -400,41 +469,14 @@ function ParticipantFlow({
       }
       logEvent(next, 'image_view_end')
       logEvent(next, 'task_end')
-      logEvent(next, `${active.stage}_task_complete`)
+      logEvent(next, `${active.stage}_task_end`)
       logEvent(next, 'next_task_click')
       const nextIndex = next.runtime.task_index + 1
       if (nextIndex >= next.tasks.length) {
         next.runtime.step = 'questionnaire'
         return
       }
-      next.runtime.task_index = nextIndex
-      next.runtime.round = 0
-      next.runtime.draft_text = ''
-      next.runtime.working_scene = null
-      next.runtime.generate_error = ''
-      next.runtime.last_output_image_id = ''
-      next.runtime.text_started = false
-      next.runtime.sketch_editing = false
-      next.runtime.step = 'describe'
-      const upcoming = next.tasks[nextIndex]
-      if (upcoming && !upcoming.started_at) upcoming.started_at = nowIso()
-      logEvent(next, 'task_start')
-      logEvent(next, `${upcoming.stage}_task_start`)
-      logEvent(next, 'image_view_start')
-    })
-  }
-
-  function openSketch() {
-    update((next) => {
-      const active = currentTask(next)
-      if (!active) return
-      saveDraftText(next, 'initial')
-      const record = generateSketch(active.image_id, next.runtime.draft_text)
-      next.runtime.working_scene = record.output.scene
-      const snap = addSketchSnapshot(next, record.output.scene, record.output.svg, 'initial')
-      logEvent(next, 'sketch_open', { snapshot_id: snap.snapshot_id })
-      logEvent(next, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind: 'initial' })
-      next.runtime.step = 'sketch_edit'
+      prepareTask(next, nextIndex)
     })
   }
 
@@ -445,11 +487,22 @@ function ParticipantFlow({
     const active = currentTask(live)
     if (!active) return
     const nextRound = Math.min(MAX_ROUNDS, live.runtime.round + 1)
+    const includeSketch = stageHasSketch(active.stage) && nextRound > 1 && Boolean(live.runtime.working_scene)
+    if (live.runtime.step === 'review') logEvent(live, 'generated_image_view_end')
+    if (live.runtime.sketch_editing) {
+      live.runtime.sketch_editing = false
+      logEvent(live, 'sketch_edit_end')
+    }
     live.runtime.round = nextRound
     active.round = nextRound
     logEvent(live, 'generate_click')
     logEvent(live, 'round_start', { round: nextRound })
-    saveDraftText(live, nextRound === 1 ? 'initial' : 'refined')
+    if (includeSketch) commitAutoPrompt(live, locale)
+    if (nextRound > 1 && stageHasSketch(active.stage)) {
+      saveDraftText(live, 'refined')
+    } else {
+      saveDraftText(live, nextRound === 1 ? 'initial' : 'refined')
+    }
     if (live.runtime.working_scene) {
       addSketchSnapshot(live, live.runtime.working_scene, sceneToSvg(live.runtime.working_scene), 'before')
     }
@@ -460,14 +513,15 @@ function ParticipantFlow({
     persist(live)
     setSession(live)
 
-    const sketchSvg = live.runtime.working_scene ? sceneToSvg(live.runtime.working_scene) : null
-    const sketchSnap = live.runtime.working_scene
-      ? addSketchSnapshot(live, live.runtime.working_scene, sketchSvg || '', 'generation')
-      : null
+    const sketchSvg = includeSketch && live.runtime.working_scene ? sceneToSvg(live.runtime.working_scene) : null
+    const sketchSnap =
+      includeSketch && live.runtime.working_scene
+        ? addSketchSnapshot(live, live.runtime.working_scene, sketchSvg || '', 'generation')
+        : null
     let images: string[] = []
     try {
       const originalUrl = stimulusUrl(getImage(active.image_id).image_path)
-      const composed = await composeConditioning(originalUrl, stageHasSketch(active.stage) ? sketchSvg : null)
+      const composed = await composeConditioning(originalUrl, includeSketch ? sketchSvg : null)
       images = [composed]
     } catch (error) {
       logEvent(live, 'error', { where: 'compose', message: String(error) })
@@ -498,6 +552,8 @@ function ParticipantFlow({
     live.runtime.last_output_image_id = generation.generation_id
     live.runtime.generate_error = result.meta.error
     live.runtime.step = 'review'
+    live.runtime.user_prompt_started = false
+    live.runtime.auto_prompt_view_started = false
     active.rounds.push({
       round: live.runtime.round,
       text_version_id: active.final_text_version_id,
@@ -516,6 +572,9 @@ function ParticipantFlow({
     logEvent(live, 'round_end', { round: live.runtime.round })
     logEvent(live, 'generated_image_view')
     logEvent(live, 'generated_image_view_start')
+    if (stageHasSketch(active.stage) && live.runtime.working_scene) {
+      commitAutoPrompt(live, locale)
+    }
     persist(live)
     setSession(structuredClone(live))
   }
@@ -526,13 +585,25 @@ function ParticipantFlow({
         next.runtime.text_started = true
         logEvent(next, 'text_input_start')
       }
+      const sketchStage = currentTask(next) && stageHasSketch(currentTask(next)!.stage) && next.runtime.round >= 1
+      if (sketchStage && !next.runtime.user_prompt_started && value !== next.runtime.auto_prompt) {
+        next.runtime.user_prompt_started = true
+        logEvent(next, 'user_prompt_edit_start')
+        if (next.runtime.auto_prompt_view_started) {
+          logEvent(next, 'auto_prompt_view_end')
+          next.runtime.auto_prompt_view_started = false
+        }
+      }
       next.runtime.draft_text = value
     })
     if (changeTimer.current) window.clearTimeout(changeTimer.current)
     changeTimer.current = window.setTimeout(() => {
       const latest = getSession(session.participant_id)
       if (!latest) return
-      logEvent(latest, 'text_change', { text_length: latest.runtime.draft_text.length })
+      const sketchStage = currentTask(latest) && stageHasSketch(currentTask(latest)!.stage) && latest.runtime.round >= 1
+      logEvent(latest, sketchStage ? 'user_prompt_change' : 'text_change', {
+        text_length: latest.runtime.draft_text.length,
+      })
       persist(latest)
     }, 800)
   }
@@ -548,11 +619,24 @@ function ParticipantFlow({
         addSketchAction(next, action.action_type || action.action, action.target_id, action.before_state, action.after_state)
       }
     })
+    if (sketchTimer.current) window.clearTimeout(sketchTimer.current)
+    sketchTimer.current = window.setTimeout(() => {
+      const latest = getSession(session.participant_id)
+      if (!latest) return
+      if (latest.runtime.sketch_editing) {
+        latest.runtime.sketch_editing = false
+        logEvent(latest, 'sketch_edit_end')
+      }
+      commitAutoPrompt(latest, locale)
+      persist(latest)
+      setSession(structuredClone(latest))
+    }, 500)
   }
 
   const generating = session.runtime.step === 'generating'
-  const showSketch = stageHasSketch(task.stage) && Boolean(session.runtime.working_scene)
-  const prompt = session.runtime.step === 'review' ? t.refine : t.observe
+  const showSketch = stageHasSketch(task.stage)
+  const prompt =
+    task.stage === 'T0' ? t.observeT0 : session.runtime.step === 'review' ? t.refine : t.observeAdjust
 
   return (
     <SessionChrome
@@ -571,12 +655,17 @@ function ParticipantFlow({
           stage={task.stage}
           round={session.runtime.round}
           text={session.runtime.draft_text}
+          autoPrompt={session.runtime.auto_prompt}
           prompt={prompt}
           scene={session.runtime.working_scene}
           showSketch={showSketch}
           lastGenerationId={lastGen?.generation_id || session.runtime.last_output_image_id}
           generateError={session.runtime.generate_error}
-          onTextFocus={() => update((next) => { logEvent(next, 'text_focus') })}
+          onTextFocus={() =>
+            update((next) => {
+              logEvent(next, 'text_focus')
+            })
+          }
           onTextChange={onTextChange}
           onSketchChange={onSketchChange}
           onSelect={(id) =>
@@ -595,19 +684,10 @@ function ParticipantFlow({
               {t.submit}
             </Button>
           ) : null}
-          {task.stage !== 'T0' && session.runtime.step === 'describe' && stageHasSketch(task.stage) ? (
-            <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={openSketch}>
-              {t.continue}
-            </Button>
-          ) : null}
-          {task.stage !== 'T0' && session.runtime.step === 'describe' && !stageHasSketch(task.stage) ? (
-            <Button fill disabled={session.runtime.draft_text.trim().length === 0 || !canGenerate} onClick={() => void runGenerate()}>
-              {t.generate}
-            </Button>
-          ) : null}
-          {(session.runtime.step === 'sketch_edit' || session.runtime.step === 'review') && canGenerate ? (
+          {task.stage !== 'T0' && canGenerate ? (
             <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={() => void runGenerate()}>
-              {t.generate}{session.runtime.round > 0 ? ` (${session.runtime.round}/${MAX_ROUNDS})` : ''}
+              {t.generate}
+              {session.runtime.round > 0 ? ` (${session.runtime.round}/${MAX_ROUNDS})` : ''}
             </Button>
           ) : null}
           {task.stage !== 'T0' && canSatisfy ? (
@@ -624,6 +704,7 @@ function TaskWorkspace({
   stage,
   round,
   text,
+  autoPrompt,
   prompt,
   scene,
   showSketch,
@@ -638,6 +719,7 @@ function TaskWorkspace({
   stage: TaskRun['stage']
   round: number
   text: string
+  autoPrompt: string
   prompt: string
   scene: SketchScene | null
   showSketch: boolean
@@ -649,17 +731,22 @@ function TaskWorkspace({
   onSelect: (id: string | null) => void
 }) {
   const columns = stage === 'T0' ? 'workspace-t0' : showSketch ? 'workspace-t2' : 'workspace-t1'
+  const splitPrompt = showSketch && round >= 1
   const { t, format } = useI18n()
   return (
     <main className={`workspace ${columns}`}>
       <section>
-        <h2>{t.original}</h2>
+        <h2>{t.currentImage}</h2>
         <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
       </section>
-      {showSketch && scene ? (
+      {showSketch ? (
         <section>
           <h2>{t.sketch}</h2>
-          <SceneEditor scene={scene} onChange={onSketchChange} onSelect={onSelect} />
+          {scene ? (
+            <SceneEditor scene={scene} onChange={onSketchChange} onSelect={onSelect} />
+          ) : (
+            <div className="empty-sketch">{t.sketch}</div>
+          )}
         </section>
       ) : null}
       {stage !== 'T0' ? (
@@ -674,16 +761,26 @@ function TaskWorkspace({
           {round > 0 ? <p className="hint">{format(t.round, { n: round, max: MAX_ROUNDS })}</p> : null}
         </section>
       ) : null}
-      <section className="desc-pane">
-        <h2>{t.description}</h2>
-        <p className="hint">{prompt}</p>
-        <textarea
-          value={text}
-          onFocus={onTextFocus}
-          onChange={(e) => onTextChange(e.target.value)}
-          placeholder=""
-        />
-      </section>
+      {splitPrompt ? (
+        <div className="prompt-split">
+          <section>
+            <h2>{t.aiInterpretation}</h2>
+            <p className="hint">{t.autoPromptHint}</p>
+            <div className="auto-prompt">{autoPrompt || t.autoPromptEmpty}</div>
+          </section>
+          <section>
+            <h2>{t.description}</h2>
+            <p className="hint">{prompt}</p>
+            <textarea value={text} onFocus={onTextFocus} onChange={(e) => onTextChange(e.target.value)} />
+          </section>
+        </div>
+      ) : (
+        <section className="desc-pane">
+          <h2>{t.description}</h2>
+          <p className="hint">{prompt}</p>
+          <textarea value={text} onFocus={onTextFocus} onChange={(e) => onTextChange(e.target.value)} />
+        </section>
+      )}
     </main>
   )
 }

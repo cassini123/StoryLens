@@ -1,0 +1,143 @@
+{
+  "E01": {
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    }
+  },
+  "E02": {
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    }
+  },
+  "E03": {
+    "current_visual_state": "书店门口，人物与店面入口的距离和朝向较为固定。",
+    "target_modification": {
+      "spatial": "调整人物相对门口的远近和左右位置",
+      "object": "让店面入口在构图中更清楚地位于人物前方或侧方"
+    }
+  },
+  "E04": {
+    "current_visual_state": "公园长椅上的人物与周围空地的关系较为贴近。",
+    "target_modification": {
+      "spatial": "拉开人物与长椅周围空间的距离，或把人放到椅子更一端",
+      "camera": "摄影机稍微侧移，从斜向观察长椅"
+    }
+  },
+  "E05": {
+    "current_visual_state": "前景与后景层次存在，但前后距离不够清楚。",
+    "target_modification": {
+      "spatial": "加大前景与后景的距离，让前后层次更分开",
+      "camera": "摄影机位置更明确地从前侧或后侧观察纵深"
+    }
+  },
+  "C01": {
+    "current_visual_state": "窗边人物相对靠近，前后层次不够清楚。",
+    "target_modification": {
+      "spatial": "increase distance",
+      "relation": "move character A behind B",
+      "camera": "move to rear-side"
+    }
+  },
+  "C02": {
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    }
+  },
+  "C03": {
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    }
+  },
+  "C04": {
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    }
+  },
+  "A01": {
+    "current_visual_state": "楼梯场景，摄影机位置偏仰、距离较近。",
+    "target_modification": {
+      "camera": "降低或进一步降低机位，从更低的位置向上看楼梯",
+      "spatial": "调整人物在楼梯上的高低位置"
+    }
+  },
+  "A02": {
+    "current_visual_state": "博物馆展墙前，摄影机大致正对墙面。",
+    "target_modification": {
+      "camera": "把摄影机移到侧后方，斜看展墙",
+      "spatial": "让人物离开墙面中心，站到更靠边的位置"
+    }
+  },
+  "A03": {
+    "current_visual_state": "走廊被俯视，人物在地面上显得较小。",
+    "target_modification": {
+      "camera": "降低机位，从接近视线高度或略低处看走廊",
+      "spatial": "让人物在走廊中更靠近镜头或更靠深处"
+    }
+  },
+  "A04": {
+    "current_visual_state": "地铁来车，摄影机与车厢的距离和角度较为正面。",
+    "target_modification": {
+      "camera": "摄影机退远或更侧，从月台斜向看向来车",
+      "spatial": "调整人物相对车门的站位"
+    }
+  },
+  "A05": {
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    }
+  },
+  "D01": {
+    "current_visual_state": "人物被柱子半遮，遮挡程度和前后关系不够明确。",
+    "target_modification": {
+      "object": "加大或明确柱子对人物的遮挡",
+      "spatial": "让人物更明显地位于柱后，而不是与柱子并排"
+    }
+  },
+  "D02": {
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    }
+  },
+  "D03": {
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    }
+  },
+  "D04": {
+    "current_visual_state": "画廊中有人穿过，前景遮挡物不够明确。",
+    "target_modification": {
+      "object": "用前景边框或展墙挡住部分人物",
+      "spatial": "拉开穿过画廊的人物与前景遮挡物的前后距离"
+    }
+  },
+  "D05": {
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    }
+  },
+  "D06": {
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    }
+  }
+}
