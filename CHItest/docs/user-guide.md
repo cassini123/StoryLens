@@ -60,3 +60,9 @@ JIMENG_SECRET_KEY
 ```
 
 T1 将原图作为条件图；T2/T3 将原图与草图拼成条件图后与文字一起提交。生成图是反馈，不是评分对象。
+
+---
+
+## 5. 20 张原图
+
+放到 `CHItest/public/data/tasks/images/`，命名见 `data/tasks/images/README.md`。JPG 或 PNG。现在仓库里是 SVG 占位图。
