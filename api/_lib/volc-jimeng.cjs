@@ -93,16 +93,23 @@ function jimengRequest(action, bodyParams, accessKey, secretKey) {
   })
 }
 
-async function submitTask(prompt, width = 1024, height = 576) {
+async function submitTask(prompt, width = 1664, height = 936) {
   const { accessKey, secretKey } = credentials()
   if (!accessKey || !secretKey) {
     const err = new Error('Jimeng credentials are not configured')
     err.statusCode = 503
     throw err
   }
+  let w = Number(width) || 1664
+  let h = Number(height) || 936
+  if (w * h < 1024 * 1024) {
+    const scale = Math.sqrt((1024 * 1024) / (w * h))
+    w = Math.ceil((w * scale) / 8) * 8
+    h = Math.ceil((h * scale) / 8) * 8
+  }
   const result = await jimengRequest(
     'CVSync2AsyncSubmitTask',
-    { req_key: REQ_KEY, prompt, width, height },
+    { req_key: REQ_KEY, prompt, width: w, height: h },
     accessKey,
     secretKey,
   )

@@ -34,7 +34,7 @@ export async function generateImageFromIntent(
     const submit = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'submit', prompt, width: 1024, height: 576 }),
+      body: JSON.stringify({ action: 'submit', prompt, width: 1664, height: 936 }),
     })
     const submitted = await submit.json()
     if (!submit.ok || submitted.error) {
