@@ -1,18 +1,11 @@
-export type Condition = 'baseline' | 'direct' | 'sketch' | 'transfer'
-export type Phase = 'T1' | 'T2' | 'T3'
-export type Timepoint = 'T1' | 'T2' | 'T3'
+export type Stage = 'T0' | 'T1' | 'T2' | 'T3'
+export type Timepoint = 'initial' | 'final'
+export type TextType = 'initial' | 'refined' | 'final'
 export type PrecisionDim = 'object' | 'spatial' | 'relation' | 'camera' | 'emotion' | 'constraint'
-export type Difficulty = 'L1' | 'L2' | 'L3'
-export type TaskType =
-  | 'character_relation'
-  | 'spatial_position'
-  | 'camera_subject'
-  | 'gaze_attention'
-  | 'movement'
-  | 'foreground_background'
-  | 'occlusion'
-  | 'environment'
-  | 'multi_relation'
+export type Difficulty = 'easy' | 'medium' | 'hard'
+export type StimulusGroup = 'environment' | 'character_space' | 'camera' | 'composition'
+export type ExperienceLevel = 'none' | 'some' | 'frequent'
+export type AssignmentPattern = 'A' | 'B' | 'C'
 
 export const PRECISION_DIMS: PrecisionDim[] = [
   'object',
@@ -23,18 +16,16 @@ export const PRECISION_DIMS: PrecisionDim[] = [
   'constraint',
 ]
 
-export type GroupId = 'direct_first' | 'sketch_first'
-
-export type ExperienceLevel = 'none' | 'some' | 'frequent'
+export const STAGES: Stage[] = ['T0', 'T1', 'T2', 'T3']
+export const MAX_ROUNDS = 3
 
 export type ParticipantStep =
   | 'setup'
   | 'intro'
-  | 'show_image'
-  | 'initial_intent'
+  | 'describe'
+  | 'sketch_edit'
   | 'generating'
-  | 'view_feedback'
-  | 'refined_intent'
+  | 'review'
   | 'questionnaire'
   | 'complete'
 
@@ -52,43 +43,27 @@ export interface GroundTruthRelation {
 
 export interface ImageDef {
   image_id: string
-  title: string
-  file: string
+  group: StimulusGroup
   difficulty: Difficulty
-  task_type: TaskType
+  primary_target: PrecisionDim[]
+  secondary_target: PrecisionDim[]
   target_dimensions: PrecisionDim[]
-  brief: string
+  image_path: string
+  title: string
+  source_id: string
   ground_truth: {
     nodes: GroundTruthNode[]
     relations: GroundTruthRelation[]
   }
 }
 
-export interface TaskDef {
-  id: string
-  image_id: string
-  pair: string
-  title: string
-  setting: string
-  core: string[]
-  brief: string
-  file: string
-  difficulty: Difficulty
-  task_type: TaskType
-  required_dimensions: PrecisionDim[]
-  target_dimensions: PrecisionDim[]
-  ground_truth: ImageDef['ground_truth']
-}
+export type TaskDef = ImageDef
 
 export interface ExpertDef {
   expert_id: string
   slug: string
   name: string
   label: string
-}
-
-export interface GroupDef {
-  condition_order: 'direct_first' | 'sketch_first'
 }
 
 export interface ExperimentConfig {
@@ -105,14 +80,10 @@ export interface ExperimentConfig {
     version: string
   }
   experts: ExpertDef[]
-  groups: Record<GroupId, GroupDef>
-  transfer_task_id: string
   prompts: {
     introduction: string
-    t1: string
-    direct_refine: string
-    sketch_refine: string
-    transfer: string
+    observe: string
+    refine: string
     generating: string
     view_image: string
   }
@@ -140,6 +111,7 @@ export interface CameraNode {
   x: number
   y: number
   rotation: number
+  distance: number
 }
 
 export interface SubjectNode {
@@ -184,14 +156,27 @@ export interface SketchScene {
   movements: MovementNode[]
 }
 
-export interface SketchAction {
-  timestamp: number
+export interface SketchEdit {
   action: string
   action_type: string
   target: string
   target_id: string
   from?: unknown
   to?: unknown
+  timestamp: number
+  before_state: unknown
+  after_state: unknown
+}
+
+export interface SketchAction {
+  sketch_event_id: string
+  participant_id: string
+  session_id: string
+  task_id: string
+  round: number
+  timestamp: string
+  action_type: string
+  target_id: string
   before_state: unknown
   after_state: unknown
 }
@@ -207,6 +192,19 @@ export interface SketchRecord {
   }
 }
 
+export interface SketchSnapshot {
+  snapshot_id: string
+  participant_id: string
+  session_id: string
+  task_id: string
+  stage: Stage
+  round: number
+  kind: 'before' | 'after' | 'generation' | 'initial'
+  timestamp: string
+  scene: SketchScene
+  svg: string
+}
+
 export interface GeneratedImageMeta {
   engine: string
   prompt: string
@@ -214,62 +212,86 @@ export interface GeneratedImageMeta {
   jimeng_task_id: string
   status: 'done' | 'failed' | 'placeholder'
   error: string
+  width?: number
+  height?: number
 }
 
-export interface TrialTimestamps {
-  task_start?: string
-  t1_start?: string
-  t1_submit?: string
-  intent_start?: string
-  intent_submit?: string
-  generate_start?: string
-  generate_done?: string
-  sketch_generated?: string
-  sketch_first_interaction?: string
-  sketch_confirm?: string
-  t2_start?: string
-  t2_submit?: string
-  refinement_start?: string
-  refinement_submit?: string
-  t3_start?: string
-  t3_submit?: string
-  trial_end?: string
-}
-
-export interface AuthoredIntent {
-  modification_count: number
-  rejection: boolean
-}
-
-export interface SemanticConfirm {
-  timestamp: string
-  node_id: string
-  relation: string
-}
-
-export interface Trial {
+export interface TimelineEvent {
+  event_id: string
   participant_id: string
-  trial_id: string
+  session_id: string
+  task_id: string
+  stage: Stage | ''
+  round: number | null
+  event_type: string
+  timestamp: string
+  relative_time_ms: number
+  payload: Record<string, unknown>
+}
+
+export interface TextVersion {
+  text_version_id: string
+  participant_id: string
+  session_id: string
+  task_id: string
+  stage: Stage
+  round: number
+  timestamp: string
+  text: string
+  text_type: TextType
+  previous_text_version_id: string
+  text_length: number
+}
+
+export interface GenerationRecord {
+  generation_id: string
+  participant_id: string
+  session_id: string
+  task_id: string
+  stage: Stage
+  round: number
+  timestamp_start: string
+  timestamp_end: string
+  latency_ms: number
+  model: string
+  model_version: string
+  input_image_id: string
+  input_text: string
+  input_text_version_id: string
+  input_sketch_snapshot_id: string
+  output_image_id: string
+  success: boolean
+  error: string
+  meta: GeneratedImageMeta
+}
+
+export interface TaskRound {
+  round: number
+  text_version_id: string
+  generation_id: string
+  sketch_snapshot_before_id: string
+  sketch_snapshot_after_id: string
+  started_at: string
+  ended_at: string
+}
+
+export interface TaskRun {
+  participant_id: string
+  session_id: string
   task_id: string
   image_id: string
-  phase: Phase
-  condition: Condition
-  t1_intent: string
-  t2_intent: string
-  t3_intent: string
-  initial_intent: string
-  initial_intent_timestamp: string
-  refined_intent: string
-  refined_intent_timestamp: string
-  generated_image: GeneratedImageMeta | null
-  initial_sketch: SketchRecord | null
+  stage: Stage
+  round: number
+  rounds: TaskRound[]
+  initial_text_version_id: string
+  final_text_version_id: string
+  satisfied_round: number | null
+  started_at: string
+  ended_at: string
   sketch_actions: SketchAction[]
-  final_sketch: SketchRecord | null
-  semantic_confirms: SemanticConfirm[]
-  final_intent: string
-  authored: AuthoredIntent
-  timestamps: TrialTimestamps
 }
+
+export type Trial = TaskRun
 
 export interface SubjectiveRatings {
   perceived_control: number | null
@@ -280,32 +302,41 @@ export interface SubjectiveRatings {
 
 export interface SessionRuntime {
   step: ParticipantStep
-  trial_index: number
-  draft_initial: string
-  draft_final: string
+  task_index: number
+  round: number
+  draft_text: string
   working_scene: SketchScene | null
   generate_error: string
   selected_node_id: string | null
+  last_output_image_id: string
+  text_started: boolean
+  sketch_editing: boolean
 }
 
 export interface Session {
   participant_id: string
-  group_id: GroupId
-  condition_order: string
+  session_id: string
+  assignment_pattern: AssignmentPattern
   demographics: Demographics
-  trials: Trial[]
+  tasks: TaskRun[]
+  event_log: TimelineEvent[]
+  text_versions: TextVersion[]
+  generations: GenerationRecord[]
+  sketch_snapshots: SketchSnapshot[]
   subjective: SubjectiveRatings | null
   started_at: string
   completed_at: string | null
   runtime: SessionRuntime
+  seq: number
 }
 
-export interface PlannedTrial {
+export interface PlannedTask {
   task_id: string
   image_id: string
-  phase: Phase
-  condition: Condition
+  stage: Stage
 }
+
+export type PlannedTrial = PlannedTask
 
 export interface RubricScores {
   intent_precision: number | null
@@ -318,6 +349,7 @@ export interface ExpertRating {
   trial_id: string
   participant_id: string
   task_id: string
+  stage: Stage
   expert_id: string
   initial: RubricScores
   final: RubricScores
@@ -339,17 +371,41 @@ export interface IntentCoding {
   participant_id: string
   trial_id: string
   task_id: string
-  condition: Condition
+  stage: Stage
   timepoint: Timepoint
   coder_id: string
   precision: PrecisionScores
   precision_total: number | null
   naturalness: number | null
   copying: number | null
-  discovery_rate: number | null
-  learning_gain: number | null
-  transfer_gain: number | null
   coded_at: string
+}
+
+export interface BehavioralMeasures {
+  total_session_time: number | null
+  task_time: number | null
+  text_writing_time: number | null
+  generation_wait_time: number | null
+  sketch_edit_time: number | null
+  result_view_time: number | null
+  time_between_rounds: number | null
+  number_of_rounds: number
+  text_revision_count: number
+  sketch_revision_count: number
+  total_sketch_actions: number
+  move_count: number
+  rotate_count: number
+  camera_action_count: number
+  object_action_count: number
+  relation_action_count: number
+  add_count: number
+  delete_count: number
+  generation_count: number
+  generation_success_count: number
+  generation_failure_count: number
+  average_generation_latency: number | null
+  round_of_satisfaction: number | null
+  time_to_satisfaction: number | null
 }
 
 export interface StoreShape {
@@ -359,3 +415,9 @@ export interface StoreShape {
 }
 
 export type AppRoute = 'home' | 'participant' | 'expert' | 'coding' | 'export'
+
+/** @deprecated protocol used condition labels; stage is the condition now */
+export type Condition = Stage
+export type GroupId = AssignmentPattern
+export type DifficultyLegacy = Difficulty
+export type TaskType = StimulusGroup

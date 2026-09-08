@@ -1,5 +1,5 @@
 import { nowMs } from '../time'
-import type { Point, SketchAction, SketchScene, SubjectNode } from '../types'
+import type { Point, SketchEdit, SketchScene, SubjectNode } from '../types'
 import { cloneScene } from './templates'
 
 function nextId(prefix: string, existing: string[]): string {
@@ -25,7 +25,7 @@ export function captureElement(scene: SketchScene, id: string): unknown {
   return null
 }
 
-export function applySketchAction(scene: SketchScene, action: SketchAction): SketchScene {
+export function applySketchAction(scene: SketchScene, action: SketchEdit): SketchScene {
   const next = cloneScene(scene)
   const kind = action.action_type || action.action
   const target = action.target_id || action.target
@@ -148,15 +148,42 @@ export function applySketchAction(scene: SketchScene, action: SketchAction): Ske
     return next
   }
 
+  if (kind === 'resize') {
+    const object = next.objects.find((item) => item.id === target)
+    const size = action.to as { w?: number; h?: number; scale?: number } | undefined
+    if (object && size) {
+      if (size.w) object.w = size.w
+      if (size.h) object.h = size.h
+    }
+    const subject = findSubject(next, target)
+    if (subject && size?.scale) subject.scale = size.scale
+    return next
+  }
+
+  if (kind === 'change_distance' || kind === 'camera_distance') {
+    if (typeof action.to === 'number') next.camera.distance = action.to
+    return next
+  }
+
+  if (kind === 'change_layer' || kind === 'change_depth') {
+    const y = typeof action.to === 'number' ? action.to : (action.to as { y?: number } | undefined)?.y
+    if (y == null) return next
+    const subject = findSubject(next, target)
+    if (subject) subject.y = y
+    const object = next.objects.find((item) => item.id === target)
+    if (object) object.y = y
+    return next
+  }
+
   return next
 }
 
 export function decorateAction(
   scene: SketchScene,
   partial: { action: string; target: string; from?: unknown; to?: unknown },
-): { scene: SketchScene; action: SketchAction } {
+): { scene: SketchScene; action: SketchEdit } {
   const before = captureElement(scene, partial.target)
-  const draft: SketchAction = {
+  const draft: SketchEdit = {
     action: partial.action,
     action_type: partial.action,
     target: partial.target,
@@ -191,7 +218,7 @@ export function decorateAction(
 export function logOnlyAction(
   scene: SketchScene,
   partial: { action: string; target: string; from?: unknown; to?: unknown },
-): SketchAction {
+): SketchEdit {
   return {
     action: partial.action,
     action_type: partial.action,

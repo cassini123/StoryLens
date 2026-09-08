@@ -53,7 +53,7 @@ module.exports = async function handler(req, res) {
       res.end(JSON.stringify({ error: 'Missing prompt' }))
       return
     }
-    const result = await submitTask(prompt, body.width || 1664, body.height || 936)
+    const result = await submitTask(prompt, body.width || 1664, body.height || 936, body.images || [])
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({ status: 'submitted', ...result }))
   } catch (error) {

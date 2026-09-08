@@ -1,14 +1,9 @@
-import { experiment, getTask } from './config'
+import { experiment, getImage } from './config'
 import { getGeneratedImages } from './imageStore'
-import {
-  discoveryRate,
-  learningGain,
-  mean,
-  precisionTotal,
-  transferGain,
-} from './metrics'
+import { measuresForSession, measuresForTask } from './behavior'
+import { aiFeedbackGain, mean, sketchGain, transferGain, withinTaskDelta } from './metrics'
 import { loadStore } from './store'
-import type { ExpertRating, IntentCoding, Session, Timepoint, Trial } from './types'
+import type { IntentCoding, Session, Stage, TaskRun, Timepoint } from './types'
 
 function csvEscape(value: unknown): string {
   const text = value == null ? '' : String(value)
@@ -35,232 +30,334 @@ function download(filename: string, content: string, type: string): void {
   URL.revokeObjectURL(url)
 }
 
-function exportableSession(session: Session): Omit<Session, 'runtime'> {
-  return {
-    participant_id: session.participant_id,
-    group_id: session.group_id,
-    condition_order: session.condition_order,
-    demographics: session.demographics,
-    trials: session.trials,
-    subjective: session.subjective,
-    started_at: session.started_at,
-    completed_at: session.completed_at,
+function textAt(session: Session, task: TaskRun, timepoint: Timepoint): string {
+  const versions = session.text_versions.filter((item) => item.task_id === task.task_id)
+  if (timepoint === 'initial') {
+    return versions.find((item) => item.text_version_id === task.initial_text_version_id)?.text
+      || versions.find((item) => item.text_type === 'initial')?.text
+      || versions[0]?.text
+      || ''
   }
+  return versions.find((item) => item.text_version_id === task.final_text_version_id)?.text
+    || [...versions].reverse()[0]?.text
+    || ''
 }
 
-function conditionLabel(condition: Trial['condition']): string {
-  if (condition === 'baseline') return 'BASELINE'
-  if (condition === 'direct') return 'DIRECT'
-  if (condition === 'sketch') return 'SKETCH'
-  return 'TRANSFER'
+function codingFor(codings: IntentCoding[], trialId: string, timepoint: Timepoint, stage?: Stage) {
+  return codings.find(
+    (item) => item.trial_id === trialId && item.timepoint === timepoint && (!stage || item.stage === stage),
+  )
 }
 
-function intentText(trial: Trial, timepoint: Timepoint): string {
-  if (timepoint === 'T1') return trial.initial_intent || trial.t1_intent
-  if (timepoint === 'T3') return trial.refined_intent || trial.t3_intent || trial.final_intent || trial.initial_intent
-  return trial.refined_intent || trial.t2_intent || trial.final_intent
-}
-
-function codingFor(
-  codings: IntentCoding[],
-  trialId: string,
-  timepoint: Timepoint,
-): IntentCoding | undefined {
-  return codings.find((item) => item.trial_id === trialId && item.timepoint === timepoint)
+function meanStage(session: Session, codings: IntentCoding[], stage: Stage, timepoint: Timepoint): number | null {
+  const totals = session.tasks
+    .filter((task) => task.stage === stage)
+    .map((task) => codingFor(codings, task.task_id, timepoint, stage)?.precision_total ?? null)
+  return mean(totals)
 }
 
 export function participantRows(sessions: Session[]): Record<string, unknown>[] {
   return sessions.map((session) => ({
     participant_id: session.participant_id,
-    condition_order: session.condition_order || session.group_id,
+    session_id: session.session_id,
+    assignment_pattern: session.assignment_pattern,
     background: session.demographics.visual_experience,
-    AI_familiarity: session.demographics.ai_familiarity || session.demographics.ai_experience,
-    cinematography_experience:
-      session.demographics.cinematography_experience ||
-      (session.demographics.film_background ? 'some' : 'none'),
+    AI_familiarity: session.demographics.ai_familiarity,
+    cinematography_experience: session.demographics.cinematography_experience,
     visual_experience: session.demographics.visual_experience,
-    cinematography_years:
-      session.demographics.cinematography_years || session.demographics.film_years,
-    group_id: session.group_id,
+    cinematography_years: session.demographics.cinematography_years,
     started_at: session.started_at,
     completed_at: session.completed_at ?? '',
+    ...measuresForSession(session),
   }))
+}
+
+export function taskRows(sessions: Session[], codings: IntentCoding[]): Record<string, unknown>[] {
+  return sessions.flatMap((session) =>
+    session.tasks.map((task) => {
+      const image = getImage(task.image_id)
+      const pInitial = codingFor(codings, task.task_id, 'initial')?.precision_total ?? null
+      const pFinal = codingFor(codings, task.task_id, 'final')?.precision_total ?? null
+      return {
+        participant_id: session.participant_id,
+        session_id: session.session_id,
+        task_id: task.task_id,
+        stage: task.stage,
+        image_id: task.image_id,
+        group: image.group,
+        difficulty: image.difficulty,
+        round_count: task.rounds.length,
+        satisfied_round: task.satisfied_round ?? '',
+        started_at: task.started_at,
+        ended_at: task.ended_at,
+        P_initial: pInitial ?? '',
+        P_final: pFinal ?? '',
+        delta_P: withinTaskDelta(pFinal, pInitial) ?? '',
+        ...measuresForTask(session, task),
+      }
+    }),
+  )
+}
+
+export function eventLogRows(sessions: Session[]): Record<string, unknown>[] {
+  return sessions.flatMap((session) =>
+    session.event_log.map((event) => ({
+      event_id: event.event_id,
+      participant_id: event.participant_id,
+      session_id: event.session_id,
+      task_id: event.task_id,
+      stage: event.stage,
+      round: event.round ?? '',
+      event_type: event.event_type,
+      timestamp: event.timestamp,
+      relative_time_ms: event.relative_time_ms,
+      payload: JSON.stringify(event.payload),
+    })),
+  )
 }
 
 export function intentRows(sessions: Session[], codings: IntentCoding[]): Record<string, unknown>[] {
   const rows: Record<string, unknown>[] = []
   for (const session of sessions) {
-    const t1Totals: Array<number | null> = []
-    const t3Totals: Array<number | null> = []
-    for (const trial of session.trials) {
-      const t1 = codingFor(codings, trial.trial_id, 'T1')
-      const t2 = codingFor(codings, trial.trial_id, 'T2')
-      const p1 = t1?.precision_total ?? precisionTotal(t1?.precision ?? { object: null, spatial: null, relation: null, camera: null, emotion: null, constraint: null })
-      const p2 = t2?.precision_total ?? null
-      if (trial.phase === 'T1' || trial.condition === 'baseline') t1Totals.push(p2 ?? p1)
-      if (trial.phase === 'T3' || trial.condition === 'transfer') t3Totals.push(p2 ?? p1)
-      const task = getTask(trial.task_id)
-      const discovery = t1 && t2 ? discoveryRate(t1.precision, t2.precision, task.required_dimensions) : null
-      const gain = learningGain(p1 ?? null, p2 ?? null)
-      for (const timepoint of ['T1', 'T2'] as Timepoint[]) {
-        const coding = codingFor(codings, trial.trial_id, timepoint)
-        rows.push({
-          participant_id: trial.participant_id,
-          image_id: trial.image_id || trial.task_id,
-          task_id: trial.task_id,
-          phase: trial.phase,
-          condition: conditionLabel(trial.condition),
-          timepoint: timepoint === 'T1' ? 'initial' : 'refined',
-          intent_text: intentText(trial, timepoint),
-          generated_engine: trial.generated_image?.engine ?? '',
-          generated_status: trial.generated_image?.status ?? '',
-          precision_object: coding?.precision.object ?? '',
-          precision_spatial: coding?.precision.spatial ?? '',
-          precision_relation: coding?.precision.relation ?? '',
-          precision_camera: coding?.precision.camera ?? '',
-          precision_emotion: coding?.precision.emotion ?? '',
-          precision_constraint: coding?.precision.constraint ?? '',
-          precision_total: coding?.precision_total ?? '',
-          naturalness: coding?.naturalness ?? '',
-          copying: coding?.copying ?? '',
-          discovery_rate: timepoint === 'T2' ? (discovery ?? '') : '',
-          learning_gain: timepoint === 'T2' ? (gain ?? '') : '',
-          transfer_gain: '',
-        })
-      }
-    }
-    const p3mean = mean(t3Totals)
-    const p1mean = mean(t1Totals)
-    if (p3mean != null || p1mean != null) {
+    for (const version of session.text_versions) {
+      const coding = codings.find(
+        (item) =>
+          item.trial_id === version.task_id &&
+          item.timepoint === (version.text_type === 'initial' ? 'initial' : 'final') &&
+          item.coder_id,
+      )
       rows.push({
-        participant_id: session.participant_id,
-        image_id: '',
-        task_id: '',
-        phase: 'T3',
-        condition: 'TRANSFER',
-        timepoint: 'summary',
-        intent_text: '',
-        generated_engine: '',
-        generated_status: '',
-        precision_object: '',
-        precision_spatial: '',
-        precision_relation: '',
-        precision_camera: '',
-        precision_emotion: '',
-        precision_constraint: '',
-        precision_total: p3mean ?? '',
-        naturalness: '',
-        copying: '',
-        discovery_rate: '',
-        learning_gain: '',
-        transfer_gain: transferGain(p3mean, p1mean) ?? '',
+        text_version_id: version.text_version_id,
+        participant_id: version.participant_id,
+        session_id: version.session_id,
+        task_id: version.task_id,
+        stage: version.stage,
+        round: version.round,
+        timestamp: version.timestamp,
+        text_type: version.text_type,
+        previous_text_version_id: version.previous_text_version_id,
+        text_length: version.text_length,
+        text: version.text,
+        precision_object: coding?.precision.object ?? '',
+        precision_spatial: coding?.precision.spatial ?? '',
+        precision_relation: coding?.precision.relation ?? '',
+        precision_camera: coding?.precision.camera ?? '',
+        precision_emotion: coding?.precision.emotion ?? '',
+        precision_constraint: coding?.precision.constraint ?? '',
+        precision_total: coding?.precision_total ?? '',
       })
     }
+    const p0 = meanStage(session, codings, 'T0', 'final')
+    const p1 = meanStage(session, codings, 'T1', 'final')
+    const p2 = meanStage(session, codings, 'T2', 'final')
+    const p3 = meanStage(session, codings, 'T3', 'final')
+    rows.push({
+      text_version_id: '',
+      participant_id: session.participant_id,
+      session_id: session.session_id,
+      task_id: '',
+      stage: 'summary',
+      round: '',
+      timestamp: '',
+      text_type: 'summary',
+      previous_text_version_id: '',
+      text_length: '',
+      text: '',
+      precision_object: '',
+      precision_spatial: '',
+      precision_relation: '',
+      precision_camera: '',
+      precision_emotion: '',
+      precision_constraint: '',
+      precision_total: '',
+      P0: p0 ?? '',
+      P1: p1 ?? '',
+      P2: p2 ?? '',
+      P3: p3 ?? '',
+      G_AI: aiFeedbackGain(p1, p0) ?? '',
+      G_Sketch: sketchGain(p2, p1) ?? '',
+      G_Transfer: transferGain(p3, p1) ?? '',
+    })
   }
   return rows
 }
 
-export function interactionRows(sessions: Session[]): Record<string, unknown>[] {
+export function generationRows(sessions: Session[]): Record<string, unknown>[] {
   return sessions.flatMap((session) =>
-    session.trials.flatMap((trial) => [
-      ...trial.sketch_actions.map((action) => ({
-        participant_id: trial.participant_id,
-        image_id: trial.image_id || trial.task_id,
-        task_id: trial.task_id,
-        phase: trial.phase,
-        condition: conditionLabel(trial.condition),
-        timestamp: action.timestamp,
-        action_type: action.action_type || action.action,
-        target_id: action.target_id || action.target,
-        before_state: JSON.stringify(action.before_state ?? action.from ?? null),
-        after_state: JSON.stringify(action.after_state ?? action.to ?? null),
-      })),
-      ...trial.semantic_confirms.map((item) => ({
-        participant_id: trial.participant_id,
-        image_id: trial.image_id || trial.task_id,
-        task_id: trial.task_id,
-        phase: trial.phase,
-        condition: conditionLabel(trial.condition),
-        timestamp: Date.parse(item.timestamp) || item.timestamp,
-        action_type: 'semantic_confirm',
-        target_id: item.node_id,
-        before_state: '',
-        after_state: item.relation,
-      })),
-    ]),
+    session.generations.map((item) => ({
+      generation_id: item.generation_id,
+      participant_id: item.participant_id,
+      session_id: item.session_id,
+      task_id: item.task_id,
+      stage: item.stage,
+      round: item.round,
+      timestamp_start: item.timestamp_start,
+      timestamp_end: item.timestamp_end,
+      latency_ms: item.latency_ms,
+      model: item.model,
+      model_version: item.model_version,
+      input_image_id: item.input_image_id,
+      input_text: item.input_text,
+      input_sketch_snapshot_id: item.input_sketch_snapshot_id,
+      output_image_id: item.output_image_id,
+      success: item.success,
+      error: item.error,
+    })),
   )
 }
 
-export function expertRows(ratings: ExpertRating[]): Record<string, unknown>[] {
-  return ratings.flatMap((rating) => {
-    const participant_id = rating.participant_id || rating.trial_id.split('_')[0]
-    const task_id = rating.task_id || rating.trial_id.split('_').slice(1).join('_')
-    return [
-      {
-        task_id,
-        participant_id,
-        expert_id: rating.expert_id,
-        timepoint: 'T1',
-        precision: rating.initial.intent_precision,
-        interpretability: rating.initial.intent_interpretability,
-        spatial_specificity: rating.initial.spatial_specificity,
-        executability: rating.initial.executability,
-        comment: rating.comment,
-      },
-      {
-        task_id,
-        participant_id,
-        expert_id: rating.expert_id,
-        timepoint: rating.task_id === experiment.transfer_task_id || task_id === experiment.transfer_task_id ? 'T3' : 'T2',
-        precision: rating.final.intent_precision,
-        interpretability: rating.final.intent_interpretability,
-        spatial_specificity: rating.final.spatial_specificity,
-        executability: rating.final.executability,
-        comment: rating.comment,
-      },
-    ]
-  })
+export function interactionRows(sessions: Session[]): Record<string, unknown>[] {
+  return sessions.flatMap((session) =>
+    session.tasks.flatMap((task) =>
+      task.sketch_actions.map((action) => ({
+        sketch_event_id: action.sketch_event_id,
+        participant_id: action.participant_id,
+        session_id: action.session_id,
+        task_id: action.task_id,
+        round: action.round,
+        timestamp: action.timestamp,
+        action_type: action.action_type,
+        target_id: action.target_id,
+        before_state: JSON.stringify(action.before_state ?? null),
+        after_state: JSON.stringify(action.after_state ?? null),
+      })),
+    ),
+  )
+}
+
+export function expertRows(ratings: ReturnType<typeof loadStore>['ratings']): Record<string, unknown>[] {
+  return ratings.flatMap((rating) => [
+    {
+      task_id: rating.task_id,
+      participant_id: rating.participant_id,
+      stage: rating.stage,
+      expert_id: rating.expert_id,
+      timepoint: 'initial',
+      precision: rating.initial.intent_precision,
+      interpretability: rating.initial.intent_interpretability,
+      spatial_specificity: rating.initial.spatial_specificity,
+      executability: rating.initial.executability,
+      naturalness: rating.naturalness,
+      comment: rating.comment,
+    },
+    {
+      task_id: rating.task_id,
+      participant_id: rating.participant_id,
+      stage: rating.stage,
+      expert_id: rating.expert_id,
+      timepoint: 'final',
+      precision: rating.final.intent_precision,
+      interpretability: rating.final.intent_interpretability,
+      spatial_specificity: rating.final.spatial_specificity,
+      executability: rating.final.executability,
+      naturalness: rating.naturalness,
+      comment: rating.comment,
+    },
+  ])
+}
+
+export function snapshotPayload(sessions: Session[]) {
+  return sessions.flatMap((session) =>
+    session.sketch_snapshots.map((item) => ({
+      snapshot_id: item.snapshot_id,
+      participant_id: item.participant_id,
+      session_id: item.session_id,
+      task_id: item.task_id,
+      stage: item.stage,
+      round: item.round,
+      kind: item.kind,
+      timestamp: item.timestamp,
+      svg: item.svg,
+      scene: item.scene,
+    })),
+  )
+}
+
+export function timelinePayload(session: Session) {
+  return {
+    participant_id: session.participant_id,
+    session_id: session.session_id,
+    session_start: session.started_at,
+    session_end: session.completed_at,
+    assignment_pattern: session.assignment_pattern,
+    events: session.event_log.map((event) => ({
+      timestamp: event.timestamp,
+      relative_time_ms: event.relative_time_ms,
+      task_id: event.task_id,
+      stage: event.stage,
+      round: event.round,
+      event_type: event.event_type,
+      payload: event.payload,
+    })),
+  }
 }
 
 export function buildExportPayload() {
   const store = loadStore()
-  const sessions = store.sessions.map(exportableSession)
-  const trials = store.sessions.flatMap((session) => session.trials)
-  const ratingsByExpert: Record<string, ExpertRating[]> = {}
-  for (const expert of experiment.experts) {
-    ratingsByExpert[expert.expert_id] = store.ratings.filter(
-      (item) => item.expert_id === expert.expert_id,
-    )
-  }
   return {
     exported_at: new Date().toISOString(),
-    sessions,
-    trials,
+    study: experiment.study,
+    sessions: store.sessions.map(({ runtime: _runtime, ...rest }) => rest),
     ratings: store.ratings,
-    ratings_by_expert: ratingsByExpert,
+    ratings_by_expert: Object.fromEntries(
+      experiment.experts.map((expert) => [
+        expert.expert_id,
+        store.ratings.filter((item) => item.expert_id === expert.expert_id),
+      ]),
+    ),
     codings: store.codings,
-    participant: participantRows(store.sessions),
-    intent: intentRows(store.sessions, store.codings),
+    participants: participantRows(store.sessions),
+    tasks: taskRows(store.sessions, store.codings),
+    event_log: eventLogRows(store.sessions),
+    intents: intentRows(store.sessions, store.codings),
+    generations: generationRows(store.sessions),
     sketch_interactions: interactionRows(store.sessions),
+    sketch_snapshots: snapshotPayload(store.sessions),
     expert_ratings: expertRows(store.ratings),
+    timelines: store.sessions.map(timelinePayload),
   }
 }
 
 export function downloadParticipantCsv(): void {
-  download('participant.csv', toCsv(participantRows(loadStore().sessions)), 'text/csv')
+  download('participants.csv', toCsv(participantRows(loadStore().sessions)), 'text/csv')
+}
+
+export function downloadTaskCsv(): void {
+  const store = loadStore()
+  download('tasks.csv', toCsv(taskRows(store.sessions, store.codings)), 'text/csv')
+}
+
+export function downloadEventLogCsv(): void {
+  download('event_log.csv', toCsv(eventLogRows(loadStore().sessions)), 'text/csv')
 }
 
 export function downloadIntentCsv(): void {
   const store = loadStore()
-  download('intent.csv', toCsv(intentRows(store.sessions, store.codings)), 'text/csv')
+  download('intents.csv', toCsv(intentRows(store.sessions, store.codings)), 'text/csv')
+}
+
+export function downloadGenerationsCsv(): void {
+  download('generations.csv', toCsv(generationRows(loadStore().sessions)), 'text/csv')
 }
 
 export function downloadSketchInteractionsCsv(): void {
   download('sketch_interactions.csv', toCsv(interactionRows(loadStore().sessions)), 'text/csv')
 }
 
+export function downloadSketchSnapshotsJson(): void {
+  download('sketch_snapshots.json', JSON.stringify(snapshotPayload(loadStore().sessions), null, 2), 'application/json')
+}
+
 export function downloadExpertRatingsCsv(): void {
   download('expert_ratings.csv', toCsv(expertRows(loadStore().ratings)), 'text/csv')
+}
+
+export function downloadTimelinesJson(): void {
+  download(
+    'full_session_timeline.json',
+    JSON.stringify(loadStore().sessions.map(timelinePayload), null, 2),
+    'application/json',
+  )
 }
 
 export function downloadFullJson(): void {
@@ -268,42 +365,31 @@ export function downloadFullJson(): void {
 }
 
 export async function downloadParticipantPacket(session: Session): Promise<void> {
-  const images = await getGeneratedImages(session.trials.map((trial) => trial.trial_id))
-  const payload = {
-    study: experiment.study.title,
-    exported_at: new Date().toISOString(),
-    participant_id: session.participant_id,
-    condition_order: session.condition_order,
-    demographics: session.demographics,
-    started_at: session.started_at,
-    completed_at: session.completed_at,
-    trials: session.trials.map((trial) => ({
-      participant_id: trial.participant_id,
-      trial_id: trial.trial_id,
-      phase: trial.phase,
-      condition: trial.condition,
-      image_id: trial.image_id,
-      initial_intent: trial.initial_intent,
-      initial_intent_timestamp: trial.initial_intent_timestamp,
-      refined_intent: trial.refined_intent,
-      refined_intent_timestamp: trial.refined_intent_timestamp,
-      generated_image: trial.generated_image,
-      generated_image_data: images[trial.trial_id] || null,
-      initial_sketch: trial.initial_sketch,
-      final_sketch: trial.final_sketch,
-      sketch_interactions: trial.sketch_actions,
-      semantic_confirms: trial.semantic_confirms,
-      timestamps: trial.timestamps,
-    })),
-    subjective: session.subjective,
-    intent_csv: intentRows([session], loadStore().codings),
-    sketch_interactions_csv: interactionRows([session]),
-  }
+  const imageIds = session.generations.map((item) => item.generation_id)
+  const images = await getGeneratedImages(imageIds)
   download(
     `${session.participant_id}-session.json`,
-    JSON.stringify(payload, null, 2),
+    JSON.stringify(
+      {
+        study: experiment.study.title,
+        exported_at: new Date().toISOString(),
+        ...timelinePayload(session),
+        demographics: session.demographics,
+        tasks: session.tasks,
+        text_versions: session.text_versions,
+        generations: session.generations.map((item) => ({
+          ...item,
+          output_image_data: images[item.generation_id] || null,
+        })),
+        sketch_snapshots: session.sketch_snapshots,
+        sketch_interactions: interactionRows([session]),
+        measures: measuresForSession(session),
+      },
+      null,
+      2,
+    ),
     'application/json',
   )
 }
 
-export { toCsv }
+export { textAt, toCsv }

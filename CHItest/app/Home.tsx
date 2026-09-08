@@ -21,19 +21,18 @@ export function Home() {
     <Shell title={experiment.study.title} subtitle={experiment.study.subtitle}>
       <main className="page">
         <p className="lead">
-          A controlled study of whether a low-fidelity sketch scaffold helps people express visual intent
-          more precisely after generative-image feedback.
+          A controlled study of sketch-based cognitive scaffolding for generative image models.
         </p>
         <p>
-          Participants describe a still image, see an AI-generated result, then revise. The Sketch condition
-          adds an editable low-fidelity scaffold. The system records intents, generated images, sketch
-          actions, and expert ratings. Image quality is feedback, not the primary score.
+          Each participant completes 7 pictures from a 20-image pool: T0 baseline, T1 AI visual feedback, T2
+          sketch intervention, and T3 transfer with sketch. Generated images are feedback. The primary outcome
+          is Intent Precision, not click counts or speed.
         </p>
         <p className={apiReady ? 'api-status ok' : 'api-status bad'}>{apiLabel}</p>
         {!apiReady && health ? (
           <p className="hint">
             Vercel Production must define <code>JIMENG_ACCESS_KEY</code> and <code>JIMENG_SECRET_KEY</code>,
-            then Redeploy. Preview-only env vars are not visible on 2027mitgo.top.
+            then Redeploy.
           </p>
         ) : null}
         <div className="stack">

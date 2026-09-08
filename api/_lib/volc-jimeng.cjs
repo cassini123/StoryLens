@@ -138,7 +138,7 @@ function jimengRequest(action, bodyParams, accessKey, secretKey) {
   })
 }
 
-async function submitTask(prompt, width = 1664, height = 936) {
+async function submitTask(prompt, width = 1664, height = 936, images = []) {
   const { accessKey, secretKey } = credentials()
   if (!accessKey || !secretKey) {
     const err = new Error(
@@ -154,9 +154,19 @@ async function submitTask(prompt, width = 1664, height = 936) {
     w = Math.ceil((w * scale) / 8) * 8
     h = Math.ceil((h * scale) / 8) * 8
   }
+  const body = { req_key: REQ_KEY, prompt, width: w, height: h }
+  const binaries = (Array.isArray(images) ? images : [])
+    .map((item) => {
+      if (!item) return ''
+      const text = String(item)
+      const comma = text.indexOf(',')
+      return comma >= 0 ? text.slice(comma + 1) : text
+    })
+    .filter(Boolean)
+  if (binaries.length) body.binary_data_base64 = binaries
   const result = await jimengRequest(
     'CVSync2AsyncSubmitTask',
-    { req_key: REQ_KEY, prompt, width: w, height: h },
+    body,
     accessKey,
     secretKey,
   )

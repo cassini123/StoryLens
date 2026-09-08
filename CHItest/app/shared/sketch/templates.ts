@@ -14,7 +14,7 @@ function emptyScene(): SketchScene {
   return {
     width: CANVAS.width,
     height: CANVAS.height,
-    camera: { id: 'camera', x: 90, y: 390, rotation: -28 },
+    camera: { id: 'camera', x: 90, y: 390, rotation: -28, distance: 1 },
     subjects: [],
     objects: [],
     gazes: [],
@@ -49,18 +49,20 @@ export function templateForImage(image: ImageDef): SketchScene {
       to: to ? null : { x: 640, y: 120 },
     })
   })
-  if (image.task_type === 'movement' && scene.subjects[0]) {
-    scene.movements.push({
-      id: 'movement_01',
-      from: scene.subjects[0].id,
-      to: { x: scene.subjects[0].x + 160, y: scene.subjects[0].y - 80 },
-    })
+  if (image.image_id === 'D03' || image.image_id === 'D04') {
+    if (scene.subjects[0]) {
+      scene.movements.push({
+        id: 'movement_01',
+        from: scene.subjects[0].id,
+        to: { x: scene.subjects[0].x + 160, y: scene.subjects[0].y - 80 },
+      })
+    }
   }
-  if (image.task_type === 'camera_subject' && image.image_id === 'IMG03') {
-    scene.camera = { id: 'camera', x: 120, y: 410, rotation: -55 }
+  if (image.image_id === 'A01') {
+    scene.camera = { id: 'camera', x: 120, y: 410, rotation: -55, distance: 1.2 }
   }
-  if (image.image_id === 'IMG19') {
-    scene.camera = { id: 'camera', x: 400, y: 60, rotation: 80 }
+  if (image.image_id === 'A03') {
+    scene.camera = { id: 'camera', x: 400, y: 60, rotation: 80, distance: 0.8 }
   }
   return scene
 }

@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { experiment, getTask } from '../shared/config'
-import { SceneView } from '../shared/sketch/SceneView'
-import { allCompletedTrials, ratingsForExpert, upsertRating } from '../shared/store'
+import { experiment, getImage, stimulusUrl } from '../shared/config'
+import { textAt } from '../shared/export'
+import { allCompletedTrials, getSession, ratingsForExpert, upsertRating } from '../shared/store'
 import { nowIso } from '../shared/time'
-import type { ExpertRating, RubricScores, Trial } from '../shared/types'
+import type { ExpertRating, RubricScores, TaskRun } from '../shared/types'
 import { Button, FooterBar, Likert, Shell } from '../shared/ui'
 
 const emptyScores = (): RubricScores => ({
@@ -31,7 +31,10 @@ export function ExpertApp() {
     return (
       <Shell title="Expert evaluation" subtitle="Blind rating">
         <main className="page">
-          <p className="lead">Select your evaluator ID. Rating materials do not include condition, participant background, or interaction logs.</p>
+          <p className="lead">
+            Select your evaluator ID. Materials do not include participant ID, condition, logs, round
+            count, or background.
+          </p>
           <div className="stack">
             {experiment.experts.map((expert) => (
               <Button key={expert.expert_id} onClick={() => setExpertId(expert.expert_id)}>
@@ -46,14 +49,14 @@ export function ExpertApp() {
 
   const expert = experiment.experts.find((item) => item.expert_id === expertId)
   const done = ratingsForExpert(expertId)
-  const remaining = trials.filter((trial) => !done.some((item) => item.trial_id === trial.trial_id))
+  const remaining = trials.filter((trial) => !done.some((item) => item.trial_id === trial.task_id))
   const current = remaining[0]
 
   if (!current) {
     return (
       <Shell title="Expert evaluation" subtitle={expert?.label} meta={`${done.length} rated`}>
         <main className="page">
-          <p className="lead">No remaining trials for {expert?.label}.</p>
+          <p className="lead">No remaining tasks for {expert?.label}.</p>
           <p>{done.length} independent ratings saved.</p>
         </main>
         <FooterBar>
@@ -66,7 +69,7 @@ export function ExpertApp() {
 
   return (
     <RatingScreen
-      key={current.trial_id}
+      key={current.task_id}
       expertId={expertId}
       expertLabel={expert?.label ?? expertId}
       remaining={remaining.length}
@@ -91,47 +94,53 @@ function RatingScreen({
   expertLabel: string
   remaining: number
   done: number
-  trial: Trial
+  trial: TaskRun
   onSubmit: () => void
   onSwitch: () => void
 }) {
-  const task = getTask(trial.task_id)
+  const image = getImage(trial.image_id)
+  const session = getSession(trial.participant_id)
+  const initialText = session ? textAt(session, trial, 'initial') : ''
+  const finalText = session ? textAt(session, trial, 'final') : ''
+  const single = trial.stage === 'T0' || initialText === finalText
   const [initial, setInitial] = useState<RubricScores>(emptyScores)
   const [final, setFinal] = useState<RubricScores>(emptyScores)
   const [naturalness, setNaturalness] = useState<number | null>(null)
   const [comment, setComment] = useState('')
-  const scene = trial.final_sketch?.output.scene ?? trial.initial_sketch?.output.scene ?? null
-  const ready = complete(initial) && complete(final)
+  const ready = single ? complete(final) : complete(initial) && complete(final)
 
   return (
-    <Shell
-      title="Expert evaluation"
-      subtitle={expertLabel}
-      meta={`${done} done · ${remaining} left`}
-    >
+    <Shell title="Expert evaluation" subtitle={expertLabel} meta={`${done} done · ${remaining} left`}>
       <main className="eval">
         <section className="materials">
           <h2>Picture</h2>
-          {task.file ? <img className="stimulus-small" src={`${import.meta.env.BASE_URL}${task.file}`} alt={task.title} /> : null}
-          <h2>Initial intent</h2>
-          <pre className="intent-block">{trial.initial_intent || trial.t1_intent || '—'}</pre>
-          <h2>Refined intent</h2>
-          <pre className="intent-block">{trial.refined_intent || trial.t2_intent || trial.t3_intent || trial.final_intent || '—'}</pre>
-          <h2>Final sketch</h2>
-          {scene ? (
-            <SceneView scene={scene} />
+          <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
+          {single ? (
+            <>
+              <h2>Description</h2>
+              <pre className="intent-block">{finalText || '—'}</pre>
+            </>
           ) : (
-            <div className="empty-sketch">Sketch not collected for this trial.</div>
+            <>
+              <h2>Description A</h2>
+              <pre className="intent-block">{initialText || '—'}</pre>
+              <h2>Description B</h2>
+              <pre className="intent-block">{finalText || '—'}</pre>
+            </>
           )}
         </section>
         <section className="scores">
-          <h2>Initial intent</h2>
-          <Rubric value={initial} onChange={setInitial} />
-          <h2>Final intent</h2>
+          {single ? null : (
+            <>
+              <h2>Description A</h2>
+              <Rubric value={initial} onChange={setInitial} />
+            </>
+          )}
+          <h2>{single ? 'Description' : 'Description B'}</h2>
           <Rubric value={final} onChange={setFinal} />
           <Likert
             label="Naturalness"
-            hint="Does the final description remain a natural expression of the participant's own intent rather than a formulaic prompt? Auxiliary metric."
+            hint="Does the description remain a natural expression of the participant's own intent rather than a formulaic prompt? Auxiliary metric."
             value={naturalness}
             onChange={setNaturalness}
           />
@@ -148,11 +157,12 @@ function RatingScreen({
           disabled={!ready}
           onClick={() => {
             const rating: ExpertRating = {
-              trial_id: trial.trial_id,
+              trial_id: trial.task_id,
               participant_id: trial.participant_id,
               task_id: trial.task_id,
+              stage: trial.stage,
               expert_id: expertId,
-              initial,
+              initial: single ? final : initial,
               final,
               naturalness,
               comment,
@@ -180,25 +190,25 @@ function Rubric({
     <>
       <Likert
         label="Intent Precision"
-        hint="How precisely does the participant's description communicate the intended shot?"
+        hint="How precisely does the description communicate the intended picture?"
         value={value.intent_precision}
         onChange={(n) => onChange({ ...value, intent_precision: n })}
       />
       <Likert
         label="Interpretability"
-        hint="How reliably could a filmmaker reconstruct the intended shot from the participant's description?"
+        hint="How reliably could a filmmaker reconstruct the intended picture from this description?"
         value={value.intent_interpretability}
         onChange={(n) => onChange({ ...value, intent_interpretability: n })}
       />
       <Likert
         label="Spatial / Relational Specificity"
-        hint="How clearly are spatial and relational aspects of the shot communicated?"
+        hint="How clearly are spatial and relational aspects communicated?"
         value={value.spatial_specificity}
         onChange={(n) => onChange({ ...value, spatial_specificity: n })}
       />
       <Likert
         label="Executability"
-        hint="How actionable is the description for producing or staging the intended shot?"
+        hint="How actionable is the description for producing or staging the intended picture?"
         value={value.executability}
         onChange={(n) => onChange({ ...value, executability: n })}
       />

@@ -158,8 +158,35 @@ textarea {
   min-height: calc(100vh - 120px);
 }
 
+.workspace-t0 {
+  grid-template-columns: 1fr 1.2fr;
+}
+
+.workspace-t1 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.workspace-t2 {
+  grid-template-columns: 1fr 1.3fr 1fr;
+}
+
 .workspace-sketch {
   grid-template-columns: 1fr 1.6fr 1fr;
+}
+
+.workspace .desc-pane {
+  grid-column: 1 / -1;
+}
+
+.stack-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.desc-pane textarea {
+  min-height: 220px;
 }
 
 .stimulus,

@@ -90,10 +90,17 @@ export async function checkJimengHealth(): Promise<JimengHealth> {
 export async function generateImageFromIntent(
   prompt: string,
   onStatus?: (status: string) => void,
+  images: string[] = [],
 ): Promise<{ data_url: string; meta: GeneratedImageMeta }> {
   onStatus?.('submitting')
   try {
-    const submit = await postJimeng({ action: 'submit', prompt, width: 1664, height: 936 })
+    const submit = await postJimeng({
+      action: 'submit',
+      prompt,
+      width: 1664,
+      height: 936,
+      images,
+    })
     const submitted = submit.json
     if (!submit.ok || submitted.error) {
       return placeholder(prompt, String(submitted.error || `HTTP ${submit.status}`))

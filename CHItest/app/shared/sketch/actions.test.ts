@@ -9,7 +9,7 @@ function sceneOf(id: string) {
 
 describe('applySketchAction', () => {
   it('moves a subject and logs before/after', () => {
-    const scene = sceneOf('IMG01')
+    const scene = sceneOf('C01')
     const person = scene.subjects[0]
     const { scene: next, action } = decorateAction(scene, {
       action: 'move',
@@ -28,7 +28,7 @@ describe('applySketchAction', () => {
   })
 
   it('adds and deletes a person', () => {
-    const scene = sceneOf('IMG01')
+    const scene = sceneOf('C01')
     const added = decorateAction(scene, {
       action: 'add',
       target: 'person',
@@ -44,7 +44,7 @@ describe('applySketchAction', () => {
   })
 
   it('moves and rotates the camera', () => {
-    const scene = sceneOf('IMG03')
+    const scene = sceneOf('A01')
     const moved = decorateAction(scene, {
       action: 'camera_move',
       target: 'camera',
@@ -62,7 +62,7 @@ describe('applySketchAction', () => {
   })
 
   it('adds gaze and movement and updates movement direction', () => {
-    const scene = sceneOf('IMG05')
+    const scene = sceneOf('D03')
     const withGaze = decorateAction(scene, {
       action: 'gaze_add',
       target: 'person_01',

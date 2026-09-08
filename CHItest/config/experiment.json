@@ -37,22 +37,11 @@
       "label": "Expert 04"
     }
   ],
-  "groups": {
-    "direct_first": {
-      "condition_order": "direct_first"
-    },
-    "sketch_first": {
-      "condition_order": "sketch_first"
-    }
-  },
-  "transfer_task_id": "",
   "prompts": {
-    "introduction": "You will look at still images and describe the shot you see in your own words. After you write, an AI image will be generated from your text. You may then revise your description. There are no correct answers. Do not try to write a professional prompt.",
-    "t1": "Look at the image. Describe the shot as naturally as possible.",
-    "direct_refine": "Look at the generated image. Revise your description so it better matches the shot you intended.",
-    "sketch_refine": "Use the generated image and the sketch to revise your description. Write in your own words.",
-    "transfer": "This is a new image. Describe the shot, then revise after you see the generated result. There is no sketch.",
-    "generating": "Generating an image from your description. Please wait.",
-    "view_image": "This image was generated from your description. It is feedback, not a score."
+    "introduction": "You will look at still images and describe the picture you want an AI to regenerate. There are no correct answers. You do not need technical terms.",
+    "observe": "请观察这个画面。假设你希望让 AI 按照你的想法重新生成它，请用自己的语言描述你希望生成的画面。没有标准答案，也不需要使用专业术语。",
+    "refine": "请看生成结果。如果需要，请继续用自己的语言修改描述（以及草图，如有）。没有标准答案，也不需要使用专业术语。",
+    "generating": "正在根据你的描述生成画面，请稍候。",
+    "view_image": "这是根据你的描述生成的反馈图，不是评分。"
   }
 }

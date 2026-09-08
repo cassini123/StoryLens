@@ -1,5 +1,5 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import type { Point, SketchAction, SketchScene } from '../types'
+import type { Point, SketchEdit, SketchScene } from '../types'
 import { applySketchAction, decorateAction, logOnlyAction, nodeCenter } from './actions'
 
 type Tool = 'select' | 'add_person' | 'add_object' | 'add_gaze' | 'add_movement'
@@ -60,11 +60,11 @@ function distToSegment(p: Point, a: Point, b: Point): number {
 function emit(
   scene: SketchScene,
   action: { action: string; target: string; from?: unknown; to?: unknown },
-): { scene: SketchScene; action: SketchAction } {
+): { scene: SketchScene; action: SketchEdit } {
   return decorateAction(scene, action)
 }
 
-function previewPatch(action: string, target: string, to: unknown): SketchAction {
+function previewPatch(action: string, target: string, to: unknown): SketchEdit {
   return {
     action,
     action_type: action,
@@ -102,7 +102,7 @@ export function SceneEditor({
   onSelect,
 }: {
   scene: SketchScene
-  onChange: (scene: SketchScene, action?: SketchAction) => void
+  onChange: (scene: SketchScene, action?: SketchEdit) => void
   disabled?: boolean
   onSelect?: (id: string | null) => void
 }) {
@@ -112,7 +112,7 @@ export function SceneEditor({
   const [drag, setDrag] = useState<{ id: string; origin: Point; from: Point } | null>(null)
   const [pendingFrom, setPendingFrom] = useState<string | null>(null)
 
-  function commit(next: { scene: SketchScene; action: SketchAction }) {
+  function commit(next: { scene: SketchScene; action: SketchEdit }) {
     onChange(next.scene, next.action)
   }
 
@@ -245,6 +245,58 @@ export function SceneEditor({
     setSelected(null)
   }
 
+  function resizeSelected(factor: number) {
+    if (!selected || disabled) return
+    const object = scene.objects.find((item) => item.id === selected)
+    if (object) {
+      commit(
+        emit(scene, {
+          action: 'resize',
+          target: selected,
+          from: { w: object.w, h: object.h },
+          to: { w: Math.max(24, object.w * factor), h: Math.max(18, object.h * factor) },
+        }),
+      )
+      return
+    }
+    const subject = scene.subjects.find((item) => item.id === selected)
+    if (!subject) return
+    commit(
+      emit(scene, {
+        action: 'resize',
+        target: selected,
+        from: { scale: subject.scale },
+        to: { scale: Math.max(0.5, Math.min(2, subject.scale * factor)) },
+      }),
+    )
+  }
+
+  function changeDistance(delta: number) {
+    if (disabled) return
+    const next = Math.max(0.4, Math.min(2.4, (scene.camera.distance || 1) + delta))
+    commit(
+      emit(scene, {
+        action: 'change_distance',
+        target: 'camera',
+        from: scene.camera.distance || 1,
+        to: next,
+      }),
+    )
+  }
+
+  function setLayer(layer: 'BG' | 'MG' | 'FG') {
+    if (!selected || disabled || selected === 'camera') return
+    const y = layer === 'BG' ? 120 : layer === 'MG' ? 220 : 320
+    commit(
+      emit(scene, {
+        action: 'change_layer',
+        target: selected,
+        from: nodeCenter(scene, selected)?.y,
+        to: y,
+      }),
+    )
+  }
+
   const hint =
     tool === 'add_gaze' && !pendingFrom
       ? 'Click a person, then click another person or a point.'
@@ -293,6 +345,27 @@ export function SceneEditor({
         </button>
         <button type="button" className="btn" disabled={disabled || !selected || selected === 'camera'} onClick={deleteSelected}>
           Delete
+        </button>
+        <button type="button" className="btn" disabled={disabled || !selected} onClick={() => resizeSelected(0.85)}>
+          Smaller
+        </button>
+        <button type="button" className="btn" disabled={disabled || !selected} onClick={() => resizeSelected(1.15)}>
+          Larger
+        </button>
+        <button type="button" className="btn" disabled={disabled} onClick={() => changeDistance(-0.15)}>
+          Closer
+        </button>
+        <button type="button" className="btn" disabled={disabled} onClick={() => changeDistance(0.15)}>
+          Farther
+        </button>
+        <button type="button" className="btn" disabled={disabled || !selected || selected === 'camera'} onClick={() => setLayer('BG')}>
+          BG
+        </button>
+        <button type="button" className="btn" disabled={disabled || !selected || selected === 'camera'} onClick={() => setLayer('MG')}>
+          MG
+        </button>
+        <button type="button" className="btn" disabled={disabled || !selected || selected === 'camera'} onClick={() => setLayer('FG')}>
+          FG
         </button>
       </div>
       <p className="hint">{hint}</p>
@@ -391,7 +464,7 @@ export function SceneEditor({
             </text>
           </g>
         ))}
-        <g transform={`translate(${scene.camera.x} ${scene.camera.y}) rotate(${scene.camera.rotation})`}>
+        <g transform={`translate(${scene.camera.x} ${scene.camera.y}) rotate(${scene.camera.rotation}) scale(${scene.camera.distance || 1})`}>
           <polygon
             points="0,-11 22,0 0,11"
             fill={selected === 'camera' ? '#eee' : '#fff'}
