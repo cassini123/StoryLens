@@ -91,8 +91,12 @@ export function SessionChrome({
       setToast(t.nothingToExport)
       return
     }
-    await downloadParticipantPacket(next)
-    setToast(t.exported)
+    try {
+      await downloadParticipantPacket(next)
+      setToast(t.exported)
+    } catch {
+      setToast(t.exportBlocked)
+    }
   }
 
   return (

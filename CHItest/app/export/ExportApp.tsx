@@ -3,6 +3,7 @@ import {
   downloadEventsCsv,
   downloadExpertRatingsCsv,
   downloadFullJson,
+  downloadOfficialZip,
   downloadGenerationsCsv,
   downloadIntentCsv,
   downloadAutoPromptsCsv,
@@ -15,6 +16,7 @@ import {
   downloadTextVersionsCsv,
   downloadTimelinesJson,
 } from '../shared/export'
+import { markExportReadiness } from '../shared/validation'
 import { clearAllData, loadStore } from '../shared/store'
 import { Button, FooterBar, Shell } from '../shared/ui'
 
@@ -34,6 +36,21 @@ export function ExportApp() {
           researcher coding — not from click counts or writing speed.
         </p>
         <div className="stack">
+          {store.sessions.map((session) => {
+            const validation = markExportReadiness(session)
+            return (
+              <p key={`${session.session_id}-val`}>
+                {session.participant_id}: {validation.ok && session.completed_at ? 'export ready' : `validation failed (${validation.issues.length})`}
+                {validation.issues.length
+                  ? ` — ${validation.issues
+                      .slice(0, 4)
+                      .map((item) => item.code)
+                      .join(', ')}`
+                  : ''}
+              </p>
+            )
+          })}
+          <Button onClick={downloadOfficialZip}>Download official tables (zip)</Button>
           <Button onClick={downloadFullJson}>Download full JSON</Button>
           <Button onClick={downloadParticipantCsv}>Download participants.csv</Button>
           <Button onClick={downloadTaskCsv}>Download tasks.csv</Button>

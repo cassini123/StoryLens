@@ -67,3 +67,22 @@ export function eventCopyRatio(copiedSegments: string[], dest: string): number |
   if (!dest.trim()) return null
   return Math.min(1, copiedCharacterCount(copiedSegments, dest) / dest.length)
 }
+
+export function userPromptCompare(input: {
+  autoPrompt: string
+  previous: string
+  current: string
+  copiedSegments: string[]
+  sourceAutoPromptId: string
+}): Record<string, unknown> {
+  const vs = input.autoPrompt || input.previous
+  return {
+    previous_user_prompt: input.previous,
+    current_user_prompt: input.current,
+    source_auto_prompt_id: input.sourceAutoPromptId,
+    edit_distance: levenshtein(vs, input.current),
+    text_similarity: textSimilarity(vs, input.current),
+    copy_ratio: eventCopyRatio(input.copiedSegments, input.current),
+    copied_segments: [...input.copiedSegments],
+  }
+}

@@ -84,7 +84,9 @@ Time is interaction cost. Report it alongside precision; a sensitivity model may
 
 Text versions are append-only (`initial` / `auto` / `refined` / `final`). Generation records store the API input actually sent (`input_sketch_snapshot_id` is empty). Sketch snapshots are stored separately for process analysis.
 
-Export: participants, tasks, event_log, intents, generations, sketch_interactions, sketch_snapshots, auto_prompts (with edit distance / similarity / copy ratio), expert_ratings, full_session_timeline.json. Full JSON also includes `practice_control`.
+T2 snapshots always include `initial`, `pre_auto_prompt`, and `post_user_revision`. User-prompt edits store previous/current text, source Auto Prompt id, edit distance, similarity, copy ratio, and copied segments.
+
+Export: participants, tasks, events, text_versions, generations, sketch_interactions, sketch_snapshots, auto_prompts (with edit distance / similarity / copy ratio), expert_ratings, self_alignment, full_session_timeline.json. Use **Download official tables (zip)** for a single complete dump. Full JSON also includes `practice_control`.
 
 Local store key: `chitest.store.v7`. Pilot sessions on v6 (including P001) are instrumentation only and are not migrated.
 

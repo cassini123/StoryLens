@@ -21,7 +21,7 @@ npm run dev
 | `#/participant?short=1` | 干跑：scaffold 为 T0/T1/T2/T3，control 为 T0/T1/T1′/T3 |
 | `#/expert` | 四专家盲评（对照 Target Modification，不评像不像原图） |
 | `#/coding` | 研究者按 active dimensions 编码；主指标 P_norm |
-| `#/export` | event_log / auto_prompts / practice_control 等 |
+| `#/export` | 一次导出全部正式表（zip）/ event_log / auto_prompts / self_alignment / practice_control 等 |
 
 数据在当前浏览器。存储键 `chitest.store.v7`，旧进度（含 P001 试跑）不会自动接上，也不当作正式结果。
 

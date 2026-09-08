@@ -1,7 +1,8 @@
 import { associatedGenerationRound, normalizeSketchActionType } from './protocol'
+import { sceneToSvg } from './sketch/render'
 import { cloneScene } from './sketch/templates'
 import { nowIso } from './time'
-import { eventCopyRatio, levenshtein, textSimilarity } from './textCompare'
+import { eventCopyRatio, levenshtein, textSimilarity, userPromptCompare } from './textCompare'
 import type {
   AutoPromptRecord,
   GenerationRecord,
@@ -206,14 +207,43 @@ export function closeSketchEdit(session: Session): void {
   logEvent(session, 'sketch_edit_end')
 }
 
+export function userPromptPayload(session: Session, previous = ''): Record<string, unknown> {
+  return userPromptCompare({
+    autoPrompt: session.runtime.auto_prompt,
+    previous,
+    current: session.runtime.draft_text,
+    copiedSegments: session.runtime.copied_from_auto,
+    sourceAutoPromptId: session.runtime.auto_prompt_id,
+  })
+}
+
 export function closeTextEdit(session: Session): void {
+  const previous = [...session.text_versions]
+    .reverse()
+    .find((item) => item.task_id === currentTask(session)?.task_id && item.text_type !== 'auto')
+  const payload = userPromptPayload(session, previous?.text ?? '')
   if (session.runtime.user_prompt_started) {
-    logEvent(session, 'user_prompt_edit_end')
+    logEvent(session, 'user_prompt_edit_end', payload)
     session.runtime.user_prompt_started = false
   }
   if (session.runtime.text_started) {
     logEvent(session, 'text_edit_end')
     session.runtime.text_started = false
+  }
+}
+
+export function ensureT2ProtocolSnapshots(session: Session): void {
+  const task = currentTask(session)
+  const scene = session.runtime.working_scene
+  if (!task || task.stage !== 'T2' || !scene) return
+  const kinds = new Set(
+    session.sketch_snapshots.filter((item) => item.task_id === task.task_id).map((item) => item.kind),
+  )
+  const svg = sceneToSvg(scene)
+  for (const kind of ['initial', 'pre_auto_prompt', 'post_user_revision'] as const) {
+    if (kinds.has(kind)) continue
+    const snap = addSketchSnapshot(session, scene, svg, kind)
+    logEvent(session, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind, ensured: true })
   }
 }
 

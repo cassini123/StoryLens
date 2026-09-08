@@ -13,7 +13,9 @@ import {
   closeTextEdit,
   createAutoPromptRecord,
   currentTask,
+  ensureT2ProtocolSnapshots,
   finalizeAutoPrompts,
+  userPromptPayload,
   logEvent,
   openAutoPromptView,
   openResultView,
@@ -436,9 +438,7 @@ function ParticipantFlow({
       logEvent(next, 'user_prompt_submit', {
         text_version_id: version.text_version_id,
         text_length: version.text_length,
-        previous_user_prompt: previous?.text ?? '',
-        current_user_prompt: version.text,
-        source_auto_prompt_id: next.runtime.auto_prompt_id,
+        ...userPromptPayload(next, previous?.text ?? ''),
       })
     }
     return version
@@ -488,18 +488,10 @@ function ParticipantFlow({
     if (!active) return
     closeTaskInstruments(next)
     if (next.runtime.draft_text.trim()) {
-      const version = saveDraftText(next, active.stage === 'T0' ? 'final' : 'final')
+      const version = saveDraftText(next, 'final')
       if (version) finalizeAutoPrompts(next, version.text, version.text_version_id)
     }
-    if (active.stage === 'T2' && next.runtime.working_scene) {
-      const snap = addSketchSnapshot(
-        next,
-        next.runtime.working_scene,
-        sceneToSvg(next.runtime.working_scene),
-        'post_user_revision',
-      )
-      logEvent(next, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind: 'post_user_revision' })
-    }
+    if (active.stage === 'T2') ensureT2ProtocolSnapshots(next)
     active.ended_at = nowIso()
     logEvent(next, 'image_view_end')
     logEvent(next, 'task_end')
@@ -654,10 +646,7 @@ function ParticipantFlow({
       if (sketchStage && !next.runtime.user_prompt_started && value !== next.runtime.auto_prompt) {
         next.runtime.user_prompt_started = true
         const previous = [...next.text_versions].reverse().find((item) => item.task_id === currentTask(next)?.task_id && item.text_type !== 'auto')
-        logEvent(next, 'user_prompt_edit_start', {
-          previous_user_prompt: previous?.text ?? next.runtime.draft_text,
-          source_auto_prompt_id: next.runtime.auto_prompt_id,
-        })
+        logEvent(next, 'user_prompt_edit_start', userPromptPayload(next, previous?.text ?? next.runtime.draft_text))
         closeAutoPromptView(next)
       }
       next.runtime.draft_text = value
@@ -672,9 +661,7 @@ function ParticipantFlow({
         .find((item) => item.task_id === currentTask(latest)?.task_id && item.text_type !== 'auto')
       logEvent(latest, sketchStage ? 'user_prompt_change' : 'text_change', {
         text_length: latest.runtime.draft_text.length,
-        previous_user_prompt: previous?.text ?? '',
-        current_user_prompt: latest.runtime.draft_text,
-        source_auto_prompt_id: latest.runtime.auto_prompt_id,
+        ...(sketchStage ? userPromptPayload(latest, previous?.text ?? '') : {}),
       })
       persist(latest)
     }, 800)

@@ -14,6 +14,7 @@ import {
 import { loadStore } from './store'
 import { markExportReadiness } from './validation'
 import type { ExperimentalGroup, IntentCoding, Session, Stage, TaskBlock, TaskRun, Timepoint } from './types'
+import { zipStore } from './zip'
 
 function csvEscape(value: unknown): string {
   const text = value == null ? '' : String(value)
@@ -30,14 +31,17 @@ function toCsv(rows: Record<string, unknown>[]): string {
   ].join('\n')
 }
 
-function download(filename: string, content: string, type: string): void {
-  const blob = new Blob([content], { type })
+function downloadBlob(filename: string, blob: Blob): void {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
   link.download = filename
   link.click()
   URL.revokeObjectURL(url)
+}
+
+function download(filename: string, content: string, type: string): void {
+  downloadBlob(filename, new Blob([content], { type }))
 }
 
 function textAt(session: Session, task: TaskRun, timepoint: Timepoint): string {
@@ -572,6 +576,29 @@ export function downloadTimelinesJson(): void {
   )
 }
 
+export function officialTableFiles(sessions = loadStore().sessions, ratings = loadStore().ratings, codings = loadStore().codings) {
+  return [
+    { name: 'participants.csv', content: toCsv(participantRows(sessions)) },
+    { name: 'tasks.csv', content: toCsv(taskRows(sessions, codings)) },
+    { name: 'events.csv', content: toCsv(eventLogRows(sessions)) },
+    { name: 'text_versions.csv', content: toCsv(textVersionRows(sessions)) },
+    { name: 'generations.csv', content: toCsv(generationRows(sessions)) },
+    { name: 'sketch_interactions.csv', content: toCsv(interactionRows(sessions)) },
+    { name: 'sketch_snapshots.json', content: JSON.stringify(snapshotPayload(sessions), null, 2) },
+    { name: 'auto_prompts.csv', content: toCsv(autoPromptRows(sessions)) },
+    { name: 'expert_ratings.csv', content: toCsv(expertRows(ratings)) },
+    { name: 'self_alignment.csv', content: toCsv(selfAlignmentRows(sessions)) },
+    { name: 'full_session_timeline.json', content: JSON.stringify(sessions.map(timelinePayload), null, 2) },
+  ]
+}
+
+export function downloadOfficialZip(): void {
+  const store = loadStore()
+  const sessions = store.sessions.filter((item) => item.completed_at)
+  assertExportable(sessions)
+  downloadBlob('chitest-official-export.zip', zipStore(officialTableFiles(store.sessions, store.ratings, store.codings)))
+}
+
 export function downloadFullJson(): void {
   const sessions = loadStore().sessions.filter((item) => item.completed_at)
   assertExportable(sessions)
@@ -603,10 +630,12 @@ export async function downloadParticipantPacket(session: Session): Promise<void>
           ...item,
           output_image_data: images[item.generation_id] || null,
         })),
+        events: eventLogRows([session]),
         sketch_snapshots: session.sketch_snapshots,
         sketch_interactions: interactionRows([session]),
         auto_prompts: autoPromptRows([session]),
         self_alignment: selfAlignmentRows([session]),
+        official_tables: officialTableFiles([session], loadStore().ratings.filter((item) => item.participant_id === session.participant_id), loadStore().codings.filter((item) => item.participant_id === session.participant_id)).map((item) => item.name),
         measures: measuresForSession(session),
         task_measures: session.tasks.map((task) => ({
           task_id: task.task_id,

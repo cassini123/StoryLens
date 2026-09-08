@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { copyRatio, eventCopyRatio, levenshtein, pastedFromAuto, textSimilarity } from './textCompare'
+import { copyRatio, eventCopyRatio, levenshtein, pastedFromAuto, textSimilarity, userPromptCompare } from './textCompare'
 
 describe('textCompare', () => {
   it('measures edit distance and similarity', () => {
@@ -19,5 +19,21 @@ describe('textCompare', () => {
     const dest = `${copied}，并拉开距离`
     expect(eventCopyRatio([copied], dest)).toBeCloseTo(copied.length / dest.length)
     expect(eventCopyRatio([], '完全重写')).toBe(0)
+  })
+
+  it('records Auto Prompt to user prompt edit metrics without overwriting either text', () => {
+    const row = userPromptCompare({
+      autoPrompt: '人物 A 在后方',
+      previous: '把人往后放',
+      current: '人物 A 在后方，并拉开距离',
+      copiedSegments: ['人物 A 在后方'],
+      sourceAutoPromptId: 'ap_1',
+    })
+    expect(row.previous_user_prompt).toBe('把人往后放')
+    expect(row.current_user_prompt).toBe('人物 A 在后方，并拉开距离')
+    expect(row.source_auto_prompt_id).toBe('ap_1')
+    expect(row.edit_distance).toBeGreaterThan(0)
+    expect(row.copy_ratio).toBeGreaterThan(0)
+    expect(row.copied_segments).toEqual(['人物 A 在后方'])
   })
 })

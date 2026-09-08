@@ -84,6 +84,11 @@ export function validateTask(session: Session, task: TaskRun): ValidationIssue[]
     for (const snap of snapshots) {
       if (!parseableScene(snap.scene)) issues.push(issue('snapshot_scene', `${snap.snapshot_id} scene is not parseable`, id))
     }
+    for (const kind of ['initial', 'pre_auto_prompt', 'post_user_revision'] as const) {
+      if (!snapshots.some((item) => item.kind === kind && parseableScene(item.scene))) {
+        issues.push(issue('t2_snapshot_kind', `T2 is missing a parseable ${kind} snapshot`, id))
+      }
+    }
   }
 
   const satisfied = eventsOf(session, id, 'satisfied_click')
@@ -132,6 +137,16 @@ export function validateSession(session: Session): ValidationResult {
   const timeline = session.event_log
   if (!timeline.some((item) => item.event_type === 'session_start')) {
     issues.push(issue('session_start', 'session_start is missing'))
+  }
+  const reconstructable = timeline.every(
+    (item) =>
+      Boolean(item.event_id) &&
+      Boolean(item.timestamp) &&
+      Boolean(item.event_type) &&
+      Number.isFinite(item.relative_time_ms),
+  )
+  if (timeline.length > 0 && !reconstructable) {
+    issues.push(issue('timeline_rebuild', 'event_log cannot independently rebuild the session timeline'))
   }
   return { ok: issues.length === 0, issues }
 }

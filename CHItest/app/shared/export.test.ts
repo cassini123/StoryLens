@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoPromptRows } from './export'
+import { autoPromptRows, officialTableFiles } from './export'
 import { makeSession, makeTask } from './testSession'
 
 describe('autoPromptRows', () => {
@@ -40,5 +40,22 @@ describe('autoPromptRows', () => {
     expect(row.source_sketch_snapshot_id).toBe('sk_1')
     expect(row.edit_distance).toBe(18)
     expect(row.copy_ratio).toBe(0.2)
+  })
+
+  it('lists every official export table in one bundle', () => {
+    const names = officialTableFiles([], [], []).map((item) => item.name)
+    expect(names).toEqual([
+      'participants.csv',
+      'tasks.csv',
+      'events.csv',
+      'text_versions.csv',
+      'generations.csv',
+      'sketch_interactions.csv',
+      'sketch_snapshots.json',
+      'auto_prompts.csv',
+      'expert_ratings.csv',
+      'self_alignment.csv',
+      'full_session_timeline.json',
+    ])
   })
 })
