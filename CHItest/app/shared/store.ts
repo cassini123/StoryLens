@@ -1,3 +1,4 @@
+import { clearGeneratedImages, deleteGeneratedImages } from './imageStore'
 import type { ExpertRating, IntentCoding, Session, StoreShape, Trial } from './types'
 
 const KEY = 'chitest.store.v3'
@@ -145,9 +146,24 @@ export function allCompletedTrials() {
   )
 }
 
+export function abandonSession(participantId: string): StoreShape {
+  const store = loadStore()
+  const session = store.sessions.find((item) => item.participant_id === participantId)
+  store.sessions = store.sessions.filter((item) => item.participant_id !== participantId)
+  saveStore(store)
+  if (localStorage.getItem(ACTIVE_KEY) === participantId) {
+    localStorage.removeItem(ACTIVE_KEY)
+  }
+  if (session) {
+    void deleteGeneratedImages(session.trials.map((trial) => trial.trial_id))
+  }
+  return store
+}
+
 export function clearAllData(): StoreShape {
   const store = emptyStore()
   saveStore(store)
   localStorage.removeItem(ACTIVE_KEY)
+  void clearGeneratedImages()
   return store
 }

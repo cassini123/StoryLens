@@ -8,7 +8,7 @@ import { SemanticPanel } from '../shared/sketch/SemanticPanel'
 import { SceneView } from '../shared/sketch/SceneView'
 import { buildTrialPlan, nextGroupId, nextParticipantId } from '../shared/schedule'
 import { downloadParticipantPacket } from '../shared/export'
-import { getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
+import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
 import { nowIso } from '../shared/time'
 import type {
   Condition,
@@ -72,6 +72,26 @@ function persist(session: Session): Session {
   return session
 }
 
+function confirmRestart(session: Session, setSession: (session: Session | null) => void): void {
+  if (!confirm('Discard this incomplete session on this browser and start over?')) return
+  abandonSession(session.participant_id)
+  setSession(null)
+  window.location.hash = '#/participant'
+  window.location.reload()
+}
+
+function RestartButton({
+  session,
+  setSession,
+}: {
+  session: Session
+  setSession: (session: Session | null) => void
+}) {
+  return (
+    <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
+  )
+}
+
 function ensureTrial(session: Session, index: number): { session: Session; trial: Trial } {
   const plan = buildTrialPlan(session.group_id, session.participant_id)
   const planned = plan[index]
@@ -113,6 +133,12 @@ export function ParticipantApp() {
           {health && !health.credentials ? (
             <p className="api-status bad">
               {health.error || 'Jimeng API is not configured. Generated images will be placeholders until Vercel Production has JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY and is Redeployed.'}
+            </p>
+          ) : null}
+          {existing.filter((item) => !item.completed_at).length > 0 ? (
+            <p className="hint">
+              This browser still has an unfinished session. Use a new participant ID, or open Export and
+              choose Clear local data.
             </p>
           ) : null}
           <div className="stack">
@@ -240,7 +266,7 @@ function ParticipantFlow({
   setSession,
 }: {
   session: Session
-  setSession: (session: Session) => void
+  setSession: (session: Session | null) => void
 }) {
   const plan = buildTrialPlan(session.group_id, session.participant_id)
   const { step, trial_index } = session.runtime
@@ -253,7 +279,8 @@ function ParticipantFlow({
           <p className="lead">{experiment.prompts.introduction}</p>
           <p>You will complete 6 images: 2 baseline, 1 Direct, 1 Sketch, then 2 transfer images.</p>
         </main>
-        <FooterBar>
+        <FooterBar style={{ justifyContent: 'space-between' }}>
+          <RestartButton session={session} setSession={setSession} />
           <Button
             fill
             onClick={() => {
@@ -276,6 +303,7 @@ function ParticipantFlow({
       <Questionnaire
         session={session}
         onChange={(subjective) => update({ ...session, subjective })}
+        onRestart={() => confirmRestart(session, setSession)}
         onSubmit={() =>
           update({
             ...session,
@@ -298,7 +326,8 @@ function ParticipantFlow({
             </Button>
           </div>
         </main>
-        <FooterBar>
+        <FooterBar style={{ justifyContent: 'space-between' }}>
+          <RestartButton session={session} setSession={setSession} />
           <Button onClick={() => (window.location.hash = '#/')}>Home</Button>
         </FooterBar>
       </Shell>
@@ -444,7 +473,8 @@ function ParticipantFlow({
           })
         }}
       />
-      <FooterBar>
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <RestartButton session={session} setSession={setSession} />
         <Button
           fill
           disabled={
@@ -676,10 +706,12 @@ function GeneratedImage({ trialId }: { trialId: string }) {
 function Questionnaire({
   session,
   onChange,
+  onRestart,
   onSubmit,
 }: {
   session: Session
   onChange: (value: SubjectiveRatings) => void
+  onRestart: () => void
   onSubmit: () => void
 }) {
   const value = session.subjective ?? {
@@ -722,7 +754,8 @@ function Questionnaire({
           onChange={(n) => onChange({ ...value, confidence: n })}
         />
       </main>
-      <FooterBar>
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <Button onClick={onRestart}>Start over</Button>
         <Button fill disabled={!ready} onClick={onSubmit}>
           Submit
         </Button>
