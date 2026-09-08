@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { experiment, getImage, stimulusUrl, STUDY_TITLE } from '../shared/config'
 import { saveGeneratedImage, getGeneratedImage } from '../shared/imageStore'
-import { generateImageFromIntent } from '../shared/jimeng'
+import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import { generateSketch, makeSketchRecord } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { SemanticPanel } from '../shared/sketch/SemanticPanel'
@@ -93,6 +93,11 @@ export function ParticipantApp() {
   const [setupId, setSetupId] = useState(nextParticipantId(existing))
   const [setupGroup, setSetupGroup] = useState<GroupId>(nextGroupId(existing))
   const [demo, setDemo] = useState<Demographics>(emptyDemo)
+  const [health, setHealth] = useState<JimengHealth | null>(null)
+
+  useEffect(() => {
+    void checkJimengHealth().then(setHealth)
+  }, [])
 
   if (!session) {
     const ready =
@@ -105,6 +110,11 @@ export function ParticipantApp() {
       <Shell title="Participant setup" subtitle={STUDY_TITLE}>
         <main className="page">
           <p className="lead">Start a new session. Do not reuse a participant ID.</p>
+          {health && !health.credentials ? (
+            <p className="api-status bad">
+              {health.error || 'Jimeng API is not configured. Generated images will be placeholders until Vercel Production has JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY and is Redeployed.'}
+            </p>
+          ) : null}
           <div className="stack">
             <Field label="Participant ID">
               <input value={setupId} onChange={(e) => setSetupId(e.target.value.trim())} />

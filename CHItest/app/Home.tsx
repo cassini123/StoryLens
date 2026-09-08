@@ -1,7 +1,22 @@
+import { useEffect, useState } from 'react'
 import { experiment } from './shared/config'
+import { checkJimengHealth, type JimengHealth } from './shared/jimeng'
 import { Button, Shell } from './shared/ui'
 
 export function Home() {
+  const [health, setHealth] = useState<JimengHealth | null>(null)
+
+  useEffect(() => {
+    void checkJimengHealth().then(setHealth)
+  }, [])
+
+  const apiReady = Boolean(health?.credentials)
+  const apiLabel = !health
+    ? 'Checking Jimeng API…'
+    : apiReady
+      ? 'Jimeng API connected'
+      : health.error || 'Jimeng API is not configured on this deployment'
+
   return (
     <Shell title={experiment.study.title} subtitle={experiment.study.subtitle}>
       <main className="page">
@@ -14,6 +29,13 @@ export function Home() {
           adds an editable low-fidelity scaffold. The system records intents, generated images, sketch
           actions, and expert ratings. Image quality is feedback, not the primary score.
         </p>
+        <p className={apiReady ? 'api-status ok' : 'api-status bad'}>{apiLabel}</p>
+        {!apiReady && health ? (
+          <p className="hint">
+            Vercel Production must define <code>JIMENG_ACCESS_KEY</code> and <code>JIMENG_SECRET_KEY</code>,
+            then Redeploy. Preview-only env vars are not visible on 2027mitgo.top.
+          </p>
+        ) : null}
         <div className="stack">
           <Button fill onClick={() => (window.location.hash = '#/participant')}>
             Participant

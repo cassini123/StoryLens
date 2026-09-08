@@ -45,14 +45,14 @@ Browser `localStorage` + IndexedDB (generated images). Participants download `Px
 
 ## Jimeng
 
-Server route `POST /api/jimeng` (Vercel + local Vite middleware). Keys:
+Server route `POST /api/jimeng/` (Vercel + local Vite middleware). Keys:
 
 ```text
 JIMENG_ACCESS_KEY
 JIMENG_SECRET_KEY
 ```
 
-in repo-root `.env` or Vercel project env. Never commit secrets.
+in repo-root `.env` or the Vercel project **Production + Preview** env, then **Redeploy**. Custom domains such as `2027mitgo.top` only see Production variables. Never commit secrets. GET `/api/jimeng/` reports whether credentials are present (not the secret values).
 
 ## Stimuli
 
