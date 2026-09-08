@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getImage, stageHasSketch, stimulusUrl } from '../shared/config'
+import { SURPRISE_ASSET } from '../shared/surprise'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
 import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import {
@@ -28,7 +29,7 @@ import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
 import { cloneScene } from '../shared/sketch/templates'
 import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
-import { buildTaskPlan, groupForParticipant, isShortSession, nextParticipantId, patternForParticipant } from '../shared/schedule'
+import { assignGroup, buildTaskPlan, groupCode, isShortSession, nextParticipantId, patternForParticipant } from '../shared/schedule'
 import { createSessionBase, summarizeTask } from '../shared/sessionInit'
 import { markExportReadiness } from '../shared/validation'
 import { pastedFromAuto } from '../shared/textCompare'
@@ -99,11 +100,7 @@ export function ParticipantApp() {
       <SessionChrome title={t.setupTitle} extra={t.studyBrand} session={null}>
         <main className="page">
           <p className="lead">{t.setupLead}</p>
-          {health && !health.credentials ? (
-            <p className="api-status bad">
-              {health.error || t.apiMissing}
-            </p>
-          ) : null}
+          {health && !health.credentials ? <p className="api-status bad">{t.apiMissing}</p> : null}
           <div className="stack">
             <Field label={t.participantId}>
               <input value={setupId} onChange={(e) => setSetupId(e.target.value.trim())} />
@@ -185,7 +182,7 @@ export function ParticipantApp() {
                 return
               }
               const sessionId = `S${id.replace(/^P/i, '')}`
-              const group = groupForParticipant(id)
+              const group = assignGroup()
               const plan = buildTaskPlan(id, group)
               const created = createSessionBase({
                 participantId: id,
@@ -200,6 +197,7 @@ export function ParticipantApp() {
               logEvent(created, 'session_start')
               logEvent(created, 'participant_setup_complete')
               logEvent(created, 'group_assignment', {
+                group: groupCode(created.experimental_group),
                 experimental_group: created.experimental_group,
                 assignment_pattern: created.assignment_pattern,
                 condition_order: created.condition_order,
@@ -342,10 +340,15 @@ function ParticipantFlow({
       >
         <main className="page">
           <p className="lead">{t.completeLead}</p>
-          <div className="stack">
+          <div className="complete-actions">
             <Button fill onClick={() => void downloadParticipantPacket(session)}>
               {t.downloadData}
             </Button>
+            <a className="surprise-card" href={stimulusUrl(SURPRISE_ASSET)} download="surprise">
+              <img src={stimulusUrl(SURPRISE_ASSET)} alt={t.surprise} />
+              <span>{t.surprise}</span>
+              <small>{t.surpriseHint}</small>
+            </a>
           </div>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>

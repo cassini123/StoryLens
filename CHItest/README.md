@@ -23,7 +23,7 @@ Production:
 - https://www.2027mitgo.top/chitest/
 - https://storyboard-skill.vercel.app/chitest/
 
-Odd participant IDs → scaffold; even IDs → control. Assignment is recorded, never shown to participants.
+Group is assigned at session start with probability 1/2. Export `group` is `0` (four T1s) or `1` (T1 T1 T2 T2). Participants never see the group.
 
 ## Logging
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoPromptRows, officialTableFiles } from './export'
+import { autoPromptRows, officialTableFiles, participantRows } from './export'
 import { makeSession, makeTask } from './testSession'
 
 describe('autoPromptRows', () => {
@@ -40,6 +40,14 @@ describe('autoPromptRows', () => {
     expect(row.source_sketch_snapshot_id).toBe('sk_1')
     expect(row.edit_distance).toBe(18)
     expect(row.copy_ratio).toBe(0.2)
+  })
+
+  it('exports group as 0/1 for the four-T1 vs T1T1T2T2 split', () => {
+    const control = makeSession({ participant_id: 'P010', experimental_group: 'control' })
+    const scaffold = makeSession({ participant_id: 'P011', experimental_group: 'scaffold' })
+    const rows = participantRows([control, scaffold])
+    expect(rows[0]).toMatchObject({ group: 0, group_sequence: 'T1 T1 T1 T1' })
+    expect(rows[1]).toMatchObject({ group: 1, group_sequence: 'T1 T1 T2 T2' })
   })
 
   it('lists every official export table in one bundle', () => {

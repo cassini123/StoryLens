@@ -50,9 +50,17 @@ export function patternForParticipant(participantId: string): AssignmentPattern 
   return PATTERNS[(n - 1 + PATTERNS.length) % PATTERNS.length]
 }
 
-export function groupForParticipant(participantId: string): ExperimentalGroup {
-  const n = Number(/^P(\d+)$/i.exec(participantId)?.[1] ?? hashString(participantId))
-  return n % 2 === 1 ? 'scaffold' : 'control'
+/** Random 1/2 assignment. 0 = control (four T1s), 1 = scaffold (T1 T1 T2 T2). */
+export function assignGroup(rand: () => number = Math.random): ExperimentalGroup {
+  return rand() < 0.5 ? 'control' : 'scaffold'
+}
+
+export function groupCode(group: ExperimentalGroup): 0 | 1 {
+  return group === 'scaffold' ? 1 : 0
+}
+
+export function groupSequence(group: ExperimentalGroup): string {
+  return group === 'scaffold' ? 'T1 T1 T2 T2' : 'T1 T1 T1 T1'
 }
 
 function pickFromGroup(
@@ -90,7 +98,7 @@ export function assignImages(
   images: ImageDef[],
   participantId: string,
   pattern: AssignmentPattern = patternForParticipant(participantId),
-  group: ExperimentalGroup = groupForParticipant(participantId),
+  group: ExperimentalGroup,
 ): PlannedTask[] {
   const rand = mulberry32(hashString(`${participantId}:${pattern}:${group}`))
   const used = new Set<string>()

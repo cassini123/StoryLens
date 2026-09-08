@@ -21,12 +21,12 @@ Current visual state
 
 ## Between-subject groups
 
-Assignment is deterministic from participant ID (odd = scaffold, even = control). Session metadata stores `experimental_group`, `assignment_pattern`, `condition_order`, and `task_sequence_version` (`formal-between-v1`). Do not infer group from `task_id`. Participants never see the group name.
+Assignment is random 1/2 at session start. Export `group` is `0` = control (four T1s) or `1` = scaffold (T1 T1 T2 T2). Session metadata still stores `experimental_group`, `assignment_pattern`, `condition_order`, and `task_sequence_version` (`formal-between-v1`). Do not infer group from `task_id`. Participants never see the group.
 
-| Group | 7 tasks | Middle block |
-| --- | --- | --- |
-| **scaffold** | T0×1 + T1×2 + T2×2 + T3×2 | Sketch-mediated scaffold |
-| **control** | T0×1 + T1×4 + T3×2 | Extra text-only practice (T1′) |
+| Export `group` | Internal name | 7 tasks | Middle block |
+| --- | --- | --- | --- |
+| **1** | scaffold | T0×1 + T1×2 + T2×2 + T3×2 | Sketch-mediated scaffold |
+| **0** | control | T0×1 + T1×4 + T3×2 | Extra text-only practice (T1′) |
 
 Both groups have the same number of tasks. The scaffold group differs only in the middle two tasks.
 
@@ -86,7 +86,7 @@ Text versions are append-only (`initial` / `auto` / `refined` / `final`). Genera
 
 T2 snapshots always include `initial`, `pre_auto_prompt`, and `post_user_revision`. User-prompt edits store previous/current text, source Auto Prompt id, edit distance, similarity, copy ratio, and copied segments.
 
-Export: participants, tasks, events, text_versions, generations, sketch_interactions, sketch_snapshots, auto_prompts (with edit distance / similarity / copy ratio), expert_ratings, self_alignment, full_session_timeline.json. Use **Download official tables (zip)** for a single complete dump. Full JSON also includes `practice_control`.
+Export: one zip of official tables. Participant complete page packs that person’s zip. `group` is `0` (T1×4) or `1` (T1 T1 T2 T2).
 
 Local store key: `chitest.store.v7`. Pilot sessions on v6 (including P001) are instrumentation only and are not migrated.
 
