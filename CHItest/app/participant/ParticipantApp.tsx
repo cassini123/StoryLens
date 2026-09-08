@@ -1,9 +1,13 @@
-import { useMemo, useState } from 'react'
-import { experiment, getTask } from '../shared/config'
+import { useEffect, useMemo, useState } from 'react'
+import { experiment, getImage, stimulusUrl, STUDY_TITLE } from '../shared/config'
+import { saveGeneratedImage, getGeneratedImage } from '../shared/imageStore'
+import { generateImageFromIntent } from '../shared/jimeng'
 import { generateSketch, makeSketchRecord } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
+import { SemanticPanel } from '../shared/sketch/SemanticPanel'
 import { SceneView } from '../shared/sketch/SceneView'
 import { buildTrialPlan, nextGroupId, nextParticipantId } from '../shared/schedule'
+import { downloadParticipantPacket } from '../shared/export'
 import { getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
 import { nowIso } from '../shared/time'
 import type {
@@ -11,6 +15,7 @@ import type {
   Demographics,
   ExperienceLevel,
   GroupId,
+  ImageDef,
   Session,
   SketchAction,
   SketchScene,
@@ -31,21 +36,31 @@ const emptyDemo: Demographics = {
   image_gen_experience: '',
 }
 
-function emptyTrial(participantId: string, taskId: string, condition: Condition): Trial {
+function emptyTrial(
+  participantId: string,
+  imageId: string,
+  condition: Condition,
+  phase: Trial['phase'],
+): Trial {
   return {
     participant_id: participantId,
-    trial_id: `${participantId}_${taskId}`,
-    task_id: taskId,
+    trial_id: `${participantId}_${imageId}_${phase}`,
+    task_id: imageId,
+    image_id: imageId,
+    phase,
     condition,
     t1_intent: '',
     t2_intent: '',
     t3_intent: '',
     initial_intent: '',
     initial_intent_timestamp: '',
+    refined_intent: '',
+    refined_intent_timestamp: '',
+    generated_image: null,
     initial_sketch: null,
     sketch_actions: [],
     final_sketch: null,
-    refined_intent: '',
+    semantic_confirms: [],
     final_intent: '',
     authored: { modification_count: 0, rejection: false },
     timestamps: {},
@@ -58,13 +73,12 @@ function persist(session: Session): Session {
 }
 
 function ensureTrial(session: Session, index: number): { session: Session; trial: Trial } {
-  const plan = buildTrialPlan(session.group_id)
+  const plan = buildTrialPlan(session.group_id, session.participant_id)
   const planned = plan[index]
-  const existing = session.trials.find((item) => item.task_id === planned.task_id)
+  const existing = session.trials.find((item) => item.trial_id === `${session.participant_id}_${planned.image_id}_${planned.phase}`)
   if (existing) return { session, trial: existing }
-  const trial = emptyTrial(session.participant_id, planned.task_id, planned.condition)
-  const next = { ...session, trials: [...session.trials, trial] }
-  return { session: persist(next), trial }
+  const trial = emptyTrial(session.participant_id, planned.image_id, planned.condition, planned.phase)
+  return { session: persist({ ...session, trials: [...session.trials, trial] }), trial }
 }
 
 function replaceTrial(session: Session, trial: Trial): Session {
@@ -88,20 +102,17 @@ export function ParticipantApp() {
       demo.ai_familiarity !== ''
 
     return (
-      <Shell title="Participant setup" subtitle="Cinematography Expression Study">
+      <Shell title="Participant setup" subtitle={STUDY_TITLE}>
         <main className="page">
           <p className="lead">Start a new session. Do not reuse a participant ID.</p>
           <div className="stack">
             <Field label="Participant ID">
               <input value={setupId} onChange={(e) => setSetupId(e.target.value.trim())} />
             </Field>
-            <Field label="Counterbalance group">
+            <Field label="Condition order">
               <select value={setupGroup} onChange={(e) => setSetupGroup(e.target.value as GroupId)}>
-                {Object.keys(experiment.groups).map((id) => (
-                  <option key={id} value={id}>
-                    {id}
-                  </option>
-                ))}
+                <option value="direct_first">T1 → Direct → Sketch → T3</option>
+                <option value="sketch_first">T1 → Sketch → Direct → T3</option>
               </select>
             </Field>
             <Field label="Cinematography experience">
@@ -197,6 +208,8 @@ export function ParticipantApp() {
                   draft_initial: '',
                   draft_final: '',
                   working_scene: null,
+                  generate_error: '',
+                  selected_node_id: null,
                 },
               }
               setSession(persist(created))
@@ -219,7 +232,7 @@ function ParticipantFlow({
   session: Session
   setSession: (session: Session) => void
 }) {
-  const plan = buildTrialPlan(session.group_id)
+  const plan = buildTrialPlan(session.group_id, session.participant_id)
   const { step, trial_index } = session.runtime
   const update = (next: Session) => setSession(persist(next))
 
@@ -228,7 +241,7 @@ function ParticipantFlow({
       <Shell title="Introduction" meta={session.participant_id}>
         <main className="page">
           <p className="lead">{experiment.prompts.introduction}</p>
-          <p>Each task has a baseline description (T1), then a second description (T2). After all tasks, you will complete one new task with no assistance (T3).</p>
+          <p>You will complete 6 images: 2 baseline, 1 Direct, 1 Sketch, then 2 transfer images.</p>
         </main>
         <FooterBar>
           <Button
@@ -237,7 +250,7 @@ function ParticipantFlow({
               const ready = ensureTrial(session, 0)
               update({
                 ...ready.session,
-                runtime: { ...ready.session.runtime, step: 'trial_task', trial_index: 0 },
+                runtime: { ...ready.session.runtime, step: 'show_image', trial_index: 0 },
               })
             }}
           >
@@ -268,8 +281,12 @@ function ParticipantFlow({
     return (
       <Shell title="Session complete" meta={session.participant_id}>
         <main className="page">
-          <p className="lead">Thank you. Your responses have been saved on this computer.</p>
-          <p>Please tell the experimenter that you have finished.</p>
+          <p className="lead">Thank you. Please download your session data and give the file to the experimenter.</p>
+          <div className="stack">
+            <Button fill onClick={() => void downloadParticipantPacket(session)}>
+              Download my session data
+            </Button>
+          </div>
         </main>
         <FooterBar>
           <Button onClick={() => (window.location.hash = '#/')}>Home</Button>
@@ -278,96 +295,23 @@ function ParticipantFlow({
     )
   }
 
-  if (step === 'transfer_task' || step === 'transfer_intent') {
-    const task = getTask(experiment.transfer_task_id)
-    const trial =
-      session.trials.find((item) => item.task_id === task.id) ??
-      emptyTrial(session.participant_id, task.id, 'transfer')
-    return (
-      <Shell title={`T3 Transfer · ${task.title}`} meta={`${session.participant_id} · Transfer`}>
-        <TrialWorkspace
-          taskTitle={task.title}
-          taskBrief={task.brief}
-          condition="transfer"
-          step={step === 'transfer_task' ? 'trial_task' : 'trial_intent'}
-          initialValue={session.runtime.draft_initial}
-          finalValue=""
-          scene={null}
-          prompt={experiment.prompts.transfer}
-          t1Prompt={experiment.prompts.transfer}
-          onInitialChange={(value) =>
-            update({ ...session, runtime: { ...session.runtime, draft_initial: value } })
-          }
-          onFinalChange={() => undefined}
-          onSketchChange={() => undefined}
-        />
-        <FooterBar>
-          <Button
-            fill
-            disabled={step === 'transfer_intent' && session.runtime.draft_initial.trim().length === 0}
-            onClick={() => {
-              if (step === 'transfer_task') {
-                const started = {
-                  ...trial,
-                    timestamps: { ...trial.timestamps, task_start: trial.timestamps.task_start ?? nowIso(), t3_start: nowIso(), intent_start: nowIso() },
-                }
-                update({
-                  ...replaceTrial(session, started),
-                  runtime: { ...session.runtime, step: 'transfer_intent', draft_initial: '' },
-                })
-                return
-              }
-              const text = session.runtime.draft_initial.trim()
-              const done: Trial = {
-                ...trial,
-                t1_intent: '',
-                t2_intent: '',
-                t3_intent: text,
-                initial_intent: text,
-                initial_intent_timestamp: nowIso(),
-                final_intent: text,
-                refined_intent: text,
-                timestamps: {
-                  ...trial.timestamps,
-                  intent_submit: nowIso(),
-                  t3_submit: nowIso(),
-                  trial_end: nowIso(),
-                },
-              }
-              update({
-                ...replaceTrial(session, done),
-                runtime: {
-                  ...session.runtime,
-                  step: 'questionnaire',
-                  draft_initial: '',
-                  draft_final: '',
-                  working_scene: null,
-                },
-              })
-            }}
-          >
-            Continue
-          </Button>
-        </FooterBar>
-      </Shell>
-    )
-  }
-
   const { session: withTrial, trial } = ensureTrial(session, trial_index)
-  const task = getTask(trial.task_id)
+  const image = getImage(trial.image_id)
   const total = plan.length
 
-  function gotoNextTrial(current: Session) {
+  function gotoNext(current: Session) {
     const nextIndex = trial_index + 1
     if (nextIndex >= plan.length) {
       update({
         ...current,
         runtime: {
-          step: 'transfer_task',
+          step: 'questionnaire',
           trial_index: nextIndex,
           draft_initial: '',
           draft_final: '',
           working_scene: null,
+          generate_error: '',
+          selected_node_id: null,
         },
       })
       return
@@ -376,30 +320,83 @@ function ParticipantFlow({
     update({
       ...ready.session,
       runtime: {
-        step: 'trial_task',
+        step: 'show_image',
         trial_index: nextIndex,
         draft_initial: '',
         draft_final: '',
         working_scene: null,
+        generate_error: '',
+        selected_node_id: null,
       },
     })
   }
 
+  async function runGeneration(currentTrial: Trial, currentSession: Session) {
+    const generating: Trial = {
+      ...currentTrial,
+      timestamps: { ...currentTrial.timestamps, generate_start: nowIso() },
+    }
+    update({
+      ...replaceTrial(currentSession, generating),
+      runtime: { ...currentSession.runtime, step: 'generating', generate_error: '' },
+    })
+    const result = await generateImageFromIntent(currentTrial.initial_intent)
+    await saveGeneratedImage(currentTrial.trial_id, result.data_url)
+    let nextTrial: Trial = {
+      ...generating,
+      generated_image: result.meta,
+      timestamps: { ...generating.timestamps, generate_done: nowIso() },
+    }
+    if (currentTrial.condition === 'sketch') {
+      const record = generateSketch(currentTrial.image_id, currentTrial.initial_intent)
+      nextTrial = {
+        ...nextTrial,
+        initial_sketch: record,
+        timestamps: { ...nextTrial.timestamps, sketch_generated: record.generation_timestamp },
+      }
+      update({
+        ...replaceTrial(currentSession, nextTrial),
+        runtime: {
+          ...currentSession.runtime,
+          step: 'view_feedback',
+          working_scene: record.output.scene,
+          generate_error: result.meta.error,
+        },
+      })
+      return
+    }
+    update({
+      ...replaceTrial(currentSession, nextTrial),
+      runtime: {
+        ...currentSession.runtime,
+        step: 'view_feedback',
+        working_scene: null,
+        generate_error: result.meta.error,
+      },
+    })
+  }
+
+  const phaseLabel =
+    trial.phase === 'T1' ? 'T1 Baseline' : trial.phase === 'T3' ? 'T3 Transfer' : trial.condition === 'sketch' ? 'T2 Sketch' : 'T2 Direct'
+
   return (
-    <Shell
-      title={`${task.title}`}
-      subtitle={`${step === 'trial_intent' ? 'T1 Baseline' : step === 'trial_sketch' ? 'T2 Sketch' : step === 'trial_refine' ? 'T2' : 'Task'} · ${trial_index + 1} of ${total}`}
-      meta={session.participant_id}
-    >
+    <Shell title={image.title} subtitle={`${phaseLabel} · ${trial_index + 1} of ${total}`} meta={session.participant_id}>
       <TrialWorkspace
-        taskTitle={task.title}
-        taskBrief={task.brief}
-        condition={trial.condition}
+        image={image}
+        trial={trial}
         step={step}
-        initialValue={step === 'trial_intent' ? session.runtime.draft_initial : trial.initial_intent}
-        finalValue={session.runtime.draft_final}
-        scene={session.runtime.working_scene}
-        prompt={trial.condition === 'sketch' ? experiment.prompts.sketch_refine : experiment.prompts.direct_refine}
+        initialValue={step === 'initial_intent' ? withTrial.runtime.draft_initial : trial.initial_intent}
+        finalValue={withTrial.runtime.draft_final}
+        scene={withTrial.runtime.working_scene}
+        selectedNodeId={withTrial.runtime.selected_node_id}
+        generateError={withTrial.runtime.generate_error}
+        prompt={
+          trial.condition === 'sketch'
+            ? experiment.prompts.sketch_refine
+            : trial.phase === 'T3'
+              ? experiment.prompts.transfer
+              : experiment.prompts.direct_refine
+        }
         t1Prompt={experiment.prompts.t1}
         onInitialChange={(value) =>
           update({ ...withTrial, runtime: { ...withTrial.runtime, draft_initial: value } })
@@ -407,16 +404,27 @@ function ParticipantFlow({
         onFinalChange={(value) =>
           update({ ...withTrial, runtime: { ...withTrial.runtime, draft_final: value } })
         }
+        onSelectNode={(id) =>
+          update({ ...withTrial, runtime: { ...withTrial.runtime, selected_node_id: id } })
+        }
+        onConfirmRelation={(relation) => {
+          const nextTrial: Trial = {
+            ...trial,
+            semantic_confirms: [
+              ...trial.semantic_confirms,
+              { timestamp: nowIso(), node_id: withTrial.runtime.selected_node_id || '', relation },
+            ],
+          }
+          update(replaceTrial(withTrial, nextTrial))
+        }}
         onSketchChange={(scene, action) => {
-          const first = trial.timestamps.sketch_first_interaction ?? (action ? nowIso() : trial.timestamps.sketch_first_interaction)
-            const nextTrial: Trial = {
+          const first =
+            trial.timestamps.sketch_first_interaction ?? (action ? nowIso() : trial.timestamps.sketch_first_interaction)
+          const nextTrial: Trial = {
             ...trial,
             sketch_actions: action ? [...trial.sketch_actions, action] : trial.sketch_actions,
             authored: action
-              ? {
-                  modification_count: trial.sketch_actions.length + 1,
-                  rejection: true,
-                }
+              ? { modification_count: trial.sketch_actions.length + 1, rejection: true }
               : trial.authored,
             timestamps: { ...trial.timestamps, sketch_first_interaction: first },
           }
@@ -427,184 +435,207 @@ function ParticipantFlow({
         }}
       />
       <FooterBar>
-        {step === 'trial_sketch' ? (
-          <Button
-            fill
-            onClick={() => {
-              if (!withTrial.runtime.working_scene) return
-              const confirmed: Trial = {
+        <Button
+          fill
+          disabled={
+            (step === 'initial_intent' && withTrial.runtime.draft_initial.trim().length === 0) ||
+            (step === 'refined_intent' && withTrial.runtime.draft_final.trim().length === 0) ||
+            step === 'generating'
+          }
+          onClick={() => {
+            if (step === 'show_image') {
+              const started: Trial = {
                 ...trial,
-                final_sketch: makeSketchRecord(withTrial.runtime.working_scene),
-                authored: {
-                  modification_count: trial.sketch_actions.length,
-                  rejection: trial.sketch_actions.length > 0,
+                timestamps: {
+                  ...trial.timestamps,
+                  task_start: trial.timestamps.task_start ?? nowIso(),
+                  intent_start: nowIso(),
+                  ...(trial.phase === 'T1' ? { t1_start: nowIso() } : {}),
+                  ...(trial.phase === 'T3' ? { t3_start: nowIso() } : {}),
                 },
-                timestamps: { ...trial.timestamps, sketch_confirm: nowIso(), refinement_start: nowIso(), t2_start: nowIso() },
               }
               update({
-                ...replaceTrial(withTrial, confirmed),
-                runtime: { ...withTrial.runtime, step: 'trial_refine' },
+                ...replaceTrial(withTrial, started),
+                runtime: { ...withTrial.runtime, step: 'initial_intent', draft_initial: '' },
               })
-            }}
-          >
-            Confirm Sketch
-          </Button>
-        ) : (
-          <Button
-            fill
-            disabled={
-              (step === 'trial_intent' && withTrial.runtime.draft_initial.trim().length === 0) ||
-              (step === 'trial_refine' && withTrial.runtime.draft_final.trim().length === 0)
+              return
             }
-            onClick={() => {
-              if (step === 'trial_task') {
-                const started: Trial = {
+            if (step === 'initial_intent') {
+              const text = withTrial.runtime.draft_initial.trim()
+              const nextTrial: Trial = {
+                ...trial,
+                initial_intent: text,
+                initial_intent_timestamp: nowIso(),
+                t1_intent: trial.phase === 'T1' ? text : trial.t1_intent,
+                timestamps: { ...trial.timestamps, intent_submit: nowIso(), t1_submit: nowIso() },
+              }
+              void runGeneration(nextTrial, replaceTrial(withTrial, nextTrial))
+              return
+            }
+            if (step === 'view_feedback') {
+              let nextTrial = trial
+              if (trial.condition === 'sketch' && withTrial.runtime.working_scene) {
+                nextTrial = {
+                  ...trial,
+                  final_sketch: makeSketchRecord(withTrial.runtime.working_scene),
+                  authored: {
+                    modification_count: trial.sketch_actions.length,
+                    rejection: trial.sketch_actions.length > 0,
+                  },
+                  timestamps: {
+                    ...trial.timestamps,
+                    sketch_confirm: nowIso(),
+                    refinement_start: nowIso(),
+                    t2_start: nowIso(),
+                  },
+                }
+              } else {
+                nextTrial = {
                   ...trial,
                   timestamps: {
                     ...trial.timestamps,
-                    task_start: trial.timestamps.task_start ?? nowIso(),
-                    intent_start: nowIso(),
-                    t1_start: nowIso(),
+                    refinement_start: nowIso(),
+                    t2_start: nowIso(),
                   },
                 }
-                update({
-                  ...replaceTrial(withTrial, started),
-                  runtime: { ...withTrial.runtime, step: 'trial_intent', draft_initial: '' },
-                })
-                return
               }
-              if (step === 'trial_intent') {
-                const text = withTrial.runtime.draft_initial.trim()
-                let nextTrial: Trial = {
-                  ...trial,
-                  t1_intent: text,
-                  initial_intent: text,
-                  initial_intent_timestamp: nowIso(),
-                  timestamps: { ...trial.timestamps, intent_submit: nowIso(), t1_submit: nowIso() },
-                }
-                if (trial.condition === 'sketch') {
-                  const record = generateSketch(trial.task_id, text)
-                  nextTrial = {
-                    ...nextTrial,
-                    initial_sketch: record,
-                    timestamps: { ...nextTrial.timestamps, sketch_generated: record.generation_timestamp },
-                  }
-                  update({
-                    ...replaceTrial(withTrial, nextTrial),
-                    runtime: {
-                      ...withTrial.runtime,
-                      step: 'trial_sketch',
-                      working_scene: record.output.scene,
-                    },
-                  })
-                  return
-                }
-                update({
-                  ...replaceTrial(withTrial, {
-                    ...nextTrial,
-                    timestamps: { ...nextTrial.timestamps, refinement_start: nowIso(), t2_start: nowIso() },
-                  }),
-                  runtime: { ...withTrial.runtime, step: 'trial_refine', draft_final: '' },
-                })
-                return
-              }
-              const text = withTrial.runtime.draft_final.trim()
-              const finished: Trial = {
-                ...trial,
-                t2_intent: text,
-                final_intent: text,
-                refined_intent: text,
-                timestamps: {
-                  ...trial.timestamps,
-                  refinement_start: trial.timestamps.refinement_start ?? nowIso(),
-                  refinement_submit: nowIso(),
-                  t2_submit: nowIso(),
-                  trial_end: nowIso(),
-                },
-              }
-              gotoNextTrial(replaceTrial(withTrial, finished))
-            }}
-          >
-            Continue
-          </Button>
-        )}
+              update({
+                ...replaceTrial(withTrial, nextTrial),
+                runtime: { ...withTrial.runtime, step: 'refined_intent', draft_final: '' },
+              })
+              return
+            }
+            const text = withTrial.runtime.draft_final.trim()
+            const finished: Trial = {
+              ...trial,
+              refined_intent: text,
+              refined_intent_timestamp: nowIso(),
+              final_intent: text,
+              t2_intent: trial.phase === 'T3' ? trial.t2_intent : text,
+              t3_intent: trial.phase === 'T3' ? text : trial.t3_intent,
+              timestamps: {
+                ...trial.timestamps,
+                refinement_submit: nowIso(),
+                t2_submit: trial.phase === 'T3' ? trial.timestamps.t2_submit : nowIso(),
+                t3_submit: trial.phase === 'T3' ? nowIso() : trial.timestamps.t3_submit,
+                trial_end: nowIso(),
+              },
+            }
+            gotoNext(replaceTrial(withTrial, finished))
+          }}
+        >
+          {step === 'generating' ? 'Generating…' : 'Continue'}
+        </Button>
       </FooterBar>
     </Shell>
   )
 }
 
 function TrialWorkspace({
-  taskTitle,
-  taskBrief,
-  condition,
+  image,
+  trial,
   step,
   initialValue,
   finalValue,
   scene,
+  selectedNodeId,
+  generateError,
   prompt,
   t1Prompt,
   onInitialChange,
   onFinalChange,
   onSketchChange,
+  onSelectNode,
+  onConfirmRelation,
 }: {
-  taskTitle: string
-  taskBrief: string
-  condition: Condition
+  image: ImageDef
+  trial: Trial
   step: Session['runtime']['step']
   initialValue: string
   finalValue: string
   scene: SketchScene | null
+  selectedNodeId: string | null
+  generateError: string
   prompt: string
   t1Prompt: string
   onInitialChange: (value: string) => void
   onFinalChange: (value: string) => void
   onSketchChange: (scene: SketchScene, action?: SketchAction) => void
+  onSelectNode: (id: string | null) => void
+  onConfirmRelation: (relation: string) => void
 }) {
-  const showTask = step === 'trial_task' || step === 'transfer_task'
-  const intentActive = step === 'trial_intent' || step === 'transfer_intent'
-  const sketchActive = step === 'trial_sketch'
-  const refineActive = step === 'trial_refine'
-  const showSketch = condition === 'sketch' && (sketchActive || refineActive || Boolean(scene))
-  const isTransfer = condition === 'transfer'
+  const selectedLabel =
+    image.ground_truth.nodes.find((node) => node.id === selectedNodeId)?.label ??
+    (selectedNodeId === 'camera' ? '镜头' : null)
 
-  if (showTask) {
+  if (step === 'show_image') {
     return (
       <main className="page">
-        <p className="kicker">{isTransfer ? 'T3 Transfer' : 'T1 Baseline'} · {taskTitle}</p>
-        <p className="lead">{taskBrief}</p>
-        <p>Design a single shot. Do not write a story or a full screenplay.</p>
+        <p className="kicker">{trial.phase} · {image.title}</p>
+        <p className="lead">{image.brief}</p>
+        <img className="stimulus" src={stimulusUrl(image.file)} alt={image.title} />
       </main>
     )
   }
 
+  if (step === 'generating') {
+    return (
+      <main className="page">
+        <p className="lead">{experiment.prompts.generating}</p>
+      </main>
+    )
+  }
+
+  const intentActive = step === 'initial_intent'
+  const refineActive = step === 'refined_intent'
+  const sketchActive = step === 'view_feedback' && trial.condition === 'sketch'
+  const showSketch = trial.condition === 'sketch' && Boolean(scene)
+
   return (
-    <main className="workspace">
+    <main className={trial.condition === 'sketch' ? 'workspace workspace-sketch' : 'workspace'}>
       <section>
-        <h2>{isTransfer ? 'T3 Intent' : 'T1 Intent'}</h2>
+        <h2>Picture</h2>
+        <img className="stimulus-small" src={stimulusUrl(image.file)} alt={image.title} />
+        <h2>Your first description</h2>
         {intentActive ? <p className="hint">{t1Prompt}</p> : null}
         <textarea
           value={initialValue}
           onChange={(e) => onInitialChange(e.target.value)}
           readOnly={!intentActive}
-          placeholder="Describe the shot you intend."
+          placeholder="Describe the shot you see."
         />
       </section>
       <section>
-        <h2>Sketch</h2>
-        {condition !== 'sketch' ? (
-          <div className="empty-sketch">No sketch in this condition.</div>
-        ) : showSketch && scene ? (
-          sketchActive ? (
-            <SceneEditor scene={scene} onChange={onSketchChange} />
-          ) : (
-            <SceneView scene={scene} />
-          )
+        <h2>Generated image</h2>
+        {step === 'view_feedback' || step === 'refined_intent' ? (
+          <>
+            <p className="hint">{experiment.prompts.view_image}</p>
+            <GeneratedImage trialId={trial.trial_id} />
+            {generateError ? <p className="hint">Note: {generateError}</p> : null}
+          </>
         ) : (
-          <div className="empty-sketch">Sketch appears after you submit your T1 description.</div>
+          <div className="empty-sketch">An AI image will appear after you submit your first description.</div>
         )}
+        {showSketch ? (
+          <>
+            <h2>Sketch</h2>
+            {sketchActive && scene ? (
+              <SceneEditor scene={scene} onChange={onSketchChange} onSelect={onSelectNode} />
+            ) : scene ? (
+              <SceneView scene={scene} />
+            ) : null}
+            {sketchActive ? (
+              <SemanticPanel image={image} selectedLabel={selectedLabel} onConfirm={onConfirmRelation} />
+            ) : null}
+          </>
+        ) : trial.phase === 'T3' ? (
+          <p className="hint">No sketch in transfer tasks.</p>
+        ) : trial.condition !== 'sketch' ? (
+          <p className="hint">No sketch in this condition.</p>
+        ) : null}
       </section>
       <section>
-        <h2>T2 Intent</h2>
+        <h2>Revised description</h2>
         {refineActive || finalValue ? (
           <>
             <p className="hint">{prompt}</p>
@@ -612,15 +643,24 @@ function TrialWorkspace({
               value={finalValue}
               onChange={(e) => onFinalChange(e.target.value)}
               readOnly={!refineActive}
-              placeholder="Describe the shot again as clearly as possible."
+              placeholder="Revise your description after seeing the generated result."
             />
           </>
         ) : (
-          <div className="empty-sketch">You will re-express your intent after T1{condition === 'sketch' ? ' and the sketch' : ''}.</div>
+          <div className="empty-sketch">You will revise your description after the generated image.</div>
         )}
       </section>
     </main>
   )
+}
+
+function GeneratedImage({ trialId }: { trialId: string }) {
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    void getGeneratedImage(trialId).then(setSrc)
+  }, [trialId])
+  if (!src) return <div className="empty-sketch">Loading generated image…</div>
+  return <img className="generated" src={src} alt="Generated from your description" />
 }
 
 function Questionnaire({

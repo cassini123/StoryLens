@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
+import { getImage } from '../config'
 import { decorateAction } from './actions'
-import { templateForTask } from './templates'
+import { templateForImage } from './templates'
+
+function sceneOf(id: string) {
+  return templateForImage(getImage(id))
+}
 
 describe('applySketchAction', () => {
   it('moves a subject and logs before/after', () => {
-    const scene = templateForTask('T01')
+    const scene = sceneOf('IMG01')
     const person = scene.subjects[0]
     const { scene: next, action } = decorateAction(scene, {
       action: 'move',
@@ -23,7 +28,7 @@ describe('applySketchAction', () => {
   })
 
   it('adds and deletes a person', () => {
-    const scene = templateForTask('T01')
+    const scene = sceneOf('IMG01')
     const added = decorateAction(scene, {
       action: 'add',
       target: 'person',
@@ -39,7 +44,7 @@ describe('applySketchAction', () => {
   })
 
   it('moves and rotates the camera', () => {
-    const scene = templateForTask('T03')
+    const scene = sceneOf('IMG03')
     const moved = decorateAction(scene, {
       action: 'camera_move',
       target: 'camera',
@@ -57,7 +62,7 @@ describe('applySketchAction', () => {
   })
 
   it('adds gaze and movement and updates movement direction', () => {
-    const scene = templateForTask('T07')
+    const scene = sceneOf('IMG05')
     const withGaze = decorateAction(scene, {
       action: 'gaze_add',
       target: 'person_01',

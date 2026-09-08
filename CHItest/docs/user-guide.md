@@ -1,10 +1,8 @@
-# CHItest 用户使用指南与系统框架
+# Sketch-Based Cognitive Scaffolding for Generative AI
 
-CHItest 是 CHI 2027 影视镜头表达实验系统。它**不生成最终成片图**，只生成可编辑的低保真草图（Sketch Scaffold）。
+CHI 2027 实验系统。参与者先看图片、写意图，再看即梦生成结果（T2 Sketch 另有低保真草图），然后改写意图。
 
-```text
-Vague Intent → Low-fi Sketch → Human editing → Refined Intent → 4-expert blind rating
-```
+线上入口：`https://2027mitgo.top/chitest/` 或 `https://storyboard-skill.vercel.app/chitest/`
 
 ---
 
@@ -25,14 +23,14 @@ http://localhost:5173
 Vercel 生产环境入口（StoryLens 站点子路径，需先构建 CHItest）：
 
 ```text
-https://<vercel-domain>/chitest/
-https://<vercel-domain>/chitest/#/participant?short=1
+https://2027mitgo.top/chitest/
+https://storyboard-skill.vercel.app/chitest/#/participant?short=1
 ```
 
 | 地址 | 角色 |
 | --- | --- |
 | `#/` | 首页 |
-| `#/participant` | 被试：T1 baseline → T2 Direct/Sketch → T3 transfer |
+| `#/participant` | 被试：6 张图（T1×2 → T2 Direct/Sketch → T3×2） |
 | `#/participant?short=1` | 干跑（1 Direct + 1 Sketch + Transfer） |
 | `#/expert` | 四专家盲评（1–7，与 G1 文本编码分开） |
 | `#/coding` | 研究者 G1 六维编码（0–18）+ G2 + G3 |

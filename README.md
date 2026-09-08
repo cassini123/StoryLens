@@ -18,7 +18,7 @@ python3 -m http.server 8080
 | 入口 | [`index.html`](index.html) |
 | 分镜生成器 | [`storylens/assets/storylens-generator.html`](storylens/assets/storylens-generator.html) |
 | 技术框架说明 | [`tech.html`](tech.html) |
-| CHI 2027 实验 | [`/chitest/`](CHItest/)（Vercel 构建后的独立原型，不改 StoryLens 功能） |
+| CHI 2027 实验 | [`/chitest/`](CHItest/) Sketch-Based Cognitive Scaffolding for Generative AI |
 
 完整 Skill 设计文件也可从 [`StoryLens-Skill设计文件/`](StoryLens-Skill设计文件/) 进入，用法见该目录 README。
 

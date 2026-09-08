@@ -99,10 +99,12 @@ export function SceneEditor({
   scene,
   onChange,
   disabled,
+  onSelect,
 }: {
   scene: SketchScene
   onChange: (scene: SketchScene, action?: SketchAction) => void
   disabled?: boolean
+  onSelect?: (id: string | null) => void
 }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [tool, setTool] = useState<Tool>('select')
@@ -165,10 +167,12 @@ export function SceneEditor({
 
     if (hit) {
       setSelected(hit)
+      onSelect?.(hit)
       const from = nodeCenter(scene, hit) ?? point
       setDrag({ id: hit, origin: from, from })
     } else {
       setSelected(null)
+      onSelect?.(null)
     }
   }
 

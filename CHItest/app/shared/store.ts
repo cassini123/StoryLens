@@ -1,16 +1,39 @@
-import type { ExpertRating, IntentCoding, Session, StoreShape } from './types'
+import type { ExpertRating, IntentCoding, Session, StoreShape, Trial } from './types'
 
-const KEY = 'chitest.store.v2'
-const LEGACY_KEY = 'chitest.store.v1'
+const KEY = 'chitest.store.v3'
+const LEGACY_KEYS = ['chitest.store.v2', 'chitest.store.v1']
 const ACTIVE_KEY = 'chitest.activeParticipantId'
 
 function emptyStore(): StoreShape {
   return { sessions: [], ratings: [], codings: [] }
 }
 
+function migrateTrial(raw: Trial): Trial {
+  return {
+    ...raw,
+    image_id: raw.image_id || raw.task_id,
+    phase: raw.phase || (raw.condition === 'transfer' ? 'T3' : 'T2'),
+    condition: raw.condition === 'direct' || raw.condition === 'sketch' || raw.condition === 'transfer' || raw.condition === 'baseline'
+      ? raw.condition
+      : 'baseline',
+    t1_intent: raw.t1_intent || raw.initial_intent || '',
+    t2_intent: raw.t2_intent || raw.final_intent || raw.refined_intent || '',
+    t3_intent: raw.condition === 'transfer' ? raw.t3_intent || raw.final_intent || raw.initial_intent || '' : raw.t3_intent || '',
+    refined_intent: raw.refined_intent || raw.final_intent || raw.t2_intent || '',
+    refined_intent_timestamp: raw.refined_intent_timestamp || '',
+    generated_image: raw.generated_image ?? null,
+    semantic_confirms: raw.semantic_confirms ?? [],
+    authored: raw.authored ?? {
+      modification_count: raw.sketch_actions?.length ?? 0,
+      rejection: (raw.sketch_actions?.length ?? 0) > 0,
+    },
+  }
+}
+
 function migrateSession(raw: Session): Session {
   return {
     ...raw,
+    group_id: raw.group_id === 'sketch_first' ? 'sketch_first' : 'direct_first',
     condition_order: raw.condition_order ?? raw.group_id,
     demographics: {
       cinematography_experience: raw.demographics.cinematography_experience || raw.demographics.ai_experience || '',
@@ -23,22 +46,28 @@ function migrateSession(raw: Session): Session {
       ai_experience: raw.demographics.ai_experience || '',
       image_gen_experience: raw.demographics.image_gen_experience || '',
     },
-    trials: raw.trials.map((trial) => ({
-      ...trial,
-      t1_intent: trial.t1_intent || trial.initial_intent || '',
-      t2_intent: trial.t2_intent || trial.final_intent || trial.refined_intent || '',
-      t3_intent: trial.condition === 'transfer' ? trial.t3_intent || trial.final_intent || trial.initial_intent || '' : trial.t3_intent || '',
-      authored: trial.authored ?? {
-        modification_count: trial.sketch_actions?.length ?? 0,
-        rejection: (trial.sketch_actions?.length ?? 0) > 0,
-      },
-    })),
+    trials: raw.trials.map(migrateTrial),
+    runtime: {
+      step: raw.runtime?.step || 'intro',
+      trial_index: raw.runtime?.trial_index ?? 0,
+      draft_initial: raw.runtime?.draft_initial || '',
+      draft_final: raw.runtime?.draft_final || '',
+      working_scene: raw.runtime?.working_scene ?? null,
+      generate_error: raw.runtime?.generate_error || '',
+      selected_node_id: raw.runtime?.selected_node_id ?? null,
+    },
   }
 }
 
 export function loadStore(): StoreShape {
   try {
-    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY)
+    let raw: string | null = localStorage.getItem(KEY)
+    if (!raw) {
+      for (const key of LEGACY_KEYS) {
+        raw = localStorage.getItem(key)
+        if (raw) break
+      }
+    }
     if (!raw) return emptyStore()
     const parsed = JSON.parse(raw) as StoreShape
     return {

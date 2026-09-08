@@ -1,18 +1,14 @@
-# CHItest
+# Sketch-Based Cognitive Scaffolding for Generative AI
 
-Cinematography Cognitive Scaffolding user-study prototype for CHI 2027.
-
-Independent of StoryLens. Do not generate final images, knowledge graphs, LoRA styles, or prompt rewrites here.
-
-The study asks whether a **low-fidelity sketch scaffold** helps non-experts turn a vague shot intention into a more precise, executable description.
+CHI 2027 prototype in `/CHItest`. Independent of StoryLens product features (no LoRA, knowledge-graph product UI, or final-image contest pipeline).
 
 ```text
-Vague Intent → Low-fi Sketch → Human inspection / editing → Refined Intent
+Show image → Initial intent → Jimeng image
+                (+ editable sketch + on-demand semantic panel in T2-Sketch)
+         → Refined intent
 ```
 
 ## Run
-
-Local:
 
 ```bash
 cd CHItest
@@ -20,51 +16,44 @@ npm install
 npm run dev
 ```
 
-Open the printed local URL (default `http://localhost:5173`).
+Open `http://localhost:5173`. Production:
 
-Production (Vercel) is served from the StoryLens site at **`/chitest/`**, for example:
-
-```text
-https://<your-vercel-domain>/chitest/
-https://<your-vercel-domain>/chitest/#/participant
-https://<your-vercel-domain>/chitest/#/participant?short=1
-```
-
-The root deploy copies StoryLens static files as-is, then builds this Vite app into `/chitest/`. See `scripts/vercel-build.sh` and `vercel.json`.
+- https://2027mitgo.top/chitest/
+- https://storyboard-skill.vercel.app/chitest/
 
 | Route | Use |
 | --- | --- |
 | `#/` | Home |
-| `#/participant` | Participant session (T1/T2/T3) |
-| `#/expert` | Four-expert blind rating |
-| `#/coding` | Researcher G1/G2/G3 coding |
-| `#/export` | JSON / CSV download |
+| `#/participant` | 6-image session: T1×2, T2 Direct, T2 Sketch, T3×2 |
+| `#/participant?short=1` | Dry-run |
+| `#/expert` | Blind rating of initial vs refined intent |
+| `#/coding` | Researcher G1 0–18 |
+| `#/export` | Full JSON/CSV plus per-participant download packet |
 
-## What is implemented (P0 + P1)
+## Session
 
-- Direct vs Sketch conditions, 8 matched tasks, transfer task
-- Four-group counterbalancing
-- Controlled mock SVG sketch (camera / people / objects / gaze / movement)
-- Sketch action logging
-- Dual expert ratings (initial and final) plus optional naturalness
-- LocalStorage persistence and export
+Each participant sees **6 unique images** from a 20-image pool (`IMG01–IMG20`), difficulty-matched across T1/T2/T3 and counterbalanced Direct/Sketch order.
 
-Sketch generation defaults to `sketch_mode: "mock"` in `config/experiment.json`. Model generation is stubbed and falls back to the same mock so the experiment stays reproducible.
+T1 / T2 Direct / T3: image → describe → Jimeng generation → revise.  
+T2 Sketch: same, plus low-fi sketch editing and a collapsible relation panel (no Object/Spatial/Camera labels).
 
-Timepoints: **T1 baseline** → **T2 Direct or Sketch** → **T3 transfer**. Researcher coding (`#/coding`) scores G1 six dimensions (0–18). Expert 1–7 ratings stay separate. Exports: `participant.csv`, `intent.csv`, `sketch_interactions.csv`, `expert_ratings.csv`.
+Generated images are **feedback**, not the primary score. Primary comparison is refined intent: Sketch > Direct, and T3 vs T1 transfer.
 
 ## Data
 
-Runtime data lives in the browser. Use Export to download:
+Browser `localStorage` + IndexedDB (generated images). Participants download `Pxxx-session.json` at the end for the experimenter. Researcher export also includes `participant.csv`, `intent.csv`, `sketch_interactions.csv`, `expert_ratings.csv`.
 
-- `chitest-trials.json` / `.csv`
-- `chitest-expert-ratings.json` (keyed by `expert_01` … `expert_04`, never averaged)
-- `chitest-export.json`
+## Jimeng
 
-Use `#/participant?short=1` for a dry-run of one Direct task, one Sketch task, then Transfer.
+Server route `POST /api/jimeng` (Vercel + local Vite middleware). Keys:
 
-## Docs
+```text
+JIMENG_ACCESS_KEY
+JIMENG_SECRET_KEY
+```
 
-- [User guide, architecture, sketch API hook](docs/user-guide.md)
-- [Experiment protocol](docs/experiment-protocol.md)
+in repo-root `.env` or Vercel project env. Never commit secrets.
 
+## Stimuli
+
+`CHItest/public/stimuli/` and metadata in `CHItest/data/images/images.json`. Drop in the 20 photographs from `画面与描述.docx` using the same `IMG##` ids if you have the original files.

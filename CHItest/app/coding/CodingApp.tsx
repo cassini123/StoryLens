@@ -34,12 +34,12 @@ interface Unit {
 function unitsFromTrials(trials: Trial[]): Unit[] {
   const units: Unit[] = []
   for (const trial of trials) {
-    if (trial.condition === 'transfer') {
-      units.push({ trial, timepoint: 'T3', text: trial.t3_intent || trial.final_intent || trial.initial_intent })
-      continue
-    }
-    units.push({ trial, timepoint: 'T1', text: trial.t1_intent || trial.initial_intent })
-    units.push({ trial, timepoint: 'T2', text: trial.t2_intent || trial.final_intent })
+    units.push({ trial, timepoint: 'T1', text: trial.initial_intent || trial.t1_intent })
+    units.push({
+      trial,
+      timepoint: 'T2',
+      text: trial.refined_intent || trial.t2_intent || trial.t3_intent || trial.final_intent,
+    })
   }
   return units
 }

@@ -1,15 +1,15 @@
-import { experiment, SKETCH_MODEL_PROMPT } from '../config'
+import { experiment, getImage, SKETCH_MODEL_PROMPT } from '../config'
 import { nowIso } from '../time'
 import type { SketchRecord, SketchScene } from '../types'
 import { applyIntentHeuristics } from './heuristics'
 import { sceneToSvg } from './render'
-import { cloneScene, templateForTask } from './templates'
+import { cloneScene, templateForImage } from './templates'
 
 export { SKETCH_MODEL_PROMPT }
 
 export function generateMockScene(taskId: string, intent: string): SketchScene {
-  const base = cloneScene(templateForTask(taskId))
-  return applyIntentHeuristics(base, intent)
+  const image = getImage(taskId)
+  return applyIntentHeuristics(cloneScene(templateForImage(image)), intent)
 }
 
 export function makeSketchRecord(scene: SketchScene, generatedAt = nowIso()): SketchRecord {
@@ -25,12 +25,6 @@ export function makeSketchRecord(scene: SketchScene, generatedAt = nowIso()): Sk
   }
 }
 
-/**
- * P0 uses controlled mock SVG. sketch_mode=model is reserved and falls back to mock.
- */
 export function generateSketch(taskId: string, intent: string): SketchRecord {
-  if (experiment.sketch_mode === 'model') {
-    // No visual API in P0. Keep generation controlled and reproducible.
-  }
   return makeSketchRecord(generateMockScene(taskId, intent))
 }

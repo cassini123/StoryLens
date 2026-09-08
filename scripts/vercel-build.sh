@@ -14,6 +14,9 @@ copy_static() {
       --exclude '.git/' \
       --exclude '.vercel/' \
       --exclude '.vercel-dist/' \
+      --exclude 'api/' \
+      --exclude '.env' \
+      --exclude '.env.*' \
       --exclude 'CHItest/' \
       --exclude 'node_modules/' \
       --exclude '.cursor/' \
@@ -24,6 +27,8 @@ copy_static() {
     --exclude='.git' \
     --exclude='.vercel' \
     --exclude='.vercel-dist' \
+    --exclude='api' \
+    --exclude='.env' \
     --exclude='CHItest' \
     --exclude='node_modules' \
     --exclude='.cursor' \

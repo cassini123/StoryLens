@@ -111,12 +111,12 @@ function RatingScreen({
     >
       <main className="eval">
         <section className="materials">
-          <h2>Task</h2>
-          <p className="lead">{task.brief}</p>
+          <h2>Picture</h2>
+          {task.file ? <img className="stimulus-small" src={`${import.meta.env.BASE_URL}${task.file}`} alt={task.title} /> : null}
           <h2>Initial intent</h2>
-          <pre className="intent-block">{trial.t1_intent || trial.initial_intent || '—'}</pre>
-          <h2>Final intent</h2>
-          <pre className="intent-block">{trial.t2_intent || trial.t3_intent || trial.final_intent || '—'}</pre>
+          <pre className="intent-block">{trial.initial_intent || trial.t1_intent || '—'}</pre>
+          <h2>Refined intent</h2>
+          <pre className="intent-block">{trial.refined_intent || trial.t2_intent || trial.t3_intent || trial.final_intent || '—'}</pre>
           <h2>Final sketch</h2>
           {scene ? (
             <SceneView scene={scene} />

@@ -1,3 +1,4 @@
+import { experiment } from './config'
 import type { CSSProperties, ReactNode } from 'react'
 
 export function Shell({
@@ -15,7 +16,7 @@ export function Shell({
     <div className="shell">
       <header className="topbar">
         <div>
-          <div className="brand">CHItest</div>
+          <div className="brand">{experiment.study.title}</div>
           <div className="sub">{title}</div>
         </div>
         <div className="meta">

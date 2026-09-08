@@ -1,6 +1,18 @@
-export type Condition = 'direct' | 'sketch' | 'transfer'
+export type Condition = 'baseline' | 'direct' | 'sketch' | 'transfer'
+export type Phase = 'T1' | 'T2' | 'T3'
 export type Timepoint = 'T1' | 'T2' | 'T3'
 export type PrecisionDim = 'object' | 'spatial' | 'relation' | 'camera' | 'emotion' | 'constraint'
+export type Difficulty = 'L1' | 'L2' | 'L3'
+export type TaskType =
+  | 'character_relation'
+  | 'spatial_position'
+  | 'camera_subject'
+  | 'gaze_attention'
+  | 'movement'
+  | 'foreground_background'
+  | 'occlusion'
+  | 'environment'
+  | 'multi_relation'
 
 export const PRECISION_DIMS: PrecisionDim[] = [
   'object',
@@ -11,34 +23,61 @@ export const PRECISION_DIMS: PrecisionDim[] = [
   'constraint',
 ]
 
-export type GroupId =
-  | 'A_direct_first'
-  | 'A_sketch_first'
-  | 'B_direct_first'
-  | 'B_sketch_first'
+export type GroupId = 'direct_first' | 'sketch_first'
 
 export type ExperienceLevel = 'none' | 'some' | 'frequent'
 
 export type ParticipantStep =
   | 'setup'
   | 'intro'
-  | 'trial_task'
-  | 'trial_intent'
-  | 'trial_sketch'
-  | 'trial_refine'
-  | 'transfer_task'
-  | 'transfer_intent'
+  | 'show_image'
+  | 'initial_intent'
+  | 'generating'
+  | 'view_feedback'
+  | 'refined_intent'
   | 'questionnaire'
   | 'complete'
 
+export interface GroundTruthNode {
+  id: string
+  label: string
+  kind: 'person' | 'object' | 'camera' | 'environment'
+}
+
+export interface GroundTruthRelation {
+  from: string
+  relation: string
+  to: string
+}
+
+export interface ImageDef {
+  image_id: string
+  title: string
+  file: string
+  difficulty: Difficulty
+  task_type: TaskType
+  target_dimensions: PrecisionDim[]
+  brief: string
+  ground_truth: {
+    nodes: GroundTruthNode[]
+    relations: GroundTruthRelation[]
+  }
+}
+
 export interface TaskDef {
   id: string
+  image_id: string
   pair: string
   title: string
   setting: string
   core: string[]
   brief: string
+  file: string
+  difficulty: Difficulty
+  task_type: TaskType
   required_dimensions: PrecisionDim[]
+  target_dimensions: PrecisionDim[]
+  ground_truth: ImageDef['ground_truth']
 }
 
 export interface ExpertDef {
@@ -49,10 +88,7 @@ export interface ExpertDef {
 }
 
 export interface GroupDef {
-  task_set: string
   condition_order: 'direct_first' | 'sketch_first'
-  direct: string[]
-  sketch: string[]
 }
 
 export interface ExperimentConfig {
@@ -77,6 +113,8 @@ export interface ExperimentConfig {
     direct_refine: string
     sketch_refine: string
     transfer: string
+    generating: string
+    view_image: string
   }
 }
 
@@ -169,12 +207,23 @@ export interface SketchRecord {
   }
 }
 
+export interface GeneratedImageMeta {
+  engine: string
+  prompt: string
+  timestamp: string
+  jimeng_task_id: string
+  status: 'done' | 'failed' | 'placeholder'
+  error: string
+}
+
 export interface TrialTimestamps {
   task_start?: string
   t1_start?: string
   t1_submit?: string
   intent_start?: string
   intent_submit?: string
+  generate_start?: string
+  generate_done?: string
   sketch_generated?: string
   sketch_first_interaction?: string
   sketch_confirm?: string
@@ -192,20 +241,31 @@ export interface AuthoredIntent {
   rejection: boolean
 }
 
+export interface SemanticConfirm {
+  timestamp: string
+  node_id: string
+  relation: string
+}
+
 export interface Trial {
   participant_id: string
   trial_id: string
   task_id: string
+  image_id: string
+  phase: Phase
   condition: Condition
   t1_intent: string
   t2_intent: string
   t3_intent: string
   initial_intent: string
   initial_intent_timestamp: string
+  refined_intent: string
+  refined_intent_timestamp: string
+  generated_image: GeneratedImageMeta | null
   initial_sketch: SketchRecord | null
   sketch_actions: SketchAction[]
   final_sketch: SketchRecord | null
-  refined_intent: string
+  semantic_confirms: SemanticConfirm[]
   final_intent: string
   authored: AuthoredIntent
   timestamps: TrialTimestamps
@@ -224,6 +284,8 @@ export interface SessionRuntime {
   draft_initial: string
   draft_final: string
   working_scene: SketchScene | null
+  generate_error: string
+  selected_node_id: string | null
 }
 
 export interface Session {
@@ -240,7 +302,9 @@ export interface Session {
 
 export interface PlannedTrial {
   task_id: string
-  condition: 'direct' | 'sketch'
+  image_id: string
+  phase: Phase
+  condition: Condition
 }
 
 export interface RubricScores {

@@ -1,4 +1,5 @@
 import { experiment, getTask } from './config'
+import { getGeneratedImages } from './imageStore'
 import {
   discoveryRate,
   learningGain,
@@ -48,15 +49,16 @@ function exportableSession(session: Session): Omit<Session, 'runtime'> {
 }
 
 function conditionLabel(condition: Trial['condition']): string {
+  if (condition === 'baseline') return 'BASELINE'
   if (condition === 'direct') return 'DIRECT'
   if (condition === 'sketch') return 'SKETCH'
   return 'TRANSFER'
 }
 
 function intentText(trial: Trial, timepoint: Timepoint): string {
-  if (timepoint === 'T1') return trial.t1_intent || trial.initial_intent
-  if (timepoint === 'T2') return trial.t2_intent || trial.final_intent
-  return trial.t3_intent || trial.final_intent || trial.initial_intent
+  if (timepoint === 'T1') return trial.initial_intent || trial.t1_intent
+  if (timepoint === 'T3') return trial.refined_intent || trial.t3_intent || trial.final_intent || trial.initial_intent
+  return trial.refined_intent || trial.t2_intent || trial.final_intent
 }
 
 function codingFor(
@@ -89,13 +91,14 @@ export function intentRows(sessions: Session[], codings: IntentCoding[]): Record
   const rows: Record<string, unknown>[] = []
   for (const session of sessions) {
     const t1Totals: Array<number | null> = []
+    const t3Totals: Array<number | null> = []
     for (const trial of session.trials) {
-      if (trial.condition === 'transfer') continue
       const t1 = codingFor(codings, trial.trial_id, 'T1')
       const t2 = codingFor(codings, trial.trial_id, 'T2')
       const p1 = t1?.precision_total ?? precisionTotal(t1?.precision ?? { object: null, spatial: null, relation: null, camera: null, emotion: null, constraint: null })
       const p2 = t2?.precision_total ?? null
-      t1Totals.push(p1)
+      if (trial.phase === 'T1' || trial.condition === 'baseline') t1Totals.push(p2 ?? p1)
+      if (trial.phase === 'T3' || trial.condition === 'transfer') t3Totals.push(p2 ?? p1)
       const task = getTask(trial.task_id)
       const discovery = t1 && t2 ? discoveryRate(t1.precision, t2.precision, task.required_dimensions) : null
       const gain = learningGain(p1 ?? null, p2 ?? null)
@@ -103,10 +106,14 @@ export function intentRows(sessions: Session[], codings: IntentCoding[]): Record
         const coding = codingFor(codings, trial.trial_id, timepoint)
         rows.push({
           participant_id: trial.participant_id,
+          image_id: trial.image_id || trial.task_id,
           task_id: trial.task_id,
+          phase: trial.phase,
           condition: conditionLabel(trial.condition),
-          timepoint,
+          timepoint: timepoint === 'T1' ? 'initial' : 'refined',
           intent_text: intentText(trial, timepoint),
+          generated_engine: trial.generated_image?.engine ?? '',
+          generated_status: trial.generated_image?.status ?? '',
           precision_object: coding?.precision.object ?? '',
           precision_spatial: coding?.precision.spatial ?? '',
           precision_relation: coding?.precision.relation ?? '',
@@ -122,29 +129,31 @@ export function intentRows(sessions: Session[], codings: IntentCoding[]): Record
         })
       }
     }
-    const transfer = session.trials.find((trial) => trial.condition === 'transfer')
-    if (transfer) {
-      const t3 = codingFor(codings, transfer.trial_id, 'T3')
-      const p3 = t3?.precision_total ?? null
-      const p1mean = mean(t1Totals)
+    const p3mean = mean(t3Totals)
+    const p1mean = mean(t1Totals)
+    if (p3mean != null || p1mean != null) {
       rows.push({
-        participant_id: transfer.participant_id,
-        task_id: transfer.task_id,
+        participant_id: session.participant_id,
+        image_id: '',
+        task_id: '',
+        phase: 'T3',
         condition: 'TRANSFER',
-        timepoint: 'T3',
-        intent_text: intentText(transfer, 'T3'),
-        precision_object: t3?.precision.object ?? '',
-        precision_spatial: t3?.precision.spatial ?? '',
-        precision_relation: t3?.precision.relation ?? '',
-        precision_camera: t3?.precision.camera ?? '',
-        precision_emotion: t3?.precision.emotion ?? '',
-        precision_constraint: t3?.precision.constraint ?? '',
-        precision_total: p3 ?? '',
-        naturalness: t3?.naturalness ?? '',
+        timepoint: 'summary',
+        intent_text: '',
+        generated_engine: '',
+        generated_status: '',
+        precision_object: '',
+        precision_spatial: '',
+        precision_relation: '',
+        precision_camera: '',
+        precision_emotion: '',
+        precision_constraint: '',
+        precision_total: p3mean ?? '',
+        naturalness: '',
         copying: '',
         discovery_rate: '',
         learning_gain: '',
-        transfer_gain: transferGain(p3, p1mean) ?? '',
+        transfer_gain: transferGain(p3mean, p1mean) ?? '',
       })
     }
   }
@@ -153,10 +162,12 @@ export function intentRows(sessions: Session[], codings: IntentCoding[]): Record
 
 export function interactionRows(sessions: Session[]): Record<string, unknown>[] {
   return sessions.flatMap((session) =>
-    session.trials.flatMap((trial) =>
-      trial.sketch_actions.map((action) => ({
+    session.trials.flatMap((trial) => [
+      ...trial.sketch_actions.map((action) => ({
         participant_id: trial.participant_id,
+        image_id: trial.image_id || trial.task_id,
         task_id: trial.task_id,
+        phase: trial.phase,
         condition: conditionLabel(trial.condition),
         timestamp: action.timestamp,
         action_type: action.action_type || action.action,
@@ -164,7 +175,19 @@ export function interactionRows(sessions: Session[]): Record<string, unknown>[] 
         before_state: JSON.stringify(action.before_state ?? action.from ?? null),
         after_state: JSON.stringify(action.after_state ?? action.to ?? null),
       })),
-    ),
+      ...trial.semantic_confirms.map((item) => ({
+        participant_id: trial.participant_id,
+        image_id: trial.image_id || trial.task_id,
+        task_id: trial.task_id,
+        phase: trial.phase,
+        condition: conditionLabel(trial.condition),
+        timestamp: Date.parse(item.timestamp) || item.timestamp,
+        action_type: 'semantic_confirm',
+        target_id: item.node_id,
+        before_state: '',
+        after_state: item.relation,
+      })),
+    ]),
   )
 }
 
@@ -242,6 +265,45 @@ export function downloadExpertRatingsCsv(): void {
 
 export function downloadFullJson(): void {
   download('chitest-export.json', JSON.stringify(buildExportPayload(), null, 2), 'application/json')
+}
+
+export async function downloadParticipantPacket(session: Session): Promise<void> {
+  const images = await getGeneratedImages(session.trials.map((trial) => trial.trial_id))
+  const payload = {
+    study: experiment.study.title,
+    exported_at: new Date().toISOString(),
+    participant_id: session.participant_id,
+    condition_order: session.condition_order,
+    demographics: session.demographics,
+    started_at: session.started_at,
+    completed_at: session.completed_at,
+    trials: session.trials.map((trial) => ({
+      participant_id: trial.participant_id,
+      trial_id: trial.trial_id,
+      phase: trial.phase,
+      condition: trial.condition,
+      image_id: trial.image_id,
+      initial_intent: trial.initial_intent,
+      initial_intent_timestamp: trial.initial_intent_timestamp,
+      refined_intent: trial.refined_intent,
+      refined_intent_timestamp: trial.refined_intent_timestamp,
+      generated_image: trial.generated_image,
+      generated_image_data: images[trial.trial_id] || null,
+      initial_sketch: trial.initial_sketch,
+      final_sketch: trial.final_sketch,
+      sketch_interactions: trial.sketch_actions,
+      semantic_confirms: trial.semantic_confirms,
+      timestamps: trial.timestamps,
+    })),
+    subjective: session.subjective,
+    intent_csv: intentRows([session], loadStore().codings),
+    sketch_interactions_csv: interactionRows([session]),
+  }
+  download(
+    `${session.participant_id}-session.json`,
+    JSON.stringify(payload, null, 2),
+    'application/json',
+  )
 }
 
 export { toCsv }

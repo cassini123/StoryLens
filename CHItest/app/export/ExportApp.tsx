@@ -3,6 +3,7 @@ import {
   downloadFullJson,
   downloadIntentCsv,
   downloadParticipantCsv,
+  downloadParticipantPacket,
   downloadSketchInteractionsCsv,
 } from '../shared/export'
 import { clearAllData, loadStore } from '../shared/store'
@@ -25,6 +26,11 @@ export function ExportApp() {
           <Button onClick={downloadIntentCsv}>Download intent.csv</Button>
           <Button onClick={downloadSketchInteractionsCsv}>Download sketch_interactions.csv</Button>
           <Button onClick={downloadExpertRatingsCsv}>Download expert_ratings.csv</Button>
+          {store.sessions.map((session) => (
+            <Button key={session.participant_id} onClick={() => void downloadParticipantPacket(session)}>
+              Download {session.participant_id} packet
+            </Button>
+          ))}
         </div>
       </main>
       <FooterBar>
