@@ -32,8 +32,9 @@ export function ExpertApp() {
       <Shell title="Expert evaluation" subtitle="Blind rating">
         <main className="page">
           <p className="lead">
-            Select your evaluator ID. Materials do not include participant ID, condition, logs, round
-            count, or background.
+            Select your evaluator ID. Score whether the description expresses the task’s intended
+            modification. Do not score similarity to the still. Materials hide participant ID,
+            condition, logs, round count, and background.
           </p>
           <div className="stack">
             {experiment.experts.map((expert) => (
@@ -113,8 +114,23 @@ function RatingScreen({
     <Shell title="Expert evaluation" subtitle={expertLabel} meta={`${done} done · ${remaining} left`}>
       <main className="eval">
         <section className="materials">
-          <h2>Picture</h2>
+          <h2>Picture (current visual state)</h2>
           <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
+          <h2>Target modification</h2>
+          <p className="hint">
+            Judge whether the participant’s wording accurately expresses this intended change — not
+            whether the description recreates the still.
+          </p>
+          {image.current_visual_state ? <p>{image.current_visual_state}</p> : null}
+          {image.target_modification ? (
+            <ul>
+              {Object.entries(image.target_modification).map(([key, value]) => (
+                <li key={key}>
+                  <strong>{key}:</strong> {value}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {single ? (
             <>
               <h2>Description</h2>
@@ -190,13 +206,13 @@ function Rubric({
     <>
       <Likert
         label="Intent Precision"
-        hint="How precisely does the description communicate the intended picture?"
+        hint="How precisely does the description communicate the intended modification for this task?"
         value={value.intent_precision}
         onChange={(n) => onChange({ ...value, intent_precision: n })}
       />
       <Likert
         label="Interpretability"
-        hint="How reliably could a filmmaker reconstruct the intended picture from this description?"
+        hint="How reliably could someone reconstruct the intended modification from this description?"
         value={value.intent_interpretability}
         onChange={(n) => onChange({ ...value, intent_interpretability: n })}
       />
@@ -208,7 +224,7 @@ function Rubric({
       />
       <Likert
         label="Executability"
-        hint="How actionable is the description for producing or staging the intended picture?"
+        hint="How actionable is the description for carrying out the intended modification?"
         value={value.executability}
         onChange={(n) => onChange({ ...value, executability: n })}
       />

@@ -1,6 +1,6 @@
 export type Stage = 'T0' | 'T1' | 'T2' | 'T3'
-export type Timepoint = 'initial' | 'final'
-export type TextType = 'initial' | 'refined' | 'final'
+export type Timepoint = 'initial' | 'auto' | 'final'
+export type TextType = 'initial' | 'auto' | 'refined' | 'final'
 export type PrecisionDim = 'object' | 'spatial' | 'relation' | 'camera' | 'emotion' | 'constraint'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type StimulusGroup = 'environment' | 'character_space' | 'camera' | 'composition'
@@ -51,6 +51,8 @@ export interface ImageDef {
   image_path: string
   title: string
   source_id: string
+  current_visual_state?: string
+  target_modification?: Partial<Record<PrecisionDim, string>>
   ground_truth: {
     nodes: GroundTruthNode[]
     relations: GroundTruthRelation[]
@@ -305,7 +307,12 @@ export interface SessionRuntime {
   task_index: number
   round: number
   draft_text: string
+  auto_prompt: string
+  auto_prompt_id: string
+  user_prompt_started: boolean
+  auto_prompt_view_started: boolean
   working_scene: SketchScene | null
+  baseline_scene: SketchScene | null
   generate_error: string
   selected_node_id: string | null
   last_output_image_id: string
@@ -387,6 +394,8 @@ export interface BehavioralMeasures {
   text_writing_time: number | null
   generation_wait_time: number | null
   sketch_edit_time: number | null
+  auto_prompt_view_time: number | null
+  prompt_refinement_time: number | null
   result_view_time: number | null
   time_between_rounds: number | null
   number_of_rounds: number

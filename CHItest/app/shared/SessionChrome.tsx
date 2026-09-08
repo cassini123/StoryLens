@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { experiment } from './config'
 import { downloadParticipantPacket } from './export'
 import { LangSwitch, useI18n } from './i18n'
 import { logEvent } from './logging'
@@ -103,7 +102,7 @@ export function SessionChrome({
           <div className="topbar-leading">
             <LangSwitch />
             <div>
-              <div className="brand">{experiment.study.title}</div>
+              <div className="brand">{t.studyBrand}</div>
               {title ? <div className="sub">{title}</div> : null}
               {extra ? <div className="meta">{extra}</div> : null}
             </div>

@@ -206,6 +206,41 @@ export function generationRows(sessions: Session[]): Record<string, unknown>[] {
   )
 }
 
+export function autoPromptRows(sessions: Session[]): Record<string, unknown>[] {
+  return sessions.flatMap((session) =>
+    session.tasks.flatMap((task) => {
+      const autos = session.text_versions.filter((item) => item.task_id === task.task_id && item.text_type === 'auto')
+      const users = session.text_versions.filter(
+        (item) => item.task_id === task.task_id && (item.text_type === 'refined' || item.text_type === 'final'),
+      )
+      const rounds = [...new Set([...autos, ...users].map((item) => item.round))].sort((a, b) => a - b)
+      return rounds
+        .map((round) => {
+          const pAuto = [...autos].reverse().find((item) => item.round === round)
+          const pUser = [...users].reverse().find((item) => item.round === round)
+          if (!pAuto && !pUser) return null
+          return {
+            participant_id: session.participant_id,
+            session_id: session.session_id,
+            task_id: task.task_id,
+            stage: task.stage,
+            image_id: task.image_id,
+            round,
+            p_auto: pAuto?.text ?? '',
+            p_auto_id: pAuto?.text_version_id ?? '',
+            p_auto_length: pAuto?.text_length ?? '',
+            p_auto_timestamp: pAuto?.timestamp ?? '',
+            p_user: pUser?.text ?? '',
+            p_user_id: pUser?.text_version_id ?? '',
+            p_user_length: pUser?.text_length ?? '',
+            p_user_timestamp: pUser?.timestamp ?? '',
+          }
+        })
+        .filter((row): row is NonNullable<typeof row> => row != null)
+    }),
+  )
+}
+
 export function interactionRows(sessions: Session[]): Record<string, unknown>[] {
   return sessions.flatMap((session) =>
     session.tasks.flatMap((task) =>
@@ -312,6 +347,7 @@ export function buildExportPayload() {
     intents: intentRows(store.sessions, store.codings),
     generations: generationRows(store.sessions),
     sketch_interactions: interactionRows(store.sessions),
+    auto_prompts: autoPromptRows(store.sessions),
     sketch_snapshots: snapshotPayload(store.sessions),
     expert_ratings: expertRows(store.ratings),
     timelines: store.sessions.map(timelinePayload),
@@ -342,6 +378,10 @@ export function downloadGenerationsCsv(): void {
 
 export function downloadSketchInteractionsCsv(): void {
   download('sketch_interactions.csv', toCsv(interactionRows(loadStore().sessions)), 'text/csv')
+}
+
+export function downloadAutoPromptsCsv(): void {
+  download('auto_prompts.csv', toCsv(autoPromptRows(loadStore().sessions)), 'text/csv')
 }
 
 export function downloadSketchSnapshotsJson(): void {
@@ -383,6 +423,7 @@ export async function downloadParticipantPacket(session: Session): Promise<void>
         })),
         sketch_snapshots: session.sketch_snapshots,
         sketch_interactions: interactionRows([session]),
+        auto_prompts: autoPromptRows([session]),
         measures: measuresForSession(session),
       },
       null,

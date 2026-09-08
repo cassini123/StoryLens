@@ -24,6 +24,15 @@ describe('G1 precision total', () => {
   it('returns null until all dimensions are coded', () => {
     expect(precisionTotal(emptyPrecision())).toBeNull()
   })
+
+  it('sums only the image’s active dimensions', () => {
+    expect(
+      precisionTotal(
+        { object: 3, spatial: 2, relation: 1, camera: null, emotion: null, constraint: null },
+        ['object', 'spatial', 'relation'],
+      ),
+    ).toBe(6)
+  })
 })
 
 describe('G3 discovery rate', () => {

@@ -191,14 +191,15 @@ export function SceneEditor({
       const moved =
         Math.abs(point.x - drag.origin.x) > 1 || Math.abs(point.y - drag.origin.y) > 1
       if (moved) {
+        const movedScene = previewMove(scene, drag.id, point)
         if (drag.id === 'camera') {
-          onChange(scene, logOnlyAction(scene, { action: 'camera_move', target: 'camera', from: drag.origin, to: point }))
+          onChange(movedScene, logOnlyAction(scene, { action: 'camera_move', target: 'camera', from: drag.origin, to: point }))
         } else if (scene.subjects.some((item) => item.id === drag.id)) {
-          onChange(scene, logOnlyAction(scene, { action: 'move', target: drag.id, from: drag.origin, to: point }))
+          onChange(movedScene, logOnlyAction(scene, { action: 'move', target: drag.id, from: drag.origin, to: point }))
         } else if (scene.objects.some((item) => item.id === drag.id)) {
-          onChange(scene, logOnlyAction(scene, { action: 'move_object', target: drag.id, from: drag.origin, to: point }))
+          onChange(movedScene, logOnlyAction(scene, { action: 'move_object', target: drag.id, from: drag.origin, to: point }))
         } else if (scene.movements.some((item) => item.id === drag.id)) {
-          onChange(scene, logOnlyAction(scene, { action: 'movement_update', target: drag.id, from: drag.origin, to: point }))
+          onChange(movedScene, logOnlyAction(scene, { action: 'movement_update', target: drag.id, from: drag.origin, to: point }))
         }
       }
     }

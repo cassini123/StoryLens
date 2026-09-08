@@ -4,6 +4,7 @@ import {
   downloadFullJson,
   downloadGenerationsCsv,
   downloadIntentCsv,
+  downloadAutoPromptsCsv,
   downloadParticipantCsv,
   downloadParticipantPacket,
   downloadSketchInteractionsCsv,
@@ -37,6 +38,7 @@ export function ExportApp() {
           <Button onClick={downloadIntentCsv}>Download intents.csv</Button>
           <Button onClick={downloadGenerationsCsv}>Download generations.csv</Button>
           <Button onClick={downloadSketchInteractionsCsv}>Download sketch_interactions.csv</Button>
+          <Button onClick={downloadAutoPromptsCsv}>Download auto_prompts.csv</Button>
           <Button onClick={downloadSketchSnapshotsJson}>Download sketch_snapshots.json</Button>
           <Button onClick={downloadExpertRatingsCsv}>Download expert_ratings.csv</Button>
           <Button onClick={downloadTimelinesJson}>Download full_session_timeline.json</Button>

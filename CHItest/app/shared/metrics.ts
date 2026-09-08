@@ -12,13 +12,13 @@ export function emptyPrecision(): PrecisionScores {
   }
 }
 
-export function precisionComplete(scores: PrecisionScores): boolean {
-  return PRECISION_DIMS.every((dim) => scores[dim] != null)
+export function precisionComplete(scores: PrecisionScores, active: PrecisionDim[] = PRECISION_DIMS): boolean {
+  return active.every((dim) => scores[dim] != null)
 }
 
-export function precisionTotal(scores: PrecisionScores): number | null {
-  if (!precisionComplete(scores)) return null
-  return PRECISION_DIMS.reduce((sum, dim) => sum + (scores[dim] ?? 0), 0)
+export function precisionTotal(scores: PrecisionScores, active: PrecisionDim[] = PRECISION_DIMS): number | null {
+  if (!precisionComplete(scores, active)) return null
+  return active.reduce((sum, dim) => sum + (scores[dim] ?? 0), 0)
 }
 
 export function dimensionExpressed(score: number | null, threshold = 2): boolean {

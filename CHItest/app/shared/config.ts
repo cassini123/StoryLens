@@ -1,9 +1,22 @@
 import experimentJson from '../../config/experiment.json'
 import stimuliJson from '../../data/tasks/stimuli.json'
-import type { ExperimentConfig, ImageDef, Stage, TaskDef } from './types'
+import targetModsJson from '../../data/tasks/target_modifications.json'
+import type { ExperimentConfig, ImageDef, PrecisionDim, Stage, TaskDef } from './types'
 
 export const experiment = experimentJson as ExperimentConfig
-export const images: ImageDef[] = stimuliJson.images as ImageDef[]
+
+const targetMods = targetModsJson as Record<
+  string,
+  {
+    current_visual_state?: string
+    target_modification?: Partial<Record<PrecisionDim, string>>
+  }
+>
+
+export const images: ImageDef[] = (stimuliJson.images as ImageDef[]).map((image) => ({
+  ...image,
+  ...(targetMods[image.image_id] ?? {}),
+}))
 export const tasks: TaskDef[] = images
 export const STUDY_TITLE = experiment.study.title
 
