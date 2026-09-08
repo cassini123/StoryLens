@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getImage, stageHasSketch, stimulusUrl } from '../shared/config'
-import { SURPRISE_ASSET } from '../shared/surprise'
+import { downloadSurpriseAsset, SURPRISE_ASSET } from '../shared/surprise'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
 import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import {
@@ -344,11 +344,15 @@ function ParticipantFlow({
             <Button fill onClick={() => void downloadParticipantPacket(session)}>
               {t.downloadData}
             </Button>
-            <a className="surprise-card" href={stimulusUrl(SURPRISE_ASSET)} download="surprise">
+            <button
+              type="button"
+              className="surprise-card"
+              onClick={() => void downloadSurpriseAsset()}
+            >
               <img src={stimulusUrl(SURPRISE_ASSET)} alt={t.surprise} />
               <span>{t.surprise}</span>
               <small>{t.surpriseHint}</small>
-            </a>
+            </button>
           </div>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>

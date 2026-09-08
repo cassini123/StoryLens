@@ -386,6 +386,7 @@ textarea {
   color: inherit;
   text-decoration: none;
   cursor: pointer;
+  font: inherit;
 }
 
 .surprise-card img {
