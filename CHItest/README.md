@@ -23,8 +23,9 @@ Open the printed local URL (default `http://localhost:5173`).
 | Route | Use |
 | --- | --- |
 | `#/` | Home |
-| `#/participant` | Participant session |
+| `#/participant` | Participant session (T1/T2/T3) |
 | `#/expert` | Four-expert blind rating |
+| `#/coding` | Researcher G1/G2/G3 coding |
 | `#/export` | JSON / CSV download |
 
 ## What is implemented (P0 + P1)
@@ -37,6 +38,8 @@ Open the printed local URL (default `http://localhost:5173`).
 - LocalStorage persistence and export
 
 Sketch generation defaults to `sketch_mode: "mock"` in `config/experiment.json`. Model generation is stubbed and falls back to the same mock so the experiment stays reproducible.
+
+Timepoints: **T1 baseline** → **T2 Direct or Sketch** → **T3 transfer**. Researcher coding (`#/coding`) scores G1 six dimensions (0–18). Expert 1–7 ratings stay separate. Exports: `participant.csv`, `intent.csv`, `sketch_interactions.csv`, `expert_ratings.csv`.
 
 ## Data
 

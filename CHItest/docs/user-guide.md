@@ -25,10 +25,11 @@ http://localhost:5173
 | 地址 | 角色 |
 | --- | --- |
 | `#/` | 首页 |
-| `#/participant` | 被试 |
-| `#/participant?short=1` | 干跑（Direct 1 题 + Sketch 1 题 + Transfer） |
-| `#/expert` | 专家盲评 |
-| `#/export` | 实验员导出数据 |
+| `#/participant` | 被试：T1 baseline → T2 Direct/Sketch → T3 transfer |
+| `#/participant?short=1` | 干跑（1 Direct + 1 Sketch + Transfer） |
+| `#/expert` | 四专家盲评（1–7，与 G1 文本编码分开） |
+| `#/coding` | 研究者 G1 六维编码（0–18）+ G2 + G3 |
+| `#/export` | participant / intent / sketch_interactions / expert_ratings CSV |
 
 数据存在**当前浏览器**的 `localStorage`，换电脑或清站点数据会丢。正式实验请当场从 Export 下载。
 
@@ -42,7 +43,7 @@ http://localhost:5173
 2. 点 **Participant**，帮被试填：
    - Participant ID（如 `P001`，不可复用已完成 ID）
    - Counterbalance group（四选一，或用系统轮转默认值）
-   - 背景变量：设计背景、影视背景、影视年限、AI 经验、生图经验
+   - 背景变量：影视经验、视觉经验、AI familiarity
 3. 被试全程自己点 **Continue**。不要提示 OTS、俯拍、过肩等术语。
 4. 结束后点 **Export**，下载 JSON / CSV，拷到 `CHItest/exports/` 或实验室网盘。
 5. 下一名被试前，如需空库，Export 页点 **Clear local data**（会清掉本浏览器全部 CHItest 数据）。
@@ -53,19 +54,13 @@ http://localhost:5173
 
 系统会读任务 brief。没有标准答案，用日常语言描述即可。
 
-**Direct 条件**
+**Direct / Sketch 每题都是 T1 → T2**
 
 ```text
-读任务 → 写 Initial Intent → 再写一遍 Final Intent
+T1 Baseline（无 AI、无 Sketch）→ T2 Direct 重写  或  T2 Sketch 改草图后再写
 ```
 
-中间栏显示 `No sketch in this condition`，没有草图。
-
-**Sketch 条件**
-
-```text
-读任务 → 写 Initial Intent → 系统出草图 → 拖/加/删元素 → Confirm Sketch → 对着草图再写 Final Intent
-```
+最后 **T3 Transfer**：全新题目，完全去掉 AI 和 Sketch。
 
 草图里可以：
 

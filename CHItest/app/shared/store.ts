@@ -1,20 +1,50 @@
-import type { ExpertRating, Session, StoreShape } from './types'
+import type { ExpertRating, IntentCoding, Session, StoreShape } from './types'
 
-const KEY = 'chitest.store.v1'
+const KEY = 'chitest.store.v2'
+const LEGACY_KEY = 'chitest.store.v1'
 const ACTIVE_KEY = 'chitest.activeParticipantId'
 
 function emptyStore(): StoreShape {
-  return { sessions: [], ratings: [] }
+  return { sessions: [], ratings: [], codings: [] }
+}
+
+function migrateSession(raw: Session): Session {
+  return {
+    ...raw,
+    condition_order: raw.condition_order ?? raw.group_id,
+    demographics: {
+      cinematography_experience: raw.demographics.cinematography_experience || raw.demographics.ai_experience || '',
+      cinematography_years: raw.demographics.cinematography_years || raw.demographics.film_years || '',
+      visual_experience: raw.demographics.visual_experience || '',
+      ai_familiarity: raw.demographics.ai_familiarity || raw.demographics.ai_experience || '',
+      design_background: raw.demographics.design_background ?? null,
+      film_background: raw.demographics.film_background ?? null,
+      film_years: raw.demographics.film_years || '',
+      ai_experience: raw.demographics.ai_experience || '',
+      image_gen_experience: raw.demographics.image_gen_experience || '',
+    },
+    trials: raw.trials.map((trial) => ({
+      ...trial,
+      t1_intent: trial.t1_intent || trial.initial_intent || '',
+      t2_intent: trial.t2_intent || trial.final_intent || trial.refined_intent || '',
+      t3_intent: trial.condition === 'transfer' ? trial.t3_intent || trial.final_intent || trial.initial_intent || '' : trial.t3_intent || '',
+      authored: trial.authored ?? {
+        modification_count: trial.sketch_actions?.length ?? 0,
+        rejection: (trial.sketch_actions?.length ?? 0) > 0,
+      },
+    })),
+  }
 }
 
 export function loadStore(): StoreShape {
   try {
-    const raw = localStorage.getItem(KEY)
+    const raw = localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY)
     if (!raw) return emptyStore()
     const parsed = JSON.parse(raw) as StoreShape
     return {
-      sessions: parsed.sessions ?? [],
+      sessions: (parsed.sessions ?? []).map(migrateSession),
       ratings: parsed.ratings ?? [],
+      codings: parsed.codings ?? [],
     }
   } catch {
     return emptyStore()
@@ -58,6 +88,20 @@ export function upsertRating(rating: ExpertRating): StoreShape {
   )
   if (index >= 0) store.ratings[index] = rating
   else store.ratings.push(rating)
+  saveStore(store)
+  return store
+}
+
+export function upsertCoding(coding: IntentCoding): StoreShape {
+  const store = loadStore()
+  const index = store.codings.findIndex(
+    (item) =>
+      item.trial_id === coding.trial_id &&
+      item.timepoint === coding.timepoint &&
+      item.coder_id === coding.coder_id,
+  )
+  if (index >= 0) store.codings[index] = coding
+  else store.codings.push(coding)
   saveStore(store)
   return store
 }

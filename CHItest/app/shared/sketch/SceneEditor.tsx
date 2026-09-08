@@ -1,7 +1,6 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { Point, SketchAction, SketchScene } from '../types'
-import { applySketchAction, nodeCenter } from './actions'
-import { nowMs } from '../time'
+import { applySketchAction, decorateAction, logOnlyAction, nodeCenter } from './actions'
 
 type Tool = 'select' | 'add_person' | 'add_object' | 'add_gaze' | 'add_movement'
 
@@ -60,10 +59,40 @@ function distToSegment(p: Point, a: Point, b: Point): number {
 
 function emit(
   scene: SketchScene,
-  action: Omit<SketchAction, 'timestamp'>,
+  action: { action: string; target: string; from?: unknown; to?: unknown },
 ): { scene: SketchScene; action: SketchAction } {
-  const full: SketchAction = { ...action, timestamp: nowMs() }
-  return { scene: applySketchAction(scene, full), action: full }
+  return decorateAction(scene, action)
+}
+
+function previewPatch(action: string, target: string, to: unknown): SketchAction {
+  return {
+    action,
+    action_type: action,
+    target,
+    target_id: target,
+    to,
+    timestamp: 0,
+    before_state: null,
+    after_state: null,
+  }
+}
+
+function previewMove(scene: SketchScene, id: string, point: Point): SketchScene {
+  if (id === 'camera') return applySketchAction(scene, previewPatch('camera_move', 'camera', point))
+  if (scene.subjects.some((item) => item.id === id)) {
+    return applySketchAction(scene, previewPatch('move', id, point))
+  }
+  const object = scene.objects.find((item) => item.id === id)
+  if (object) {
+    return applySketchAction(
+      scene,
+      previewPatch('move_object', id, { x: point.x - object.w / 2, y: point.y - object.h / 2 }),
+    )
+  }
+  if (scene.movements.some((item) => item.id === id)) {
+    return applySketchAction(scene, previewPatch('movement_update', id, point))
+  }
+  return scene
 }
 
 export function SceneEditor({
@@ -143,36 +172,12 @@ export function SceneEditor({
     }
   }
 
-  function previewMove(id: string, point: Point): SketchScene {
-    if (id === 'camera') {
-      return applySketchAction(scene, {
-        action: 'camera_move',
-        target: 'camera',
-        to: point,
-        timestamp: 0,
-      })
-    }
-    if (scene.subjects.some((item) => item.id === id)) {
-      return applySketchAction(scene, { action: 'move', target: id, to: point, timestamp: 0 })
-    }
-    const object = scene.objects.find((item) => item.id === id)
-    if (object) {
-      return applySketchAction(scene, {
-        action: 'move_object',
-        target: id,
-        to: { x: point.x - object.w / 2, y: point.y - object.h / 2 },
-        timestamp: 0,
-      })
-    }
-    return scene
-  }
-
   function onPointerMove(event: ReactPointerEvent<SVGSVGElement>) {
     if (disabled || !drag) return
     const svg = svgRef.current
     if (!svg) return
     const point = clientToSvg(svg, event.clientX, event.clientY)
-    onChange(previewMove(drag.id, point))
+    onChange(previewMove(scene, drag.id, point))
     setDrag({ ...drag, from: point })
   }
 
@@ -183,29 +188,13 @@ export function SceneEditor({
         Math.abs(point.x - drag.origin.x) > 1 || Math.abs(point.y - drag.origin.y) > 1
       if (moved) {
         if (drag.id === 'camera') {
-          onChange(scene, {
-            action: 'camera_move',
-            target: 'camera',
-            from: drag.origin,
-            to: point,
-            timestamp: nowMs(),
-          })
+          onChange(scene, logOnlyAction(scene, { action: 'camera_move', target: 'camera', from: drag.origin, to: point }))
         } else if (scene.subjects.some((item) => item.id === drag.id)) {
-          onChange(scene, {
-            action: 'move',
-            target: drag.id,
-            from: drag.origin,
-            to: point,
-            timestamp: nowMs(),
-          })
+          onChange(scene, logOnlyAction(scene, { action: 'move', target: drag.id, from: drag.origin, to: point }))
         } else if (scene.objects.some((item) => item.id === drag.id)) {
-          onChange(scene, {
-            action: 'move_object',
-            target: drag.id,
-            from: drag.origin,
-            to: point,
-            timestamp: nowMs(),
-          })
+          onChange(scene, logOnlyAction(scene, { action: 'move_object', target: drag.id, from: drag.origin, to: point }))
+        } else if (scene.movements.some((item) => item.id === drag.id)) {
+          onChange(scene, logOnlyAction(scene, { action: 'movement_update', target: drag.id, from: drag.origin, to: point }))
         }
       }
     }

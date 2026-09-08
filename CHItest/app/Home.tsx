@@ -14,6 +14,7 @@ export function Home() {
             Participant
           </Button>
           <Button onClick={() => (window.location.hash = '#/expert')}>Expert evaluation</Button>
+          <Button onClick={() => (window.location.hash = '#/coding')}>Researcher coding</Button>
           <Button onClick={() => (window.location.hash = '#/export')}>Export</Button>
         </div>
       </main>

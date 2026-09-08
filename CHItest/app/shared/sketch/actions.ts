@@ -1,3 +1,4 @@
+import { nowMs } from '../time'
 import type { Point, SketchAction, SketchScene, SubjectNode } from '../types'
 import { cloneScene } from './templates'
 
@@ -11,9 +12,23 @@ function findSubject(scene: SketchScene, id: string): SubjectNode | undefined {
   return scene.subjects.find((item) => item.id === id)
 }
 
+export function captureElement(scene: SketchScene, id: string): unknown {
+  if (id === 'camera') return { ...scene.camera }
+  const subject = findSubject(scene, id)
+  if (subject) return { ...subject }
+  const object = scene.objects.find((item) => item.id === id)
+  if (object) return { ...object }
+  const gaze = scene.gazes.find((item) => item.id === id)
+  if (gaze) return { ...gaze }
+  const movement = scene.movements.find((item) => item.id === id)
+  if (movement) return { ...movement }
+  return null
+}
+
 export function applySketchAction(scene: SketchScene, action: SketchAction): SketchScene {
   const next = cloneScene(scene)
-  const { action: kind, target } = action
+  const kind = action.action_type || action.action
+  const target = action.target_id || action.target
 
   if (kind === 'move' || kind === 'move_subject') {
     const subject = findSubject(next, target)
@@ -126,7 +141,68 @@ export function applySketchAction(scene: SketchScene, action: SketchAction): Ske
     return next
   }
 
+  if (kind === 'movement_update' || kind === 'change_direction') {
+    const movement = next.movements.find((item) => item.id === target)
+    const point = action.to as Point | undefined
+    if (movement && point) movement.to = point
+    return next
+  }
+
   return next
+}
+
+export function decorateAction(
+  scene: SketchScene,
+  partial: { action: string; target: string; from?: unknown; to?: unknown },
+): { scene: SketchScene; action: SketchAction } {
+  const before = captureElement(scene, partial.target)
+  const draft: SketchAction = {
+    action: partial.action,
+    action_type: partial.action,
+    target: partial.target,
+    target_id: partial.target,
+    from: partial.from,
+    to: partial.to,
+    timestamp: nowMs(),
+    before_state: before,
+    after_state: null,
+  }
+  const next = applySketchAction(scene, draft)
+  let afterId = partial.target
+  if (partial.action === 'add' || partial.action === 'add_subject') {
+    afterId = next.subjects.at(-1)?.id ?? partial.target
+  } else if (partial.action === 'add_object') {
+    afterId = next.objects.at(-1)?.id ?? partial.target
+  } else if (partial.action === 'gaze_add') {
+    afterId = next.gazes.at(-1)?.id ?? partial.target
+  } else if (partial.action === 'movement_add') {
+    afterId = next.movements.at(-1)?.id ?? partial.target
+  }
+  return {
+    scene: next,
+    action: {
+      ...draft,
+      target_id: afterId,
+      after_state: captureElement(next, afterId),
+    },
+  }
+}
+
+export function logOnlyAction(
+  scene: SketchScene,
+  partial: { action: string; target: string; from?: unknown; to?: unknown },
+): SketchAction {
+  return {
+    action: partial.action,
+    action_type: partial.action,
+    target: partial.target,
+    target_id: partial.target,
+    from: partial.from,
+    to: partial.to,
+    timestamp: nowMs(),
+    before_state: partial.from ?? captureElement(scene, partial.target),
+    after_state: partial.to ?? captureElement(scene, partial.target),
+  }
 }
 
 export function nodeCenter(scene: SketchScene, id: string): Point | null {
@@ -135,5 +211,7 @@ export function nodeCenter(scene: SketchScene, id: string): Point | null {
   if (subject) return { x: subject.x, y: subject.y }
   const object = scene.objects.find((item) => item.id === id)
   if (object) return { x: object.x + object.w / 2, y: object.y + object.h / 2 }
+  const movement = scene.movements.find((item) => item.id === id)
+  if (movement) return { ...movement.to }
   return null
 }

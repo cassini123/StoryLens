@@ -17,9 +17,13 @@ import type {
   SubjectiveRatings,
   Trial,
 } from '../shared/types'
-import { Button, Field, FooterBar, Likert, Shell, YesNo } from '../shared/ui'
+import { Button, Field, FooterBar, Likert, Shell } from '../shared/ui'
 
 const emptyDemo: Demographics = {
+  cinematography_experience: '',
+  cinematography_years: '',
+  visual_experience: '',
+  ai_familiarity: '',
   design_background: null,
   film_background: null,
   film_years: '',
@@ -33,6 +37,9 @@ function emptyTrial(participantId: string, taskId: string, condition: Condition)
     trial_id: `${participantId}_${taskId}`,
     task_id: taskId,
     condition,
+    t1_intent: '',
+    t2_intent: '',
+    t3_intent: '',
     initial_intent: '',
     initial_intent_timestamp: '',
     initial_sketch: null,
@@ -40,6 +47,7 @@ function emptyTrial(participantId: string, taskId: string, condition: Condition)
     final_sketch: null,
     refined_intent: '',
     final_intent: '',
+    authored: { modification_count: 0, rejection: false },
     timestamps: {},
   }
 }
@@ -75,10 +83,9 @@ export function ParticipantApp() {
   if (!session) {
     const ready =
       setupId.trim().length > 0 &&
-      demo.design_background !== null &&
-      demo.film_background !== null &&
-      demo.ai_experience !== '' &&
-      demo.image_gen_experience !== ''
+      demo.cinematography_experience !== '' &&
+      demo.visual_experience !== '' &&
+      demo.ai_familiarity !== ''
 
     return (
       <Shell title="Participant setup" subtitle="Cinematography Expression Study">
@@ -97,27 +104,16 @@ export function ParticipantApp() {
                 ))}
               </select>
             </Field>
-            <YesNo
-              label="Design background"
-              value={demo.design_background}
-              onChange={(value) => setDemo({ ...demo, design_background: value })}
-            />
-            <YesNo
-              label="Film / cinematography background"
-              value={demo.film_background}
-              onChange={(value) => setDemo({ ...demo, film_background: value })}
-            />
-            <Field label="Years of film experience (0 if none)">
-              <input
-                value={demo.film_years}
-                onChange={(e) => setDemo({ ...demo, film_years: e.target.value })}
-                placeholder="0"
-              />
-            </Field>
-            <Field label="AI use experience">
+            <Field label="Cinematography experience">
               <select
-                value={demo.ai_experience}
-                onChange={(e) => setDemo({ ...demo, ai_experience: e.target.value as ExperienceLevel | '' })}
+                value={demo.cinematography_experience}
+                onChange={(e) =>
+                  setDemo({
+                    ...demo,
+                    cinematography_experience: e.target.value as ExperienceLevel | '',
+                    film_background: e.target.value !== 'none',
+                  })
+                }
               >
                 <option value="">Select</option>
                 <option value="none">None</option>
@@ -125,11 +121,42 @@ export function ParticipantApp() {
                 <option value="frequent">Frequent</option>
               </select>
             </Field>
-            <Field label="Image generation experience">
-              <select
-                value={demo.image_gen_experience}
+            <Field label="Years of cinematography experience (0 if none)">
+              <input
+                value={demo.cinematography_years}
                 onChange={(e) =>
-                  setDemo({ ...demo, image_gen_experience: e.target.value as ExperienceLevel | '' })
+                  setDemo({ ...demo, cinematography_years: e.target.value, film_years: e.target.value })
+                }
+                placeholder="0"
+              />
+            </Field>
+            <Field label="Visual / design experience">
+              <select
+                value={demo.visual_experience}
+                onChange={(e) =>
+                  setDemo({
+                    ...demo,
+                    visual_experience: e.target.value as ExperienceLevel | '',
+                    design_background: e.target.value !== 'none',
+                  })
+                }
+              >
+                <option value="">Select</option>
+                <option value="none">None</option>
+                <option value="some">Some</option>
+                <option value="frequent">Frequent</option>
+              </select>
+            </Field>
+            <Field label="AI familiarity">
+              <select
+                value={demo.ai_familiarity}
+                onChange={(e) =>
+                  setDemo({
+                    ...demo,
+                    ai_familiarity: e.target.value as ExperienceLevel | '',
+                    ai_experience: e.target.value as ExperienceLevel | '',
+                    image_gen_experience: e.target.value as ExperienceLevel | '',
+                  })
                 }
               >
                 <option value="">Select</option>
@@ -158,6 +185,7 @@ export function ParticipantApp() {
               const created: Session = {
                 participant_id: id,
                 group_id: setupGroup,
+                condition_order: setupGroup,
                 demographics: demo,
                 trials: [],
                 subjective: null,
@@ -200,7 +228,7 @@ function ParticipantFlow({
       <Shell title="Introduction" meta={session.participant_id}>
         <main className="page">
           <p className="lead">{experiment.prompts.introduction}</p>
-          <p>You will design single shots. Use everyday language. There is no need to use technical vocabulary.</p>
+          <p>Each task has a baseline description (T1), then a second description (T2). After all tasks, you will complete one new task with no assistance (T3).</p>
         </main>
         <FooterBar>
           <Button
@@ -256,7 +284,7 @@ function ParticipantFlow({
       session.trials.find((item) => item.task_id === task.id) ??
       emptyTrial(session.participant_id, task.id, 'transfer')
     return (
-      <Shell title={`Transfer · ${task.title}`} meta={`${session.participant_id} · Task ${plan.length + 1} of ${plan.length + 1}`}>
+      <Shell title={`T3 Transfer · ${task.title}`} meta={`${session.participant_id} · Transfer`}>
         <TrialWorkspace
           taskTitle={task.title}
           taskBrief={task.brief}
@@ -266,6 +294,7 @@ function ParticipantFlow({
           finalValue=""
           scene={null}
           prompt={experiment.prompts.transfer}
+          t1Prompt={experiment.prompts.transfer}
           onInitialChange={(value) =>
             update({ ...session, runtime: { ...session.runtime, draft_initial: value } })
           }
@@ -280,7 +309,7 @@ function ParticipantFlow({
               if (step === 'transfer_task') {
                 const started = {
                   ...trial,
-                  timestamps: { ...trial.timestamps, task_start: trial.timestamps.task_start ?? nowIso(), intent_start: nowIso() },
+                    timestamps: { ...trial.timestamps, task_start: trial.timestamps.task_start ?? nowIso(), t3_start: nowIso(), intent_start: nowIso() },
                 }
                 update({
                   ...replaceTrial(session, started),
@@ -291,6 +320,9 @@ function ParticipantFlow({
               const text = session.runtime.draft_initial.trim()
               const done: Trial = {
                 ...trial,
+                t1_intent: '',
+                t2_intent: '',
+                t3_intent: text,
                 initial_intent: text,
                 initial_intent_timestamp: nowIso(),
                 final_intent: text,
@@ -298,7 +330,7 @@ function ParticipantFlow({
                 timestamps: {
                   ...trial.timestamps,
                   intent_submit: nowIso(),
-                  refinement_submit: nowIso(),
+                  t3_submit: nowIso(),
                   trial_end: nowIso(),
                 },
               }
@@ -356,7 +388,7 @@ function ParticipantFlow({
   return (
     <Shell
       title={`${task.title}`}
-      subtitle={`Task ${trial_index + 1} of ${total}`}
+      subtitle={`${step === 'trial_intent' ? 'T1 Baseline' : step === 'trial_sketch' ? 'T2 Sketch' : step === 'trial_refine' ? 'T2' : 'Task'} · ${trial_index + 1} of ${total}`}
       meta={session.participant_id}
     >
       <TrialWorkspace
@@ -368,6 +400,7 @@ function ParticipantFlow({
         finalValue={session.runtime.draft_final}
         scene={session.runtime.working_scene}
         prompt={trial.condition === 'sketch' ? experiment.prompts.sketch_refine : experiment.prompts.direct_refine}
+        t1Prompt={experiment.prompts.t1}
         onInitialChange={(value) =>
           update({ ...withTrial, runtime: { ...withTrial.runtime, draft_initial: value } })
         }
@@ -376,9 +409,15 @@ function ParticipantFlow({
         }
         onSketchChange={(scene, action) => {
           const first = trial.timestamps.sketch_first_interaction ?? (action ? nowIso() : trial.timestamps.sketch_first_interaction)
-          const nextTrial: Trial = {
+            const nextTrial: Trial = {
             ...trial,
             sketch_actions: action ? [...trial.sketch_actions, action] : trial.sketch_actions,
+            authored: action
+              ? {
+                  modification_count: trial.sketch_actions.length + 1,
+                  rejection: true,
+                }
+              : trial.authored,
             timestamps: { ...trial.timestamps, sketch_first_interaction: first },
           }
           update({
@@ -396,7 +435,11 @@ function ParticipantFlow({
               const confirmed: Trial = {
                 ...trial,
                 final_sketch: makeSketchRecord(withTrial.runtime.working_scene),
-                timestamps: { ...trial.timestamps, sketch_confirm: nowIso(), refinement_start: nowIso() },
+                authored: {
+                  modification_count: trial.sketch_actions.length,
+                  rejection: trial.sketch_actions.length > 0,
+                },
+                timestamps: { ...trial.timestamps, sketch_confirm: nowIso(), refinement_start: nowIso(), t2_start: nowIso() },
               }
               update({
                 ...replaceTrial(withTrial, confirmed),
@@ -421,6 +464,7 @@ function ParticipantFlow({
                     ...trial.timestamps,
                     task_start: trial.timestamps.task_start ?? nowIso(),
                     intent_start: nowIso(),
+                    t1_start: nowIso(),
                   },
                 }
                 update({
@@ -433,9 +477,10 @@ function ParticipantFlow({
                 const text = withTrial.runtime.draft_initial.trim()
                 let nextTrial: Trial = {
                   ...trial,
+                  t1_intent: text,
                   initial_intent: text,
                   initial_intent_timestamp: nowIso(),
-                  timestamps: { ...trial.timestamps, intent_submit: nowIso() },
+                  timestamps: { ...trial.timestamps, intent_submit: nowIso(), t1_submit: nowIso() },
                 }
                 if (trial.condition === 'sketch') {
                   const record = generateSketch(trial.task_id, text)
@@ -457,7 +502,7 @@ function ParticipantFlow({
                 update({
                   ...replaceTrial(withTrial, {
                     ...nextTrial,
-                    timestamps: { ...nextTrial.timestamps, refinement_start: nowIso() },
+                    timestamps: { ...nextTrial.timestamps, refinement_start: nowIso(), t2_start: nowIso() },
                   }),
                   runtime: { ...withTrial.runtime, step: 'trial_refine', draft_final: '' },
                 })
@@ -466,12 +511,14 @@ function ParticipantFlow({
               const text = withTrial.runtime.draft_final.trim()
               const finished: Trial = {
                 ...trial,
+                t2_intent: text,
                 final_intent: text,
                 refined_intent: text,
                 timestamps: {
                   ...trial.timestamps,
                   refinement_start: trial.timestamps.refinement_start ?? nowIso(),
                   refinement_submit: nowIso(),
+                  t2_submit: nowIso(),
                   trial_end: nowIso(),
                 },
               }
@@ -495,6 +542,7 @@ function TrialWorkspace({
   finalValue,
   scene,
   prompt,
+  t1Prompt,
   onInitialChange,
   onFinalChange,
   onSketchChange,
@@ -507,6 +555,7 @@ function TrialWorkspace({
   finalValue: string
   scene: SketchScene | null
   prompt: string
+  t1Prompt: string
   onInitialChange: (value: string) => void
   onFinalChange: (value: string) => void
   onSketchChange: (scene: SketchScene, action?: SketchAction) => void
@@ -516,11 +565,12 @@ function TrialWorkspace({
   const sketchActive = step === 'trial_sketch'
   const refineActive = step === 'trial_refine'
   const showSketch = condition === 'sketch' && (sketchActive || refineActive || Boolean(scene))
+  const isTransfer = condition === 'transfer'
 
   if (showTask) {
     return (
       <main className="page">
-        <p className="kicker">{taskTitle}</p>
+        <p className="kicker">{isTransfer ? 'T3 Transfer' : 'T1 Baseline'} · {taskTitle}</p>
         <p className="lead">{taskBrief}</p>
         <p>Design a single shot. Do not write a story or a full screenplay.</p>
       </main>
@@ -530,7 +580,8 @@ function TrialWorkspace({
   return (
     <main className="workspace">
       <section>
-        <h2>Your intent</h2>
+        <h2>{isTransfer ? 'T3 Intent' : 'T1 Intent'}</h2>
+        {intentActive ? <p className="hint">{t1Prompt}</p> : null}
         <textarea
           value={initialValue}
           onChange={(e) => onInitialChange(e.target.value)}
@@ -549,11 +600,11 @@ function TrialWorkspace({
             <SceneView scene={scene} />
           )
         ) : (
-          <div className="empty-sketch">Sketch appears after you submit your first description.</div>
+          <div className="empty-sketch">Sketch appears after you submit your T1 description.</div>
         )}
       </section>
       <section>
-        <h2>Refine</h2>
+        <h2>T2 Intent</h2>
         {refineActive || finalValue ? (
           <>
             <p className="hint">{prompt}</p>
@@ -565,7 +616,7 @@ function TrialWorkspace({
             />
           </>
         ) : (
-          <div className="empty-sketch">You will revise your description in the next step.</div>
+          <div className="empty-sketch">You will re-express your intent after T1{condition === 'sketch' ? ' and the sketch' : ''}.</div>
         )}
       </section>
     </main>

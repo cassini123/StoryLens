@@ -65,9 +65,10 @@
   },
   "transfer_task_id": "T09",
   "prompts": {
-    "introduction": "You will complete several cinematography tasks. There are no correct answers. Please describe what you intend as naturally as possible.",
-    "direct_refine": "Please review your intended shot and describe it again as clearly as possible.",
-    "sketch_refine": "Based on your sketch, please describe your intended shot again as clearly as possible.",
-    "transfer": "There is no sketch and no assistance on this task. Describe the shot as clearly as possible."
+    "introduction": "You will complete several cinematography tasks. There are no correct answers. Please describe what you intend as naturally as possible. Do not try to write a professional prompt.",
+    "t1": "There is no sketch and no AI assistance. Describe the shot as naturally as possible.",
+    "direct_refine": "Look at your earlier description. There is still no sketch. Describe the shot again as clearly as possible.",
+    "sketch_refine": "Based on your sketch, please describe your intended shot again as clearly as possible. Use your own words.",
+    "transfer": "This is a new task. There is no sketch and no assistance. Describe the shot as clearly as possible."
   }
 }

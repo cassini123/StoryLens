@@ -1,4 +1,15 @@
 export type Condition = 'direct' | 'sketch' | 'transfer'
+export type Timepoint = 'T1' | 'T2' | 'T3'
+export type PrecisionDim = 'object' | 'spatial' | 'relation' | 'camera' | 'emotion' | 'constraint'
+
+export const PRECISION_DIMS: PrecisionDim[] = [
+  'object',
+  'spatial',
+  'relation',
+  'camera',
+  'emotion',
+  'constraint',
+]
 
 export type GroupId =
   | 'A_direct_first'
@@ -27,6 +38,7 @@ export interface TaskDef {
   setting: string
   core: string[]
   brief: string
+  required_dimensions: PrecisionDim[]
 }
 
 export interface ExpertDef {
@@ -61,6 +73,7 @@ export interface ExperimentConfig {
   transfer_task_id: string
   prompts: {
     introduction: string
+    t1: string
     direct_refine: string
     sketch_refine: string
     transfer: string
@@ -68,6 +81,10 @@ export interface ExperimentConfig {
 }
 
 export interface Demographics {
+  cinematography_experience: ExperienceLevel | ''
+  cinematography_years: string
+  visual_experience: ExperienceLevel | ''
+  ai_familiarity: ExperienceLevel | ''
   design_background: boolean | null
   film_background: boolean | null
   film_years: string
@@ -130,11 +147,15 @@ export interface SketchScene {
 }
 
 export interface SketchAction {
+  timestamp: number
   action: string
+  action_type: string
   target: string
+  target_id: string
   from?: unknown
   to?: unknown
-  timestamp: number
+  before_state: unknown
+  after_state: unknown
 }
 
 export interface SketchRecord {
@@ -150,14 +171,25 @@ export interface SketchRecord {
 
 export interface TrialTimestamps {
   task_start?: string
+  t1_start?: string
+  t1_submit?: string
   intent_start?: string
   intent_submit?: string
   sketch_generated?: string
   sketch_first_interaction?: string
   sketch_confirm?: string
+  t2_start?: string
+  t2_submit?: string
   refinement_start?: string
   refinement_submit?: string
+  t3_start?: string
+  t3_submit?: string
   trial_end?: string
+}
+
+export interface AuthoredIntent {
+  modification_count: number
+  rejection: boolean
 }
 
 export interface Trial {
@@ -165,6 +197,9 @@ export interface Trial {
   trial_id: string
   task_id: string
   condition: Condition
+  t1_intent: string
+  t2_intent: string
+  t3_intent: string
   initial_intent: string
   initial_intent_timestamp: string
   initial_sketch: SketchRecord | null
@@ -172,6 +207,7 @@ export interface Trial {
   final_sketch: SketchRecord | null
   refined_intent: string
   final_intent: string
+  authored: AuthoredIntent
   timestamps: TrialTimestamps
 }
 
@@ -193,6 +229,7 @@ export interface SessionRuntime {
 export interface Session {
   participant_id: string
   group_id: GroupId
+  condition_order: string
   demographics: Demographics
   trials: Trial[]
   subjective: SubjectiveRatings | null
@@ -215,6 +252,8 @@ export interface RubricScores {
 
 export interface ExpertRating {
   trial_id: string
+  participant_id: string
+  task_id: string
   expert_id: string
   initial: RubricScores
   final: RubricScores
@@ -223,9 +262,36 @@ export interface ExpertRating {
   submitted_at: string
 }
 
+export interface PrecisionScores {
+  object: number | null
+  spatial: number | null
+  relation: number | null
+  camera: number | null
+  emotion: number | null
+  constraint: number | null
+}
+
+export interface IntentCoding {
+  participant_id: string
+  trial_id: string
+  task_id: string
+  condition: Condition
+  timepoint: Timepoint
+  coder_id: string
+  precision: PrecisionScores
+  precision_total: number | null
+  naturalness: number | null
+  copying: number | null
+  discovery_rate: number | null
+  learning_gain: number | null
+  transfer_gain: number | null
+  coded_at: string
+}
+
 export interface StoreShape {
   sessions: Session[]
   ratings: ExpertRating[]
+  codings: IntentCoding[]
 }
 
-export type AppRoute = 'home' | 'participant' | 'expert' | 'export'
+export type AppRoute = 'home' | 'participant' | 'expert' | 'coding' | 'export'

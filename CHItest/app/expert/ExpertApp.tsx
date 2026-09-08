@@ -114,9 +114,9 @@ function RatingScreen({
           <h2>Task</h2>
           <p className="lead">{task.brief}</p>
           <h2>Initial intent</h2>
-          <pre className="intent-block">{trial.initial_intent || '—'}</pre>
+          <pre className="intent-block">{trial.t1_intent || trial.initial_intent || '—'}</pre>
           <h2>Final intent</h2>
-          <pre className="intent-block">{trial.final_intent || '—'}</pre>
+          <pre className="intent-block">{trial.t2_intent || trial.t3_intent || trial.final_intent || '—'}</pre>
           <h2>Final sketch</h2>
           {scene ? (
             <SceneView scene={scene} />
@@ -149,6 +149,8 @@ function RatingScreen({
           onClick={() => {
             const rating: ExpertRating = {
               trial_id: trial.trial_id,
+              participant_id: trial.participant_id,
+              task_id: trial.task_id,
               expert_id: expertId,
               initial,
               final,
