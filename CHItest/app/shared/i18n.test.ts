@@ -12,10 +12,9 @@ describe('participant prompts', () => {
     }
   })
 
-  it('invites a clear description in the participant\'s own words', () => {
-    expect(COPY.zh.observe).toMatch(/自己的话/)
-    expect(COPY.zh.observe).toMatch(/没有标准答案/)
-    expect(COPY.en.observe.toLowerCase()).toMatch(/own words/)
-    expect(COPY.en.observe.toLowerCase()).toMatch(/no single correct answer/)
+  it('asks people to write what they see for the AI to regenerate', () => {
+    expect(COPY.zh.observe).toBe('请先看这张图，尽可能清楚地写下你看到的内容，希望 AI 重新生成的画面。')
+    expect(COPY.en.observe.toLowerCase()).toMatch(/what you see/)
+    expect(COPY.en.observe.toLowerCase()).toMatch(/regenerate/)
   })
 })

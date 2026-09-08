@@ -6,7 +6,7 @@ const KEY = 'chitest.locale'
 
 const zh = {
   observe:
-    '请先看这张图。用你自己的话，尽可能清楚地写下你希望 AI 重新生成的画面。日常说法或你本来就会用的专业表达都可以，怎么写最清楚就怎么写。没有标准答案。',
+    '请先看这张图，尽可能清楚地写下你看到的内容，希望 AI 重新生成的画面。',
   refine:
     '请看生成结果。如果还想调整，请继续改你的描述（以及草图，如有）。用你觉得最清楚的方式写即可。',
   generating: '正在根据你的描述生成画面，请稍候。',
@@ -88,7 +88,7 @@ export type Copy = typeof zh
 
 const en: Copy = {
   observe:
-    'Look at this picture. In your own words, describe as clearly as you can the image you want the AI to regenerate. Everyday language is fine, and so is any specialized vocabulary you already use — write in whichever way makes your intent clearest. There is no single correct answer.',
+    'Look at this picture. Write down as clearly as you can what you see — the image you want the AI to regenerate.',
   refine:
     'Look at the generated result. If you want to adjust it, keep editing your description (and the sketch, if there is one). Write in whichever way feels clearest to you.',
   generating: 'Generating an image from your description. Please wait.',
