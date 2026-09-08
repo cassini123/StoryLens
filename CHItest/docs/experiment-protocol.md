@@ -86,4 +86,4 @@ Text versions are append-only (`initial` / `auto` / `refined` / `final`). Genera
 
 Export: participants, tasks, event_log, intents, generations, sketch_interactions, sketch_snapshots, auto_prompts (with edit distance / similarity / copy ratio), expert_ratings, full_session_timeline.json. Full JSON also includes `practice_control`.
 
-Local store key: `chitest.store.v6`.
+Local store key: `chitest.store.v6`. Participant JSON is also uploaded to `/api/chitest-session` when they click Submit on the questionnaire.

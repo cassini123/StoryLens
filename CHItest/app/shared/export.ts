@@ -476,33 +476,64 @@ export function downloadFullJson(): void {
   download('chitest-export.json', JSON.stringify(buildExportPayload(), null, 2), 'application/json')
 }
 
-export async function downloadParticipantPacket(session: Session): Promise<void> {
+export type ParticipantPacket = {
+  study: string
+  exported_at: string
+  images_included: boolean
+  participant_id: string
+  session_id: string
+  session_start: string
+  session_end: string | null
+  assignment_pattern: Session['assignment_pattern']
+  experimental_group: Session['experimental_group']
+  events: ReturnType<typeof timelinePayload>['events']
+  demographics: Session['demographics']
+  subjective: Session['subjective']
+  tasks: Session['tasks']
+  text_versions: Session['text_versions']
+  generations: Array<Session['generations'][number] & { output_image_data: string | null }>
+  sketch_snapshots: Session['sketch_snapshots']
+  sketch_interactions: ReturnType<typeof interactionRows>
+  auto_prompts: ReturnType<typeof autoPromptRows>
+  measures: ReturnType<typeof measuresForSession>
+}
+
+const MAX_UPLOAD_CHARS = 3_500_000
+
+export async function buildParticipantPacket(
+  session: Session,
+  options: { includeImages?: boolean } = {},
+): Promise<ParticipantPacket> {
+  const includeImages = options.includeImages !== false
   const imageIds = session.generations.map((item) => item.generation_id)
-  const images = await getGeneratedImages(imageIds)
-  download(
-    `${session.participant_id}-session.json`,
-    JSON.stringify(
-      {
-        study: experiment.study.title,
-        exported_at: new Date().toISOString(),
-        ...timelinePayload(session),
-        demographics: session.demographics,
-        tasks: session.tasks,
-        text_versions: session.text_versions,
-        generations: session.generations.map((item) => ({
-          ...item,
-          output_image_data: images[item.generation_id] || null,
-        })),
-        sketch_snapshots: session.sketch_snapshots,
-        sketch_interactions: interactionRows([session]),
-        auto_prompts: autoPromptRows([session]),
-        measures: measuresForSession(session),
-      },
-      null,
-      2,
-    ),
-    'application/json',
-  )
+  const images = includeImages ? await getGeneratedImages(imageIds) : {}
+  const packet: ParticipantPacket = {
+    study: experiment.study.title,
+    exported_at: new Date().toISOString(),
+    images_included: includeImages,
+    ...timelinePayload(session),
+    demographics: session.demographics,
+    subjective: session.subjective,
+    tasks: session.tasks,
+    text_versions: session.text_versions,
+    generations: session.generations.map((item) => ({
+      ...item,
+      output_image_data: includeImages ? images[item.generation_id] || null : null,
+    })),
+    sketch_snapshots: session.sketch_snapshots,
+    sketch_interactions: interactionRows([session]),
+    auto_prompts: autoPromptRows([session]),
+    measures: measuresForSession(session),
+  }
+  if (includeImages && JSON.stringify(packet).length > MAX_UPLOAD_CHARS) {
+    return buildParticipantPacket(session, { includeImages: false })
+  }
+  return packet
+}
+
+export async function downloadParticipantPacket(session: Session): Promise<void> {
+  const packet = await buildParticipantPacket(session, { includeImages: true })
+  download(`${session.participant_id}-session.json`, JSON.stringify(packet, null, 2), 'application/json')
 }
 
 export { textAt, toCsv }

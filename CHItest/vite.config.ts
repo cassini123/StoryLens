@@ -19,22 +19,25 @@ function loadEnvFile(file: string): void {
   }
 }
 
-function jimengDevPlugin(): Plugin {
+function apiDevPlugin(): Plugin {
   return {
-    name: 'jimeng-dev-api',
+    name: 'chitest-dev-api',
     configureServer(server) {
       loadEnvFile(resolve(server.config.root, '../.env'))
       loadEnvFile(resolve(server.config.root, '.env'))
-      const handler = require(resolve(server.config.root, '../api/jimeng.js'))
-      server.middlewares.use('/api/jimeng', (req, res, next) => {
-        Promise.resolve(handler(req, res)).catch(next)
-      })
+      for (const file of ['jimeng.js', 'chitest-session.js']) {
+        const handler = require(resolve(server.config.root, `../api/${file}`))
+        const mount = `/api/${file.replace(/\.js$/, '')}`
+        server.middlewares.use(mount, (req, res, next) => {
+          Promise.resolve(handler(req, res)).catch(next)
+        })
+      }
     },
   }
 }
 
 export default defineConfig(({ command }) => ({
-  plugins: [react(), jimengDevPlugin()],
+  plugins: [react(), apiDevPlugin()],
   base: command === 'build' ? '/chitest/' : '/',
   test: {
     include: ['app/**/*.test.ts'],
