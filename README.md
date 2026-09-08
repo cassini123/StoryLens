@@ -18,6 +18,7 @@ python3 -m http.server 8080
 | 入口 | [`index.html`](index.html) |
 | 分镜生成器 | [`storylens/assets/storylens-generator.html`](storylens/assets/storylens-generator.html) |
 | 技术框架说明 | [`tech.html`](tech.html) |
+| CHI 2027 实验 | [`/chitest/`](CHItest/)（Vercel 构建后的独立原型，不改 StoryLens 功能） |
 
 完整 Skill 设计文件也可从 [`StoryLens-Skill设计文件/`](StoryLens-Skill设计文件/) 进入，用法见该目录 README。
 
@@ -50,6 +51,8 @@ python3 -m http.server 8080
 ├── 训练素材/                       # LoRA 训练参考图
 ├── 周边设计文件/                   # 物料与视觉周边
 ├── assets/ / references/ / scripts/# 早期 storyboard skill 兼容布局
+├── CHItest/                        # CHI 2027 实验原型（Vercel 构建后挂在 /chitest/）
+├── vercel.json                     # 生产构建：静态 StoryLens + 构建后的 CHItest
 ├── 场景洞察.pptx / *.mp4           # Demo 与说明材料
 └── _archive/                       # 开发与历史脚本
 ```

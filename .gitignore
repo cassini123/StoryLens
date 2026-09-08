@@ -1,3 +1,6 @@
 .DS_Store
 __MACOSX/
 ._*
+.vercel
+.vercel-dist
+node_modules

@@ -12,6 +12,8 @@ Vague Intent → Low-fi Sketch → Human inspection / editing → Refined Intent
 
 ## Run
 
+Local:
+
 ```bash
 cd CHItest
 npm install
@@ -19,6 +21,16 @@ npm run dev
 ```
 
 Open the printed local URL (default `http://localhost:5173`).
+
+Production (Vercel) is served from the StoryLens site at **`/chitest/`**, for example:
+
+```text
+https://<your-vercel-domain>/chitest/
+https://<your-vercel-domain>/chitest/#/participant
+https://<your-vercel-domain>/chitest/#/participant?short=1
+```
+
+The root deploy copies StoryLens static files as-is, then builds this Vite app into `/chitest/`. See `scripts/vercel-build.sh` and `vercel.json`.
 
 | Route | Use |
 | --- | --- |

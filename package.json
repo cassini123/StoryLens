@@ -1,0 +1,7 @@
+{
+  "name": "storylens-site",
+  "private": true,
+  "scripts": {
+    "build": "bash scripts/vercel-build.sh"
+  }
+}

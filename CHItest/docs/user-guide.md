@@ -22,6 +22,13 @@ npm run dev
 http://localhost:5173
 ```
 
+Vercel 生产环境入口（StoryLens 站点子路径，需先构建 CHItest）：
+
+```text
+https://<vercel-domain>/chitest/
+https://<vercel-domain>/chitest/#/participant?short=1
+```
+
 | 地址 | 角色 |
 | --- | --- |
 | `#/` | 首页 |

@@ -1,0 +1,13 @@
+{
+  "buildCommand": "bash scripts/vercel-build.sh",
+  "outputDirectory": ".vercel-dist",
+  "installCommand": "cd CHItest && npm ci",
+  "framework": null,
+  "trailingSlash": true,
+  "redirects": [
+    { "source": "/chitest", "destination": "/chitest/", "permanent": false },
+    { "source": "/CHItest", "destination": "/chitest/", "permanent": false },
+    { "source": "/CHItest/", "destination": "/chitest/", "permanent": false },
+    { "source": "/CHItest/:path*", "destination": "/chitest/:path*", "permanent": false }
+  ]
+}
