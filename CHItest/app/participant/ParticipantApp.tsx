@@ -34,7 +34,7 @@ import { createSessionBase, summarizeTask } from '../shared/sessionInit'
 import { markExportReadiness } from '../shared/validation'
 import { pastedFromAuto } from '../shared/textCompare'
 import { downloadParticipantPacket } from '../shared/export'
-import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
+import { abandonSession, clearActiveSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
 import { nowIso } from '../shared/time'
 import type {
   Demographics,
@@ -178,8 +178,11 @@ export function ParticipantApp() {
               }
               const prior = getSession(id)
               if (prior && !prior.completed_at) {
-                setSession(prior)
-                return
+                if (confirm(t.resumeOrReroll)) {
+                  setSession(persist(prior))
+                  return
+                }
+                abandonSession(id)
               }
               const sessionId = `S${id.replace(/^P/i, '')}`
               const group = assignGroup()
@@ -357,7 +360,14 @@ function ParticipantFlow({
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
           <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
-          <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
+          <Button
+            onClick={() => {
+              clearActiveSession()
+              window.location.hash = '#/'
+            }}
+          >
+            {t.home}
+          </Button>
         </FooterBar>
       </SessionChrome>
     )

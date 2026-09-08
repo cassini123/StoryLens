@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { experiment } from './shared/config'
 import { isResearcherAuthed, loginResearcher, logoutResearcher, researcherName } from './shared/auth'
+import { clearActiveSession } from './shared/store'
 import { useI18n } from './shared/i18n'
 import { checkJimengHealth, type JimengHealth } from './shared/jimeng'
 import { Button, Field, Shell } from './shared/ui'
@@ -39,7 +40,13 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
         <p>{t.homeBody}</p>
         <p className={apiReady ? 'api-status ok' : 'api-status bad'}>{apiLabel}</p>
         <div className="stack">
-          <Button fill onClick={() => (window.location.hash = '#/participant')}>
+          <Button
+            fill
+            onClick={() => {
+              clearActiveSession()
+              window.location.hash = '#/participant'
+            }}
+          >
             {t.participant}
           </Button>
           <Button

@@ -3,7 +3,7 @@ import { downloadParticipantPacket } from './export'
 import { LangSwitch, useI18n } from './i18n'
 import { logEvent } from './logging'
 import { sessionProgress } from './progress'
-import { upsertSession } from './store'
+import { clearActiveSession, upsertSession } from './store'
 import type { Session } from './types'
 
 export function SessionChrome({
@@ -81,6 +81,7 @@ export function SessionChrome({
   function exit() {
     setMenuOpen(false)
     persistWithLog('manual_exit')
+    clearActiveSession()
     window.location.hash = '#/'
   }
 
