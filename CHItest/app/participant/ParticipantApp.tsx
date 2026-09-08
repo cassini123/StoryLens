@@ -1,28 +1,40 @@
-import { useEffect, useMemo, useState } from 'react'
-import { experiment, getImage, stimulusUrl, STUDY_TITLE } from '../shared/config'
-import { saveGeneratedImage, getGeneratedImage } from '../shared/imageStore'
-import { generateImageFromIntent } from '../shared/jimeng'
-import { generateSketch, makeSketchRecord } from '../shared/sketch/generate'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { experiment, getImage, stageHasGeneration, stageHasSketch, stimulusUrl, STUDY_TITLE } from '../shared/config'
+import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
+import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
+import {
+  addGeneration,
+  addSketchAction,
+  addSketchSnapshot,
+  addTextVersion,
+  currentTask,
+  logEvent,
+} from '../shared/logging'
+import { composeConditioning } from '../shared/media'
+import { generateSketch } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
-import { SemanticPanel } from '../shared/sketch/SemanticPanel'
-import { SceneView } from '../shared/sketch/SceneView'
-import { buildTrialPlan, nextGroupId, nextParticipantId } from '../shared/schedule'
+import { sceneToSvg } from '../shared/sketch/render'
+import { cloneScene } from '../shared/sketch/templates'
+import { buildTaskPlan, nextParticipantId, patternForParticipant } from '../shared/schedule'
 import { downloadParticipantPacket } from '../shared/export'
-import { getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
+import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
 import { nowIso } from '../shared/time'
 import type {
-  Condition,
   Demographics,
   ExperienceLevel,
-  GroupId,
   ImageDef,
+  PlannedTask,
   Session,
-  SketchAction,
+  SessionRuntime,
+  SketchEdit,
   SketchScene,
   SubjectiveRatings,
-  Trial,
+  TaskRun,
+  TextType,
 } from '../shared/types'
-import { Button, Field, FooterBar, Likert, Shell } from '../shared/ui'
+import { MAX_ROUNDS } from '../shared/types'
+import { SessionChrome } from '../shared/SessionChrome'
+import { Button, Field, FooterBar, Likert } from '../shared/ui'
 
 const emptyDemo: Demographics = {
   cinematography_experience: '',
@@ -36,34 +48,36 @@ const emptyDemo: Demographics = {
   image_gen_experience: '',
 }
 
-function emptyTrial(
-  participantId: string,
-  imageId: string,
-  condition: Condition,
-  phase: Trial['phase'],
-): Trial {
+function emptyRuntime(): SessionRuntime {
+  return {
+    step: 'intro',
+    task_index: 0,
+    round: 0,
+    draft_text: '',
+    working_scene: null,
+    generate_error: '',
+    selected_node_id: null,
+    last_output_image_id: '',
+    text_started: false,
+    sketch_editing: false,
+  }
+}
+
+function emptyTask(sessionId: string, participantId: string, planned: PlannedTask): TaskRun {
   return {
     participant_id: participantId,
-    trial_id: `${participantId}_${imageId}_${phase}`,
-    task_id: imageId,
-    image_id: imageId,
-    phase,
-    condition,
-    t1_intent: '',
-    t2_intent: '',
-    t3_intent: '',
-    initial_intent: '',
-    initial_intent_timestamp: '',
-    refined_intent: '',
-    refined_intent_timestamp: '',
-    generated_image: null,
-    initial_sketch: null,
+    session_id: sessionId,
+    task_id: planned.task_id,
+    image_id: planned.image_id,
+    stage: planned.stage,
+    round: 0,
+    rounds: [],
+    initial_text_version_id: '',
+    final_text_version_id: '',
+    satisfied_round: null,
+    started_at: '',
+    ended_at: '',
     sketch_actions: [],
-    final_sketch: null,
-    semantic_confirms: [],
-    final_intent: '',
-    authored: { modification_count: 0, rejection: false },
-    timestamps: {},
   }
 }
 
@@ -72,27 +86,24 @@ function persist(session: Session): Session {
   return session
 }
 
-function ensureTrial(session: Session, index: number): { session: Session; trial: Trial } {
-  const plan = buildTrialPlan(session.group_id, session.participant_id)
-  const planned = plan[index]
-  const existing = session.trials.find((item) => item.trial_id === `${session.participant_id}_${planned.image_id}_${planned.phase}`)
-  if (existing) return { session, trial: existing }
-  const trial = emptyTrial(session.participant_id, planned.image_id, planned.condition, planned.phase)
-  return { session: persist({ ...session, trials: [...session.trials, trial] }), trial }
-}
-
-function replaceTrial(session: Session, trial: Trial): Session {
-  const trials = session.trials.map((item) => (item.trial_id === trial.trial_id ? trial : item))
-  const found = trials.some((item) => item.trial_id === trial.trial_id)
-  return persist({ ...session, trials: found ? trials : [...trials, trial] })
+function confirmRestart(session: Session, setSession: (session: Session | null) => void): void {
+  if (!confirm('Discard this incomplete session on this browser and start over?')) return
+  abandonSession(session.participant_id)
+  setSession(null)
+  window.location.hash = '#/participant'
+  window.location.reload()
 }
 
 export function ParticipantApp() {
   const existing = useMemo(() => loadStore().sessions, [])
   const [session, setSession] = useState<Session | null>(() => getActiveSession() ?? null)
   const [setupId, setSetupId] = useState(nextParticipantId(existing))
-  const [setupGroup, setSetupGroup] = useState<GroupId>(nextGroupId(existing))
   const [demo, setDemo] = useState<Demographics>(emptyDemo)
+  const [health, setHealth] = useState<JimengHealth | null>(null)
+
+  useEffect(() => {
+    void checkJimengHealth().then(setHealth)
+  }, [])
 
   if (!session) {
     const ready =
@@ -100,20 +111,18 @@ export function ParticipantApp() {
       demo.cinematography_experience !== '' &&
       demo.visual_experience !== '' &&
       demo.ai_familiarity !== ''
-
     return (
-      <Shell title="Participant setup" subtitle={STUDY_TITLE}>
+      <SessionChrome title="Participant setup" extra={STUDY_TITLE} session={null}>
         <main className="page">
           <p className="lead">Start a new session. Do not reuse a participant ID.</p>
+          {health && !health.credentials ? (
+            <p className="api-status bad">
+              {health.error || 'Jimeng API is not configured on this deployment.'}
+            </p>
+          ) : null}
           <div className="stack">
             <Field label="Participant ID">
               <input value={setupId} onChange={(e) => setSetupId(e.target.value.trim())} />
-            </Field>
-            <Field label="Condition order">
-              <select value={setupGroup} onChange={(e) => setSetupGroup(e.target.value as GroupId)}>
-                <option value="direct_first">T1 → Direct → Sketch → T3</option>
-                <option value="sketch_first">T1 → Sketch → Direct → T3</option>
-              </select>
             </Field>
             <Field label="Cinematography experience">
               <select
@@ -135,9 +144,7 @@ export function ParticipantApp() {
             <Field label="Years of cinematography experience (0 if none)">
               <input
                 value={demo.cinematography_years}
-                onChange={(e) =>
-                  setDemo({ ...demo, cinematography_years: e.target.value, film_years: e.target.value })
-                }
+                onChange={(e) => setDemo({ ...demo, cinematography_years: e.target.value, film_years: e.target.value })}
                 placeholder="0"
               />
             </Field>
@@ -193,32 +200,33 @@ export function ParticipantApp() {
                 setSession(prior)
                 return
               }
+              const sessionId = `S${id.replace(/^P/i, '')}`
+              const plan = buildTaskPlan(id)
               const created: Session = {
                 participant_id: id,
-                group_id: setupGroup,
-                condition_order: setupGroup,
+                session_id: sessionId,
+                assignment_pattern: patternForParticipant(id),
                 demographics: demo,
-                trials: [],
+                tasks: plan.map((item) => emptyTask(sessionId, id, item)),
+                event_log: [],
+                text_versions: [],
+                generations: [],
+                sketch_snapshots: [],
                 subjective: null,
                 started_at: nowIso(),
                 completed_at: null,
-                runtime: {
-                  step: 'intro',
-                  trial_index: 0,
-                  draft_initial: '',
-                  draft_final: '',
-                  working_scene: null,
-                  generate_error: '',
-                  selected_node_id: null,
-                },
+                runtime: emptyRuntime(),
+                seq: 0,
               }
+              logEvent(created, 'session_start')
+              logEvent(created, 'participant_setup_complete')
               setSession(persist(created))
             }}
           >
             Continue
           </Button>
         </FooterBar>
-      </Shell>
+      </SessionChrome>
     )
   }
 
@@ -230,56 +238,85 @@ function ParticipantFlow({
   setSession,
 }: {
   session: Session
-  setSession: (session: Session) => void
+  setSession: (session: Session | null) => void
 }) {
-  const plan = buildTrialPlan(session.group_id, session.participant_id)
-  const { step, trial_index } = session.runtime
-  const update = (next: Session) => setSession(persist(next))
+  const changeTimer = useRef<number | null>(null)
 
-  if (step === 'intro') {
+  function update(mutator: (next: Session) => void) {
+    const next = structuredClone(session)
+    mutator(next)
+    setSession(persist(next))
+  }
+
+  useEffect(() => {
+    const onExit = () => {
+      const next = structuredClone(session)
+      logEvent(next, 'page_exit', { visibility: document.visibilityState })
+      persist(next)
+    }
+    window.addEventListener('beforeunload', onExit)
+    const onHide = () => {
+      if (document.visibilityState !== 'hidden') return
+      onExit()
+    }
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('beforeunload', onExit)
+      document.removeEventListener('visibilitychange', onHide)
+    }
+  }, [session.session_id])
+
+  const task = currentTask(session)
+  const planLength = session.tasks.length
+
+  if (session.runtime.step === 'intro') {
     return (
-      <Shell title="Introduction" meta={session.participant_id}>
+      <SessionChrome
+        session={session}
+        title="Introduction"
+        extra={session.participant_id}
+        onSessionChange={setSession}
+      >
         <main className="page">
           <p className="lead">{experiment.prompts.introduction}</p>
-          <p>You will complete 6 images: 2 baseline, 1 Direct, 1 Sketch, then 2 transfer images.</p>
+          <p>You will complete 7 pictures: T0 × 1, T1 × 2, T2 × 2, T3 × 2.</p>
         </main>
-        <FooterBar>
-          <Button
-            fill
-            onClick={() => {
-              const ready = ensureTrial(session, 0)
-              update({
-                ...ready.session,
-                runtime: { ...ready.session.runtime, step: 'show_image', trial_index: 0 },
-              })
-            }}
-          >
+        <FooterBar style={{ justifyContent: 'space-between' }}>
+          <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
+          <Button fill onClick={() => startTask(0)}>
             Continue
           </Button>
         </FooterBar>
-      </Shell>
+      </SessionChrome>
     )
   }
 
-  if (step === 'questionnaire') {
+  if (session.runtime.step === 'questionnaire') {
     return (
       <Questionnaire
         session={session}
-        onChange={(subjective) => update({ ...session, subjective })}
+        onSessionChange={setSession}
+        onChange={(subjective) => update((next) => { next.subjective = subjective })}
+        onRestart={() => confirmRestart(session, setSession)}
         onSubmit={() =>
-          update({
-            ...session,
-            completed_at: nowIso(),
-            runtime: { ...session.runtime, step: 'complete' },
+          update((next) => {
+            next.completed_at = nowIso()
+            next.runtime.step = 'complete'
+            logEvent(next, 'session_end')
           })
         }
       />
     )
   }
 
-  if (step === 'complete') {
+  if (session.runtime.step === 'complete') {
     return (
-      <Shell title="Session complete" meta={session.participant_id}>
+      <SessionChrome
+        session={session}
+        title="Session complete"
+        extra={session.participant_id}
+        onSessionChange={setSession}
+      >
         <main className="page">
           <p className="lead">Thank you. Please download your session data and give the file to the experimenter.</p>
           <div className="stack">
@@ -288,367 +325,360 @@ function ParticipantFlow({
             </Button>
           </div>
         </main>
-        <FooterBar>
+        <FooterBar style={{ justifyContent: 'space-between' }}>
+          <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
           <Button onClick={() => (window.location.hash = '#/')}>Home</Button>
         </FooterBar>
-      </Shell>
+      </SessionChrome>
     )
   }
 
-  const { session: withTrial, trial } = ensureTrial(session, trial_index)
-  const image = getImage(trial.image_id)
-  const total = plan.length
+  if (!task) {
+    return (
+      <SessionChrome session={session} title="Error" onSessionChange={setSession}>
+        <main className="page">
+          <p>No active task.</p>
+        </main>
+      </SessionChrome>
+    )
+  }
 
-  function gotoNext(current: Session) {
-    const nextIndex = trial_index + 1
-    if (nextIndex >= plan.length) {
-      update({
-        ...current,
-        runtime: {
-          step: 'questionnaire',
-          trial_index: nextIndex,
-          draft_initial: '',
-          draft_final: '',
-          working_scene: null,
-          generate_error: '',
-          selected_node_id: null,
-        },
-      })
-      return
-    }
-    const ready = ensureTrial(current, nextIndex)
-    update({
-      ...ready.session,
-      runtime: {
-        step: 'show_image',
-        trial_index: nextIndex,
-        draft_initial: '',
-        draft_final: '',
-        working_scene: null,
-        generate_error: '',
-        selected_node_id: null,
-      },
+  const image = getImage(task.image_id)
+  const lastGen = [...session.generations].reverse().find((item) => item.task_id === task.task_id)
+  const canGenerate = stageHasGeneration(task.stage) && session.runtime.round < MAX_ROUNDS && session.runtime.step !== 'generating'
+  const canSatisfy =
+    task.stage === 'T0'
+      ? session.runtime.draft_text.trim().length > 0
+      : session.generations.some((item) => item.task_id === task.task_id)
+
+  function startTask(index: number) {
+    update((next) => {
+      next.runtime.task_index = index
+      next.runtime.round = 0
+      next.runtime.draft_text = ''
+      next.runtime.working_scene = null
+      next.runtime.generate_error = ''
+      next.runtime.last_output_image_id = ''
+      next.runtime.text_started = false
+      next.runtime.sketch_editing = false
+      next.runtime.step = 'describe'
+      const active = next.tasks[index]
+      if (active && !active.started_at) active.started_at = nowIso()
+      logEvent(next, 'task_start')
+      logEvent(next, `${active.stage}_task_start`)
+      logEvent(next, 'image_view_start')
     })
   }
 
-  async function runGeneration(currentTrial: Trial, currentSession: Session) {
-    const generating: Trial = {
-      ...currentTrial,
-      timestamps: { ...currentTrial.timestamps, generate_start: nowIso() },
-    }
-    update({
-      ...replaceTrial(currentSession, generating),
-      runtime: { ...currentSession.runtime, step: 'generating', generate_error: '' },
+  function saveDraftText(next: Session, type: TextType) {
+    const text = next.runtime.draft_text.trim()
+    const taskNow = currentTask(next)
+    if (!taskNow) return null
+    const previous = [...next.text_versions].reverse().find((item) => item.task_id === taskNow.task_id)
+    const version = addTextVersion(next, text, type, previous?.text_version_id || '')
+    if (!taskNow.initial_text_version_id) taskNow.initial_text_version_id = version.text_version_id
+    taskNow.final_text_version_id = version.text_version_id
+    logEvent(next, type === 'initial' ? 'initial_text_submit' : 'text_submit', {
+      text_version_id: version.text_version_id,
+      text_length: version.text_length,
     })
-    const result = await generateImageFromIntent(currentTrial.initial_intent)
-    await saveGeneratedImage(currentTrial.trial_id, result.data_url)
-    let nextTrial: Trial = {
-      ...generating,
-      generated_image: result.meta,
-      timestamps: { ...generating.timestamps, generate_done: nowIso() },
-    }
-    if (currentTrial.condition === 'sketch') {
-      const record = generateSketch(currentTrial.image_id, currentTrial.initial_intent)
-      nextTrial = {
-        ...nextTrial,
-        initial_sketch: record,
-        timestamps: { ...nextTrial.timestamps, sketch_generated: record.generation_timestamp },
+    return version
+  }
+
+  function finishTask() {
+    update((next) => {
+      const active = currentTask(next)
+      if (!active) return
+      if (next.runtime.draft_text.trim()) saveDraftText(next, 'final')
+      active.ended_at = nowIso()
+      if (stageHasGeneration(active.stage)) {
+        active.satisfied_round = active.satisfied_round ?? next.runtime.round
+        logEvent(next, 'satisfied_click', { round: next.runtime.round })
       }
-      update({
-        ...replaceTrial(currentSession, nextTrial),
-        runtime: {
-          ...currentSession.runtime,
-          step: 'view_feedback',
-          working_scene: record.output.scene,
-          generate_error: result.meta.error,
-        },
-      })
-      return
-    }
-    update({
-      ...replaceTrial(currentSession, nextTrial),
-      runtime: {
-        ...currentSession.runtime,
-        step: 'view_feedback',
-        working_scene: null,
-        generate_error: result.meta.error,
-      },
+      logEvent(next, 'image_view_end')
+      logEvent(next, 'task_end')
+      logEvent(next, `${active.stage}_task_complete`)
+      logEvent(next, 'next_task_click')
+      const nextIndex = next.runtime.task_index + 1
+      if (nextIndex >= next.tasks.length) {
+        next.runtime.step = 'questionnaire'
+        return
+      }
+      next.runtime.task_index = nextIndex
+      next.runtime.round = 0
+      next.runtime.draft_text = ''
+      next.runtime.working_scene = null
+      next.runtime.generate_error = ''
+      next.runtime.last_output_image_id = ''
+      next.runtime.text_started = false
+      next.runtime.sketch_editing = false
+      next.runtime.step = 'describe'
+      const upcoming = next.tasks[nextIndex]
+      if (upcoming && !upcoming.started_at) upcoming.started_at = nowIso()
+      logEvent(next, 'task_start')
+      logEvent(next, `${upcoming.stage}_task_start`)
+      logEvent(next, 'image_view_start')
     })
   }
 
-  const phaseLabel =
-    trial.phase === 'T1' ? 'T1 Baseline' : trial.phase === 'T3' ? 'T3 Transfer' : trial.condition === 'sketch' ? 'T2 Sketch' : 'T2 Direct'
+  function openSketch() {
+    update((next) => {
+      const active = currentTask(next)
+      if (!active) return
+      saveDraftText(next, 'initial')
+      const record = generateSketch(active.image_id, next.runtime.draft_text)
+      next.runtime.working_scene = record.output.scene
+      const snap = addSketchSnapshot(next, record.output.scene, record.output.svg, 'initial')
+      logEvent(next, 'sketch_open', { snapshot_id: snap.snapshot_id })
+      logEvent(next, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind: 'initial' })
+      next.runtime.step = 'sketch_edit'
+    })
+  }
+
+  async function runGenerate() {
+    const text = session.runtime.draft_text.trim()
+    if (!text) return
+    const live = structuredClone(session)
+    const active = currentTask(live)
+    if (!active) return
+    const nextRound = Math.min(MAX_ROUNDS, live.runtime.round + 1)
+    live.runtime.round = nextRound
+    active.round = nextRound
+    logEvent(live, 'generate_click')
+    logEvent(live, 'round_start', { round: nextRound })
+    saveDraftText(live, nextRound === 1 ? 'initial' : 'refined')
+    if (live.runtime.working_scene) {
+      addSketchSnapshot(live, live.runtime.working_scene, sceneToSvg(live.runtime.working_scene), 'before')
+    }
+    live.runtime.step = 'generating'
+    live.runtime.generate_error = ''
+    const started = nowIso()
+    logEvent(live, 'generation_start')
+    persist(live)
+    setSession(live)
+
+    const sketchSvg = live.runtime.working_scene ? sceneToSvg(live.runtime.working_scene) : null
+    const sketchSnap = live.runtime.working_scene
+      ? addSketchSnapshot(live, live.runtime.working_scene, sketchSvg || '', 'generation')
+      : null
+    let images: string[] = []
+    try {
+      const originalUrl = stimulusUrl(getImage(active.image_id).image_path)
+      const composed = await composeConditioning(originalUrl, stageHasSketch(active.stage) ? sketchSvg : null)
+      images = [composed]
+    } catch (error) {
+      logEvent(live, 'error', { where: 'compose', message: String(error) })
+    }
+    const result = await generateImageFromIntent(text, undefined, images)
+    const ended = nowIso()
+    const success = result.meta.status === 'done'
+    const generation = addGeneration(live, {
+      task_id: active.task_id,
+      stage: active.stage,
+      round: live.runtime.round,
+      timestamp_start: started,
+      timestamp_end: ended,
+      latency_ms: Math.max(0, Date.parse(ended) - Date.parse(started)),
+      model: result.meta.engine,
+      model_version: 'jimeng_t2i_v40',
+      input_image_id: active.image_id,
+      input_text: text,
+      input_text_version_id: active.final_text_version_id,
+      input_sketch_snapshot_id: sketchSnap?.snapshot_id || '',
+      output_image_id: '',
+      success,
+      error: result.meta.error,
+      meta: result.meta,
+    })
+    generation.output_image_id = generation.generation_id
+    await saveGeneratedImage(generation.generation_id, result.data_url)
+    live.runtime.last_output_image_id = generation.generation_id
+    live.runtime.generate_error = result.meta.error
+    live.runtime.step = 'review'
+    active.rounds.push({
+      round: live.runtime.round,
+      text_version_id: active.final_text_version_id,
+      generation_id: generation.generation_id,
+      sketch_snapshot_before_id: sketchSnap?.snapshot_id || '',
+      sketch_snapshot_after_id: sketchSnap?.snapshot_id || '',
+      started_at: started,
+      ended_at: ended,
+    })
+    logEvent(live, 'generation_end', {
+      generation_id: generation.generation_id,
+      success,
+      latency_ms: generation.latency_ms,
+    })
+    logEvent(live, success ? 'generation_success' : 'generation_failure', { error: result.meta.error })
+    logEvent(live, 'round_end', { round: live.runtime.round })
+    logEvent(live, 'generated_image_view')
+    logEvent(live, 'generated_image_view_start')
+    persist(live)
+    setSession(structuredClone(live))
+  }
+
+  function onTextChange(value: string) {
+    update((next) => {
+      if (!next.runtime.text_started && value.trim()) {
+        next.runtime.text_started = true
+        logEvent(next, 'text_input_start')
+      }
+      next.runtime.draft_text = value
+    })
+    if (changeTimer.current) window.clearTimeout(changeTimer.current)
+    changeTimer.current = window.setTimeout(() => {
+      const latest = getSession(session.participant_id)
+      if (!latest) return
+      logEvent(latest, 'text_change', { text_length: latest.runtime.draft_text.length })
+      persist(latest)
+    }, 800)
+  }
+
+  function onSketchChange(scene: SketchScene, action?: SketchEdit) {
+    update((next) => {
+      if (!next.runtime.sketch_editing) {
+        next.runtime.sketch_editing = true
+        logEvent(next, 'sketch_edit_start')
+      }
+      next.runtime.working_scene = cloneScene(scene)
+      if (action) {
+        addSketchAction(next, action.action_type || action.action, action.target_id, action.before_state, action.after_state)
+      }
+    })
+  }
+
+  const generating = session.runtime.step === 'generating'
+  const showSketch = stageHasSketch(task.stage) && Boolean(session.runtime.working_scene)
+  const prompt = session.runtime.step === 'review' ? experiment.prompts.refine : experiment.prompts.observe
 
   return (
-    <Shell title={image.title} subtitle={`${phaseLabel} · ${trial_index + 1} of ${total}`} meta={session.participant_id}>
-      <TrialWorkspace
-        image={image}
-        trial={trial}
-        step={step}
-        initialValue={step === 'initial_intent' ? withTrial.runtime.draft_initial : trial.initial_intent}
-        finalValue={withTrial.runtime.draft_final}
-        scene={withTrial.runtime.working_scene}
-        selectedNodeId={withTrial.runtime.selected_node_id}
-        generateError={withTrial.runtime.generate_error}
-        prompt={
-          trial.condition === 'sketch'
-            ? experiment.prompts.sketch_refine
-            : trial.phase === 'T3'
-              ? experiment.prompts.transfer
-              : experiment.prompts.direct_refine
-        }
-        t1Prompt={experiment.prompts.t1}
-        onInitialChange={(value) =>
-          update({ ...withTrial, runtime: { ...withTrial.runtime, draft_initial: value } })
-        }
-        onFinalChange={(value) =>
-          update({ ...withTrial, runtime: { ...withTrial.runtime, draft_final: value } })
-        }
-        onSelectNode={(id) =>
-          update({ ...withTrial, runtime: { ...withTrial.runtime, selected_node_id: id } })
-        }
-        onConfirmRelation={(relation) => {
-          const nextTrial: Trial = {
-            ...trial,
-            semantic_confirms: [
-              ...trial.semantic_confirms,
-              { timestamp: nowIso(), node_id: withTrial.runtime.selected_node_id || '', relation },
-            ],
+    <SessionChrome
+      session={session}
+      title={`${task.stage} · ${session.runtime.task_index + 1}/${planLength}`}
+      extra={generating ? experiment.prompts.generating : session.participant_id}
+      onSessionChange={setSession}
+    >
+      {generating ? (
+        <main className="page">
+          <p className="lead">{experiment.prompts.generating}</p>
+        </main>
+      ) : (
+        <TaskWorkspace
+          image={image}
+          stage={task.stage}
+          round={session.runtime.round}
+          text={session.runtime.draft_text}
+          prompt={prompt}
+          scene={session.runtime.working_scene}
+          showSketch={showSketch}
+          lastGenerationId={lastGen?.generation_id || session.runtime.last_output_image_id}
+          generateError={session.runtime.generate_error}
+          onTextFocus={() => update((next) => { logEvent(next, 'text_focus') })}
+          onTextChange={onTextChange}
+          onSketchChange={onSketchChange}
+          onSelect={(id) =>
+            update((next) => {
+              next.runtime.selected_node_id = id
+              logEvent(next, 'sketch_select', { target_id: id })
+            })
           }
-          update(replaceTrial(withTrial, nextTrial))
-        }}
-        onSketchChange={(scene, action) => {
-          const first =
-            trial.timestamps.sketch_first_interaction ?? (action ? nowIso() : trial.timestamps.sketch_first_interaction)
-          const nextTrial: Trial = {
-            ...trial,
-            sketch_actions: action ? [...trial.sketch_actions, action] : trial.sketch_actions,
-            authored: action
-              ? { modification_count: trial.sketch_actions.length + 1, rejection: true }
-              : trial.authored,
-            timestamps: { ...trial.timestamps, sketch_first_interaction: first },
-          }
-          update({
-            ...replaceTrial(withTrial, nextTrial),
-            runtime: { ...withTrial.runtime, working_scene: scene },
-          })
-        }}
-      />
-      <FooterBar>
-        <Button
-          fill
-          disabled={
-            (step === 'initial_intent' && withTrial.runtime.draft_initial.trim().length === 0) ||
-            (step === 'refined_intent' && withTrial.runtime.draft_final.trim().length === 0) ||
-            step === 'generating'
-          }
-          onClick={() => {
-            if (step === 'show_image') {
-              const started: Trial = {
-                ...trial,
-                timestamps: {
-                  ...trial.timestamps,
-                  task_start: trial.timestamps.task_start ?? nowIso(),
-                  intent_start: nowIso(),
-                  ...(trial.phase === 'T1' ? { t1_start: nowIso() } : {}),
-                  ...(trial.phase === 'T3' ? { t3_start: nowIso() } : {}),
-                },
-              }
-              update({
-                ...replaceTrial(withTrial, started),
-                runtime: { ...withTrial.runtime, step: 'initial_intent', draft_initial: '' },
-              })
-              return
-            }
-            if (step === 'initial_intent') {
-              const text = withTrial.runtime.draft_initial.trim()
-              const nextTrial: Trial = {
-                ...trial,
-                initial_intent: text,
-                initial_intent_timestamp: nowIso(),
-                t1_intent: trial.phase === 'T1' ? text : trial.t1_intent,
-                timestamps: { ...trial.timestamps, intent_submit: nowIso(), t1_submit: nowIso() },
-              }
-              void runGeneration(nextTrial, replaceTrial(withTrial, nextTrial))
-              return
-            }
-            if (step === 'view_feedback') {
-              let nextTrial = trial
-              if (trial.condition === 'sketch' && withTrial.runtime.working_scene) {
-                nextTrial = {
-                  ...trial,
-                  final_sketch: makeSketchRecord(withTrial.runtime.working_scene),
-                  authored: {
-                    modification_count: trial.sketch_actions.length,
-                    rejection: trial.sketch_actions.length > 0,
-                  },
-                  timestamps: {
-                    ...trial.timestamps,
-                    sketch_confirm: nowIso(),
-                    refinement_start: nowIso(),
-                    t2_start: nowIso(),
-                  },
-                }
-              } else {
-                nextTrial = {
-                  ...trial,
-                  timestamps: {
-                    ...trial.timestamps,
-                    refinement_start: nowIso(),
-                    t2_start: nowIso(),
-                  },
-                }
-              }
-              update({
-                ...replaceTrial(withTrial, nextTrial),
-                runtime: { ...withTrial.runtime, step: 'refined_intent', draft_final: '' },
-              })
-              return
-            }
-            const text = withTrial.runtime.draft_final.trim()
-            const finished: Trial = {
-              ...trial,
-              refined_intent: text,
-              refined_intent_timestamp: nowIso(),
-              final_intent: text,
-              t2_intent: trial.phase === 'T3' ? trial.t2_intent : text,
-              t3_intent: trial.phase === 'T3' ? text : trial.t3_intent,
-              timestamps: {
-                ...trial.timestamps,
-                refinement_submit: nowIso(),
-                t2_submit: trial.phase === 'T3' ? trial.timestamps.t2_submit : nowIso(),
-                t3_submit: trial.phase === 'T3' ? nowIso() : trial.timestamps.t3_submit,
-                trial_end: nowIso(),
-              },
-            }
-            gotoNext(replaceTrial(withTrial, finished))
-          }}
-        >
-          {step === 'generating' ? 'Generating…' : 'Continue'}
-        </Button>
+        />
+      )}
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
+        <div className="stack-row">
+          {task.stage === 'T0' ? (
+            <Button fill disabled={!canSatisfy} onClick={finishTask}>
+              Submit
+            </Button>
+          ) : null}
+          {task.stage !== 'T0' && session.runtime.step === 'describe' && stageHasSketch(task.stage) ? (
+            <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={openSketch}>
+              Continue
+            </Button>
+          ) : null}
+          {task.stage !== 'T0' && session.runtime.step === 'describe' && !stageHasSketch(task.stage) ? (
+            <Button fill disabled={session.runtime.draft_text.trim().length === 0 || !canGenerate} onClick={() => void runGenerate()}>
+              Generate
+            </Button>
+          ) : null}
+          {(session.runtime.step === 'sketch_edit' || session.runtime.step === 'review') && canGenerate ? (
+            <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={() => void runGenerate()}>
+              Generate{session.runtime.round > 0 ? ` (${session.runtime.round}/${MAX_ROUNDS})` : ''}
+            </Button>
+          ) : null}
+          {task.stage !== 'T0' && canSatisfy ? (
+            <Button onClick={finishTask}>Satisfied / Next</Button>
+          ) : null}
+        </div>
       </FooterBar>
-    </Shell>
+    </SessionChrome>
   )
 }
 
-function TrialWorkspace({
+function TaskWorkspace({
   image,
-  trial,
-  step,
-  initialValue,
-  finalValue,
-  scene,
-  selectedNodeId,
-  generateError,
+  stage,
+  round,
+  text,
   prompt,
-  t1Prompt,
-  onInitialChange,
-  onFinalChange,
+  scene,
+  showSketch,
+  lastGenerationId,
+  generateError,
+  onTextFocus,
+  onTextChange,
   onSketchChange,
-  onSelectNode,
-  onConfirmRelation,
+  onSelect,
 }: {
   image: ImageDef
-  trial: Trial
-  step: Session['runtime']['step']
-  initialValue: string
-  finalValue: string
-  scene: SketchScene | null
-  selectedNodeId: string | null
-  generateError: string
+  stage: TaskRun['stage']
+  round: number
+  text: string
   prompt: string
-  t1Prompt: string
-  onInitialChange: (value: string) => void
-  onFinalChange: (value: string) => void
-  onSketchChange: (scene: SketchScene, action?: SketchAction) => void
-  onSelectNode: (id: string | null) => void
-  onConfirmRelation: (relation: string) => void
+  scene: SketchScene | null
+  showSketch: boolean
+  lastGenerationId: string
+  generateError: string
+  onTextFocus: () => void
+  onTextChange: (value: string) => void
+  onSketchChange: (scene: SketchScene, action?: SketchEdit) => void
+  onSelect: (id: string | null) => void
 }) {
-  const selectedLabel =
-    image.ground_truth.nodes.find((node) => node.id === selectedNodeId)?.label ??
-    (selectedNodeId === 'camera' ? '镜头' : null)
-
-  if (step === 'show_image') {
-    return (
-      <main className="page">
-        <p className="kicker">{trial.phase} · {image.title}</p>
-        <p className="lead">{image.brief}</p>
-        <img className="stimulus" src={stimulusUrl(image.file)} alt={image.title} />
-      </main>
-    )
-  }
-
-  if (step === 'generating') {
-    return (
-      <main className="page">
-        <p className="lead">{experiment.prompts.generating}</p>
-      </main>
-    )
-  }
-
-  const intentActive = step === 'initial_intent'
-  const refineActive = step === 'refined_intent'
-  const sketchActive = step === 'view_feedback' && trial.condition === 'sketch'
-  const showSketch = trial.condition === 'sketch' && Boolean(scene)
-
+  const columns = stage === 'T0' ? 'workspace-t0' : showSketch ? 'workspace-t2' : 'workspace-t1'
   return (
-    <main className={trial.condition === 'sketch' ? 'workspace workspace-sketch' : 'workspace'}>
+    <main className={`workspace ${columns}`}>
       <section>
-        <h2>Picture</h2>
-        <img className="stimulus-small" src={stimulusUrl(image.file)} alt={image.title} />
-        <h2>Your first description</h2>
-        {intentActive ? <p className="hint">{t1Prompt}</p> : null}
+        <h2>Original</h2>
+        <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
+      </section>
+      {showSketch && scene ? (
+        <section>
+          <h2>Sketch</h2>
+          <SceneEditor scene={scene} onChange={onSketchChange} onSelect={onSelect} />
+        </section>
+      ) : null}
+      {stage !== 'T0' ? (
+        <section>
+          <h2>AI generated</h2>
+          {lastGenerationId ? (
+            <GeneratedImage trialId={lastGenerationId} />
+          ) : (
+            <div className="empty-sketch">Generated image appears after Generate.</div>
+          )}
+          {generateError ? <p className="hint">{generateError}</p> : null}
+          {round > 0 ? <p className="hint">Round {round} / {MAX_ROUNDS}</p> : null}
+        </section>
+      ) : null}
+      <section className="desc-pane">
+        <h2>Description</h2>
+        <p className="hint">{prompt}</p>
         <textarea
-          value={initialValue}
-          onChange={(e) => onInitialChange(e.target.value)}
-          readOnly={!intentActive}
-          placeholder="Describe the shot you see."
+          value={text}
+          onFocus={onTextFocus}
+          onChange={(e) => onTextChange(e.target.value)}
+          placeholder=""
         />
-      </section>
-      <section>
-        <h2>Generated image</h2>
-        {step === 'view_feedback' || step === 'refined_intent' ? (
-          <>
-            <p className="hint">{experiment.prompts.view_image}</p>
-            <GeneratedImage trialId={trial.trial_id} />
-            {generateError ? <p className="hint">Note: {generateError}</p> : null}
-          </>
-        ) : (
-          <div className="empty-sketch">An AI image will appear after you submit your first description.</div>
-        )}
-        {showSketch ? (
-          <>
-            <h2>Sketch</h2>
-            {sketchActive && scene ? (
-              <SceneEditor scene={scene} onChange={onSketchChange} onSelect={onSelectNode} />
-            ) : scene ? (
-              <SceneView scene={scene} />
-            ) : null}
-            {sketchActive ? (
-              <SemanticPanel image={image} selectedLabel={selectedLabel} onConfirm={onConfirmRelation} />
-            ) : null}
-          </>
-        ) : trial.phase === 'T3' ? (
-          <p className="hint">No sketch in transfer tasks.</p>
-        ) : trial.condition !== 'sketch' ? (
-          <p className="hint">No sketch in this condition.</p>
-        ) : null}
-      </section>
-      <section>
-        <h2>Revised description</h2>
-        {refineActive || finalValue ? (
-          <>
-            <p className="hint">{prompt}</p>
-            <textarea
-              value={finalValue}
-              onChange={(e) => onFinalChange(e.target.value)}
-              readOnly={!refineActive}
-              placeholder="Revise your description after seeing the generated result."
-            />
-          </>
-        ) : (
-          <div className="empty-sketch">You will revise your description after the generated image.</div>
-        )}
       </section>
     </main>
   )
@@ -660,17 +690,21 @@ function GeneratedImage({ trialId }: { trialId: string }) {
     void getGeneratedImage(trialId).then(setSrc)
   }, [trialId])
   if (!src) return <div className="empty-sketch">Loading generated image…</div>
-  return <img className="generated" src={src} alt="Generated from your description" />
+  return <img className="generated" src={src} alt="" />
 }
 
 function Questionnaire({
   session,
   onChange,
+  onRestart,
   onSubmit,
+  onSessionChange,
 }: {
   session: Session
   onChange: (value: SubjectiveRatings) => void
+  onRestart: () => void
   onSubmit: () => void
+  onSessionChange: (session: Session) => void
 }) {
   const value = session.subjective ?? {
     perceived_control: null,
@@ -684,12 +718,17 @@ function Questionnaire({
     value.cognitive_effort &&
     value.confidence
   return (
-    <Shell title="Short questionnaire" meta={session.participant_id}>
+    <SessionChrome
+      session={session}
+      title="Short questionnaire"
+      extra={session.participant_id}
+      onSessionChange={onSessionChange}
+    >
       <main className="page">
         <p className="lead">These questions are secondary. Answer based on the session as a whole.</p>
         <Likert
           label="Perceived control"
-          hint="How much control did you feel over expressing your intended shot?"
+          hint="How much control did you feel over expressing your intended picture?"
           value={value.perceived_control}
           onChange={(n) => onChange({ ...value, perceived_control: n })}
         />
@@ -707,16 +746,17 @@ function Questionnaire({
         />
         <Likert
           label="Confidence"
-          hint="How confident are you that someone else could stage your intended shots?"
+          hint="How confident are you that someone else could stage your intended pictures?"
           value={value.confidence}
           onChange={(n) => onChange({ ...value, confidence: n })}
         />
       </main>
-      <FooterBar>
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <Button onClick={onRestart}>Start over</Button>
         <Button fill disabled={!ready} onClick={onSubmit}>
           Submit
         </Button>
       </FooterBar>
-    </Shell>
+    </SessionChrome>
   )
 }

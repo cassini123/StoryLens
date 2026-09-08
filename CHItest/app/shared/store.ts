@@ -1,77 +1,24 @@
-import type { ExpertRating, IntentCoding, Session, StoreShape, Trial } from './types'
+import { clearGeneratedImages, deleteGeneratedImages } from './imageStore'
+import type { ExpertRating, IntentCoding, Session, StoreShape, TaskRun } from './types'
 
-const KEY = 'chitest.store.v3'
-const LEGACY_KEYS = ['chitest.store.v2', 'chitest.store.v1']
+const KEY = 'chitest.store.v4'
+const LEGACY_KEYS = ['chitest.store.v3', 'chitest.store.v2', 'chitest.store.v1']
 const ACTIVE_KEY = 'chitest.activeParticipantId'
 
 function emptyStore(): StoreShape {
   return { sessions: [], ratings: [], codings: [] }
 }
 
-function migrateTrial(raw: Trial): Trial {
-  return {
-    ...raw,
-    image_id: raw.image_id || raw.task_id,
-    phase: raw.phase || (raw.condition === 'transfer' ? 'T3' : 'T2'),
-    condition: raw.condition === 'direct' || raw.condition === 'sketch' || raw.condition === 'transfer' || raw.condition === 'baseline'
-      ? raw.condition
-      : 'baseline',
-    t1_intent: raw.t1_intent || raw.initial_intent || '',
-    t2_intent: raw.t2_intent || raw.final_intent || raw.refined_intent || '',
-    t3_intent: raw.condition === 'transfer' ? raw.t3_intent || raw.final_intent || raw.initial_intent || '' : raw.t3_intent || '',
-    refined_intent: raw.refined_intent || raw.final_intent || raw.t2_intent || '',
-    refined_intent_timestamp: raw.refined_intent_timestamp || '',
-    generated_image: raw.generated_image ?? null,
-    semantic_confirms: raw.semantic_confirms ?? [],
-    authored: raw.authored ?? {
-      modification_count: raw.sketch_actions?.length ?? 0,
-      rejection: (raw.sketch_actions?.length ?? 0) > 0,
-    },
-  }
-}
-
-function migrateSession(raw: Session): Session {
-  return {
-    ...raw,
-    group_id: raw.group_id === 'sketch_first' ? 'sketch_first' : 'direct_first',
-    condition_order: raw.condition_order ?? raw.group_id,
-    demographics: {
-      cinematography_experience: raw.demographics.cinematography_experience || raw.demographics.ai_experience || '',
-      cinematography_years: raw.demographics.cinematography_years || raw.demographics.film_years || '',
-      visual_experience: raw.demographics.visual_experience || '',
-      ai_familiarity: raw.demographics.ai_familiarity || raw.demographics.ai_experience || '',
-      design_background: raw.demographics.design_background ?? null,
-      film_background: raw.demographics.film_background ?? null,
-      film_years: raw.demographics.film_years || '',
-      ai_experience: raw.demographics.ai_experience || '',
-      image_gen_experience: raw.demographics.image_gen_experience || '',
-    },
-    trials: raw.trials.map(migrateTrial),
-    runtime: {
-      step: raw.runtime?.step || 'intro',
-      trial_index: raw.runtime?.trial_index ?? 0,
-      draft_initial: raw.runtime?.draft_initial || '',
-      draft_final: raw.runtime?.draft_final || '',
-      working_scene: raw.runtime?.working_scene ?? null,
-      generate_error: raw.runtime?.generate_error || '',
-      selected_node_id: raw.runtime?.selected_node_id ?? null,
-    },
-  }
-}
-
 export function loadStore(): StoreShape {
   try {
-    let raw: string | null = localStorage.getItem(KEY)
+    const raw = localStorage.getItem(KEY)
     if (!raw) {
-      for (const key of LEGACY_KEYS) {
-        raw = localStorage.getItem(key)
-        if (raw) break
-      }
+      for (const key of LEGACY_KEYS) localStorage.removeItem(key)
+      return emptyStore()
     }
-    if (!raw) return emptyStore()
     const parsed = JSON.parse(raw) as StoreShape
     return {
-      sessions: (parsed.sessions ?? []).map(migrateSession),
+      sessions: parsed.sessions ?? [],
       ratings: parsed.ratings ?? [],
       codings: parsed.codings ?? [],
     }
@@ -86,15 +33,12 @@ export function saveStore(store: StoreShape): void {
 
 export function upsertSession(session: Session): StoreShape {
   const store = loadStore()
-  const index = store.sessions.findIndex((item) => item.participant_id === session.participant_id)
+  const index = store.sessions.findIndex((item) => item.session_id === session.session_id)
   if (index >= 0) store.sessions[index] = session
   else store.sessions.push(session)
   saveStore(store)
-  if (!session.completed_at) {
-    localStorage.setItem(ACTIVE_KEY, session.participant_id)
-  } else {
-    localStorage.removeItem(ACTIVE_KEY)
-  }
+  if (!session.completed_at) localStorage.setItem(ACTIVE_KEY, session.session_id)
+  else localStorage.removeItem(ACTIVE_KEY)
   return store
 }
 
@@ -105,7 +49,7 @@ export function getSession(participantId: string): Session | undefined {
 export function getActiveSession(): Session | undefined {
   const id = localStorage.getItem(ACTIVE_KEY)
   if (!id) return undefined
-  const session = getSession(id)
+  const session = loadStore().sessions.find((item) => item.session_id === id)
   if (session && !session.completed_at) return session
   return undefined
 }
@@ -139,15 +83,28 @@ export function ratingsForExpert(expertId: string): ExpertRating[] {
   return loadStore().ratings.filter((item) => item.expert_id === expertId)
 }
 
-export function allCompletedTrials() {
-  return loadStore().sessions.flatMap((session) =>
-    session.trials.filter((trial) => Boolean(trial.timestamps.trial_end)),
-  )
+export function allCompletedTrials(): TaskRun[] {
+  return loadStore().sessions.flatMap((session) => session.tasks.filter((task) => Boolean(task.ended_at)))
+}
+
+export function abandonSession(participantId: string): StoreShape {
+  const store = loadStore()
+  const session = store.sessions.find((item) => item.participant_id === participantId)
+  store.sessions = store.sessions.filter((item) => item.participant_id !== participantId)
+  saveStore(store)
+  if (session && localStorage.getItem(ACTIVE_KEY) === session.session_id) {
+    localStorage.removeItem(ACTIVE_KEY)
+  }
+  if (session) {
+    void deleteGeneratedImages(session.generations.map((item) => item.output_image_id).filter(Boolean))
+  }
+  return store
 }
 
 export function clearAllData(): StoreShape {
   const store = emptyStore()
   saveStore(store)
   localStorage.removeItem(ACTIVE_KEY)
+  void clearGeneratedImages()
   return store
 }

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" width="960" height="540">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#cfd6dc"/>
+      <stop offset="1" stop-color="#8a939c"/>
+    </linearGradient>
+    <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d8cfc4"/>
+      <stop offset="1" stop-color="#9a8f82"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <rect x="0" y="310" width="960" height="230" fill="#5b6168"/>
+  <rect x="520" y="80" width="220" height="160" fill="#dfe6ec" stroke="#2b2b2b" stroke-width="8"/>
+  <rect x="40" y="140" width="70" height="200" fill="#3e444b"/>
+  
+  <g transform="translate(210 390) scale(1,1)">
+    <circle cx="0" cy="-65.0" r="17.5" fill="#222"/>
+    <rect x="-20.0" y="-47.5" width="40.0" height="55.0" rx="8" fill="#222"/>
+    <rect x="-17.5" y="7.5" width="12.5" height="45.0" fill="#222"/>
+    <rect x="5.0" y="7.5" width="12.5" height="45.0" fill="#222"/>
+  </g>
+  
+  <g transform="translate(640 250) scale(-1,1)">
+    <circle cx="0" cy="-46.800000000000004" r="12.6" fill="#333"/>
+    <rect x="-14.4" y="-34.2" width="28.8" height="39.6" rx="8" fill="#333"/>
+    <rect x="-12.6" y="5.4" width="9.0" height="32.4" fill="#333"/>
+    <rect x="3.6" y="5.4" width="9.0" height="32.4" fill="#333"/>
+  </g>
+  <circle cx="80" cy="430" r="10" fill="#111"/>
+
+</svg>

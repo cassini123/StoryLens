@@ -1,12 +1,15 @@
 # Sketch-Based Cognitive Scaffolding for Generative AI
 
-CHI 2027 prototype in `/CHItest`. Independent of StoryLens product features (no LoRA, knowledge-graph product UI, or final-image contest pipeline).
+CHI 2027 prototype in `/CHItest`. Independent of StoryLens product features.
 
 ```text
-Show image → Initial intent → Jimeng image
-                (+ editable sketch + on-demand semantic panel in T2-Sketch)
-         → Refined intent
+T0 × 1  natural description, no AI, no sketch
+T1 × 2  original image + text → AI feedback, ≤3 rounds
+T2 × 2  original image + edited sketch + text, sketch always visible
+T3 × 2  new image + sketch + text (transfer, sketch kept)
 ```
+
+Seven tasks per participant, sampled from a 20-image pool (`data/tasks/stimuli.json`) with stratified rotation across environment / character_space / camera / composition.
 
 ## Run
 
@@ -16,44 +19,28 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173`. Production:
+Production:
 
-- https://2027mitgo.top/chitest/
+- https://www.2027mitgo.top/chitest/
 - https://storyboard-skill.vercel.app/chitest/
 
 | Route | Use |
 | --- | --- |
 | `#/` | Home |
-| `#/participant` | 6-image session: T1×2, T2 Direct, T2 Sketch, T3×2 |
-| `#/participant?short=1` | Dry-run |
-| `#/expert` | Blind rating of initial vs refined intent |
+| `#/participant` | 7-task session |
+| `#/participant?short=1` | Dry-run (one task per stage) |
+| `#/expert` | Blind 1–7 ratings |
 | `#/coding` | Researcher G1 0–18 |
-| `#/export` | Full JSON/CSV plus per-participant download packet |
+| `#/export` | participants / tasks / event_log / intents / generations / snapshots |
 
-## Session
+## Logging
 
-Each participant sees **6 unique images** from a 20-image pool (`IMG01–IMG20`), difficulty-matched across T1/T2/T3 and counterbalanced Direct/Sketch order.
-
-T1 / T2 Direct / T3: image → describe → Jimeng generation → revise.  
-T2 Sketch: same, plus low-fi sketch editing and a collapsible relation panel (no Object/Spatial/Camera labels).
-
-Generated images are **feedback**, not the primary score. Primary comparison is refined intent: Sketch > Direct, and T3 vs T1 transfer.
-
-## Data
-
-Browser `localStorage` + IndexedDB (generated images). Participants download `Pxxx-session.json` at the end for the experimenter. Researcher export also includes `participant.csv`, `intent.csv`, `sketch_interactions.csv`, `expert_ratings.csv`.
+Unified `event_log` with ISO-8601 timestamps and `relative_time_ms` from session start. Text versions are append-only. Each generation stores the sketch snapshot actually sent to the API.
 
 ## Jimeng
 
-Server route `POST /api/jimeng` (Vercel + local Vite middleware). Keys:
-
-```text
-JIMENG_ACCESS_KEY
-JIMENG_SECRET_KEY
-```
-
-in repo-root `.env` or Vercel project env. Never commit secrets.
+`POST /api/jimeng/` with `JIMENG_ACCESS_KEY` and `JIMENG_SECRET_KEY` on Vercel Production. Never commit secrets.
 
 ## Stimuli
 
-`CHItest/public/stimuli/` and metadata in `CHItest/data/images/images.json`. Drop in the 20 photographs from `画面与描述.docx` using the same `IMG##` ids if you have the original files.
+Placeholder SVGs live under `public/data/tasks/images/`. Replace with the original photographs using the same IDs (`E01`…, `C01`…, `A01`…, `D01`…) when available. Do not hard-code image metadata in React components.

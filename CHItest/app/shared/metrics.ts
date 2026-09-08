@@ -58,6 +58,21 @@ export function transferGain(pT3: number | null, pT1: number | null): number | n
   return pT3 - pT1
 }
 
+export function aiFeedbackGain(p1: number | null, p0: number | null): number | null {
+  if (p1 == null || p0 == null) return null
+  return p1 - p0
+}
+
+export function sketchGain(p2: number | null, p1: number | null): number | null {
+  if (p2 == null || p1 == null) return null
+  return p2 - p1
+}
+
+export function withinTaskDelta(pFinal: number | null, pInitial: number | null): number | null {
+  if (pFinal == null || pInitial == null) return null
+  return pFinal - pInitial
+}
+
 export function mean(values: Array<number | null>): number | null {
   const nums = values.filter((value): value is number => value != null)
   if (nums.length === 0) return null

@@ -1,0 +1,1166 @@
+{
+  "images": [
+    {
+      "image_id": "E01",
+      "group": "environment",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "object"
+      ],
+      "image_path": "data/tasks/images/environment/E01.svg",
+      "title": "空剧院",
+      "source_id": "IMG08",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "过道里的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_stage",
+            "label": "空舞台",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "过道里的人",
+            "relation": "看向",
+            "to": "空舞台"
+          },
+          {
+            "from": "空舞台",
+            "relation": "位于远处",
+            "to": "过道里的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "从观众席后方看向",
+            "to": "空舞台"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "E02",
+      "group": "environment",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "camera"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "camera"
+      ],
+      "image_path": "data/tasks/images/environment/E02.svg",
+      "title": "轮渡甲板",
+      "source_id": "IMG17",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "靠栏杆的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "甲板另一侧的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_rail",
+            "label": "栏杆",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "靠栏杆的人",
+            "relation": "面向远处",
+            "to": "栏杆"
+          },
+          {
+            "from": "甲板另一侧的人",
+            "relation": "位于画面右侧远处",
+            "to": "靠栏杆的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "从甲板一侧看向",
+            "to": "栏杆"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "E03",
+      "group": "environment",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "object"
+      ],
+      "image_path": "data/tasks/images/environment/E03.svg",
+      "title": "书店门口",
+      "source_id": "IMG11",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "店内的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "门口的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_shelf",
+            "label": "书架",
+            "kind": "object"
+          },
+          {
+            "id": "object_door",
+            "label": "门口",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "店内的人",
+            "relation": "站在书架旁边",
+            "to": "书架"
+          },
+          {
+            "from": "门口的人",
+            "relation": "站在入口外",
+            "to": "门口"
+          },
+          {
+            "from": "店内的人",
+            "relation": "位于画面左侧",
+            "to": "门口的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "E04",
+      "group": "environment",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "relation"
+      ],
+      "image_path": "data/tasks/images/environment/E04.svg",
+      "title": "公园长椅",
+      "source_id": "IMG02",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "左侧的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "右侧的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_bench",
+            "label": "长椅",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "左侧的人",
+            "relation": "在左侧",
+            "to": "长椅"
+          },
+          {
+            "from": "右侧的人",
+            "relation": "在右侧",
+            "to": "长椅"
+          },
+          {
+            "from": "镜头",
+            "relation": "正对",
+            "to": "长椅"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "E05",
+      "group": "environment",
+      "difficulty": "hard",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "camera"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "camera"
+      ],
+      "image_path": "data/tasks/images/environment/E05.svg",
+      "title": "前后景",
+      "source_id": "IMG15",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "近处的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "远处左侧的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_03",
+            "label": "远处右侧的人",
+            "kind": "person"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "近处的人",
+            "relation": "占据画面前方",
+            "to": "镜头"
+          },
+          {
+            "from": "远处左侧的人",
+            "relation": "位于后方",
+            "to": "近处的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "让近处更靠近、远处更远",
+            "to": "三个人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "C01",
+      "group": "character_space",
+      "difficulty": "medium",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial",
+        "camera"
+      ],
+      "target_dimensions": [
+        "relation",
+        "spatial",
+        "camera"
+      ],
+      "image_path": "data/tasks/images/character_space/C01.svg",
+      "title": "火车站窗边",
+      "source_id": "IMG01",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "走进来的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "窗边的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_window",
+            "label": "窗户",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "走进来的人",
+            "relation": "看向",
+            "to": "窗边的人"
+          },
+          {
+            "from": "窗边的人",
+            "relation": "靠近",
+            "to": "窗户"
+          },
+          {
+            "from": "走进来的人",
+            "relation": "位于前方偏左",
+            "to": "窗边的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "从斜后方看向",
+            "to": "走进来的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "C02",
+      "group": "character_space",
+      "difficulty": "medium",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "emotion"
+      ],
+      "target_dimensions": [
+        "relation",
+        "emotion"
+      ],
+      "image_path": "data/tasks/images/character_space/C02.svg",
+      "title": "咖啡馆对坐",
+      "source_id": "IMG04",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "看向对方的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "看手机的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_table",
+            "label": "桌子",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "看向对方的人",
+            "relation": "看向",
+            "to": "看手机的人"
+          },
+          {
+            "from": "看手机的人",
+            "relation": "低头看向",
+            "to": "桌子"
+          },
+          {
+            "from": "镜头",
+            "relation": "从侧面看向",
+            "to": "桌子"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "C03",
+      "group": "character_space",
+      "difficulty": "hard",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "target_dimensions": [
+        "relation",
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/character_space/C03.svg",
+      "title": "庭院对望",
+      "source_id": "IMG10",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "近处观看的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "院子对面的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_courtyard",
+            "label": "院子",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "近处观看的人",
+            "relation": "隔着院子看向",
+            "to": "院子对面的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "从近处观看的人斜后方",
+            "to": "院子对面的人"
+          },
+          {
+            "from": "院子对面的人",
+            "relation": "位于远处偏右",
+            "to": "近处观看的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "C04",
+      "group": "character_space",
+      "difficulty": "medium",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "target_dimensions": [
+        "relation",
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/character_space/C04.svg",
+      "title": "街角三人",
+      "source_id": "IMG09",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "近处的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "中间的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_03",
+            "label": "远处的人",
+            "kind": "person"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "镜头",
+            "relation": "从近处的人肩后看向",
+            "to": "中间的人"
+          },
+          {
+            "from": "中间的人",
+            "relation": "面向",
+            "to": "近处的人"
+          },
+          {
+            "from": "远处的人",
+            "relation": "站在两人后方",
+            "to": "中间的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "A01",
+      "group": "camera",
+      "difficulty": "hard",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "target_dimensions": [
+        "camera",
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/camera/A01.svg",
+      "title": "楼梯仰拍",
+      "source_id": "IMG03",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "楼梯上的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_stairs",
+            "label": "楼梯",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "镜头",
+            "relation": "从低处向上看",
+            "to": "楼梯上的人"
+          },
+          {
+            "from": "楼梯上的人",
+            "relation": "站在高处",
+            "to": "楼梯"
+          },
+          {
+            "from": "楼梯上的人",
+            "relation": "背对",
+            "to": "镜头"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "A02",
+      "group": "camera",
+      "difficulty": "easy",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "target_dimensions": [
+        "camera",
+        "object"
+      ],
+      "image_path": "data/tasks/images/camera/A02.svg",
+      "title": "博物馆展墙",
+      "source_id": "IMG12",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "看展的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_wall",
+            "label": "展墙",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "镜头",
+            "relation": "平视看向",
+            "to": "看展的人"
+          },
+          {
+            "from": "看展的人",
+            "relation": "面向",
+            "to": "展墙"
+          },
+          {
+            "from": "看展的人",
+            "relation": "位于画面中央",
+            "to": "展墙"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "A03",
+      "group": "camera",
+      "difficulty": "medium",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "target_dimensions": [
+        "camera",
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/camera/A03.svg",
+      "title": "俯视走廊",
+      "source_id": "IMG19",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "走廊中的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_hall",
+            "label": "走廊",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "镜头",
+            "relation": "从高处向下看",
+            "to": "走廊中的人"
+          },
+          {
+            "from": "走廊中的人",
+            "relation": "位于走廊中央",
+            "to": "走廊"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "A04",
+      "group": "camera",
+      "difficulty": "hard",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "emotion"
+      ],
+      "target_dimensions": [
+        "camera",
+        "emotion"
+      ],
+      "image_path": "data/tasks/images/camera/A04.svg",
+      "title": "地铁来车",
+      "source_id": "IMG13",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "看列车的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "看向对方的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_train",
+            "label": "列车",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "看列车的人",
+            "relation": "看向",
+            "to": "列车"
+          },
+          {
+            "from": "看向对方的人",
+            "relation": "看向",
+            "to": "看列车的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "从月台一侧看向",
+            "to": "列车"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "A05",
+      "group": "camera",
+      "difficulty": "easy",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "target_dimensions": [
+        "camera",
+        "relation"
+      ],
+      "image_path": "data/tasks/images/camera/A05.svg",
+      "title": "长椅分神",
+      "source_id": "IMG20",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "看向一侧的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "看向别处的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_bench",
+            "label": "长椅",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "看向一侧的人",
+            "relation": "坐在长椅左侧",
+            "to": "长椅"
+          },
+          {
+            "from": "看向别处的人",
+            "relation": "看向画面外",
+            "to": "看向一侧的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "正面看向",
+            "to": "长椅"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "D01",
+      "group": "composition",
+      "difficulty": "hard",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "object"
+      ],
+      "image_path": "data/tasks/images/composition/D01.svg",
+      "title": "柱后半隐",
+      "source_id": "IMG07",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "被挡住的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "完全可见的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_pillar",
+            "label": "柱子",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "柱子",
+            "relation": "挡住了部分",
+            "to": "被挡住的人"
+          },
+          {
+            "from": "完全可见的人",
+            "relation": "站在柱子右侧",
+            "to": "柱子"
+          },
+          {
+            "from": "镜头",
+            "relation": "从柱子一侧看过去",
+            "to": "被挡住的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "D02",
+      "group": "composition",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "object"
+      ],
+      "image_path": "data/tasks/images/composition/D02.svg",
+      "title": "门后身影",
+      "source_id": "IMG16",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "门后的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_door",
+            "label": "半开的门",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "半开的门",
+            "relation": "挡住了部分",
+            "to": "门后的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "透过门缝看向",
+            "to": "门后的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "D03",
+      "group": "composition",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "relation"
+      ],
+      "image_path": "data/tasks/images/composition/D03.svg",
+      "title": "走廊走向",
+      "source_id": "IMG05",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "走过来的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "等待的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_door",
+            "label": "尽头的门",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "走过来的人",
+            "relation": "走向",
+            "to": "等待的人"
+          },
+          {
+            "from": "等待的人",
+            "relation": "靠近",
+            "to": "尽头的门"
+          },
+          {
+            "from": "镜头",
+            "relation": "沿着走廊看向",
+            "to": "尽头的门"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "D04",
+      "group": "composition",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "relation"
+      ],
+      "image_path": "data/tasks/images/composition/D04.svg",
+      "title": "画廊穿过",
+      "source_id": "IMG14",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "走过去的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "入口等待的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_art",
+            "label": "画作",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "走过去的人",
+            "relation": "穿过展厅走向",
+            "to": "入口等待的人"
+          },
+          {
+            "from": "镜头",
+            "relation": "跟随走过去的人",
+            "to": "入口等待的人"
+          },
+          {
+            "from": "画作",
+            "relation": "挂在两侧",
+            "to": "走过去的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "D05",
+      "group": "composition",
+      "difficulty": "hard",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "target_dimensions": [
+        "relation",
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/composition/D05.svg",
+      "title": "餐桌三人",
+      "source_id": "IMG18",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "背对镜头的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "左侧对坐的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_03",
+            "label": "右侧对坐的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_table",
+            "label": "餐桌",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "镜头",
+            "relation": "从背对镜头的人后方看向",
+            "to": "餐桌"
+          },
+          {
+            "from": "左侧对坐的人",
+            "relation": "看向",
+            "to": "背对镜头的人"
+          },
+          {
+            "from": "右侧对坐的人",
+            "relation": "看向",
+            "to": "左侧对坐的人"
+          }
+        ]
+      }
+    },
+    {
+      "image_id": "D06",
+      "group": "composition",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "camera"
+      ],
+      "target_dimensions": [
+        "spatial",
+        "camera"
+      ],
+      "image_path": "data/tasks/images/composition/D06.svg",
+      "title": "玻璃内外",
+      "source_id": "IMG06",
+      "ground_truth": {
+        "nodes": [
+          {
+            "id": "person_01",
+            "label": "店内的人",
+            "kind": "person"
+          },
+          {
+            "id": "person_02",
+            "label": "门外的人",
+            "kind": "person"
+          },
+          {
+            "id": "object_glass",
+            "label": "玻璃",
+            "kind": "object"
+          },
+          {
+            "id": "camera",
+            "label": "镜头",
+            "kind": "camera"
+          }
+        ],
+        "relations": [
+          {
+            "from": "店内的人",
+            "relation": "在近处",
+            "to": "镜头"
+          },
+          {
+            "from": "门外的人",
+            "relation": "在玻璃另一侧",
+            "to": "店内的人"
+          },
+          {
+            "from": "玻璃",
+            "relation": "隔开",
+            "to": "两个人"
+          }
+        ]
+      }
+    }
+  ]
+}

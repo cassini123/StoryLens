@@ -1,4 +1,4 @@
-const { credentials, submitTask, pollTask, REQ_KEY } = require('./_lib/volc-jimeng.cjs')
+const { credentialStatus, submitTask, pollTask, REQ_KEY } = require('./_lib/volc-jimeng.cjs')
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -12,9 +12,8 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const { accessKey } = credentials()
     res.setHeader('Content-Type', 'application/json')
-    res.end(JSON.stringify({ status: 'ok', engine: REQ_KEY, credentials: Boolean(accessKey) }))
+    res.end(JSON.stringify({ status: 'ok', engine: REQ_KEY, ...credentialStatus() }))
     return
   }
 
@@ -54,13 +53,13 @@ module.exports = async function handler(req, res) {
       res.end(JSON.stringify({ error: 'Missing prompt' }))
       return
     }
-    const result = await submitTask(prompt, body.width || 1664, body.height || 936)
+    const result = await submitTask(prompt, body.width || 1664, body.height || 936, body.images || [])
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({ status: 'submitted', ...result }))
   } catch (error) {
     res.statusCode = error.statusCode || 500
     res.setHeader('Content-Type', 'application/json')
-    res.end(JSON.stringify({ error: error.message || String(error) }))
+    res.end(JSON.stringify({ error: error.message || String(error), ...credentialStatus() }))
   }
 }
 

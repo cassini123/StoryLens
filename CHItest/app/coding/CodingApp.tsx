@@ -1,18 +1,10 @@
 import { useMemo, useState } from 'react'
-import { getTask } from '../shared/config'
-import {
-  discoveryRate,
-  emptyPrecision,
-  learningGain,
-  mean,
-  newlyDiscoveredDims,
-  precisionComplete,
-  precisionTotal,
-  transferGain,
-} from '../shared/metrics'
-import { allCompletedTrials, loadStore, upsertCoding } from '../shared/store'
+import { getImage, stimulusUrl } from '../shared/config'
+import { textAt } from '../shared/export'
+import { emptyPrecision, precisionComplete, precisionTotal } from '../shared/metrics'
+import { allCompletedTrials, getSession, loadStore, upsertCoding } from '../shared/store'
 import { nowIso } from '../shared/time'
-import type { IntentCoding, PrecisionDim, PrecisionScores, Timepoint, Trial } from '../shared/types'
+import type { IntentCoding, PrecisionDim, PrecisionScores, TaskRun, Timepoint } from '../shared/types'
 import { PRECISION_DIMS } from '../shared/types'
 import { Button, FooterBar, Likert, Shell } from '../shared/ui'
 
@@ -26,20 +18,20 @@ const DIM_HINT: Record<PrecisionDim, string> = {
 }
 
 interface Unit {
-  trial: Trial
+  trial: TaskRun
   timepoint: Timepoint
   text: string
 }
 
-function unitsFromTrials(trials: Trial[]): Unit[] {
+function unitsFromTrials(trials: TaskRun[]): Unit[] {
   const units: Unit[] = []
   for (const trial of trials) {
-    units.push({ trial, timepoint: 'T1', text: trial.initial_intent || trial.t1_intent })
-    units.push({
-      trial,
-      timepoint: 'T2',
-      text: trial.refined_intent || trial.t2_intent || trial.t3_intent || trial.final_intent,
-    })
+    const session = getSession(trial.participant_id)
+    if (!session) continue
+    const initial = textAt(session, trial, 'initial')
+    const final = textAt(session, trial, 'final')
+    if (trial.stage !== 'T0' && initial) units.push({ trial, timepoint: 'initial', text: initial })
+    if (final) units.push({ trial, timepoint: 'final', text: final })
   }
   return units
 }
@@ -54,10 +46,10 @@ export function CodingApp() {
 
   if (!started) {
     return (
-      <Shell title="Researcher coding" subtitle="G1 Intent Precision · G2 Naturalness · G3 Discovery">
+      <Shell title="Researcher coding" subtitle="Intent Precision 0–18">
         <main className="page">
           <p className="lead">
-            Code each intent on six dimensions (0–18). Do not score length, jargon, or writing quality.
+            Code each description on six dimensions (0–18). Do not score length, jargon, or writing quality.
             Condition is hidden.
           </p>
           <label className="field">
@@ -78,7 +70,7 @@ export function CodingApp() {
     (unit) =>
       !store.codings.some(
         (item) =>
-          item.trial_id === unit.trial.trial_id &&
+          item.trial_id === unit.trial.task_id &&
           item.timepoint === unit.timepoint &&
           item.coder_id === coderId,
       ),
@@ -90,7 +82,7 @@ export function CodingApp() {
     return (
       <Shell title="Researcher coding" subtitle={coderId} meta={`${done} coded`}>
         <main className="page">
-          <p className="lead">All available intents are coded for {coderId}.</p>
+          <p className="lead">All available descriptions are coded for {coderId}.</p>
         </main>
         <FooterBar>
           <Button onClick={() => (window.location.hash = '#/export')}>Export</Button>
@@ -101,7 +93,7 @@ export function CodingApp() {
 
   return (
     <CodingForm
-      key={`${current.trial.trial_id}-${current.timepoint}`}
+      key={`${current.trial.task_id}-${current.timepoint}`}
       coderId={coderId}
       unit={current}
       done={done}
@@ -124,46 +116,24 @@ function CodingForm({
   remaining: number
   onSubmit: () => void
 }) {
-  const task = getTask(unit.trial.task_id)
+  const image = getImage(unit.trial.image_id)
   const [precision, setPrecision] = useState<PrecisionScores>(emptyPrecision)
   const [naturalness, setNaturalness] = useState<number | null>(null)
   const [copying, setCopying] = useState<number | null>(null)
   const ready = precisionComplete(precision)
   const total = precisionTotal(precision)
-  const store = loadStore()
-  const t1 = store.codings.find(
-    (item) => item.trial_id === unit.trial.trial_id && item.timepoint === 'T1' && item.coder_id === coderId,
-  )
-  const discovery =
-    unit.timepoint === 'T2' && t1 && ready
-      ? discoveryRate(t1.precision, precision, task.required_dimensions)
-      : null
-  const discovered =
-    unit.timepoint === 'T2' && t1 && ready
-      ? newlyDiscoveredDims(t1.precision, precision, task.required_dimensions)
-      : []
 
   return (
-    <Shell
-      title="Researcher coding"
-      subtitle={`${unit.timepoint} · ${task.title}`}
-      meta={`${done} done · ${remaining} left`}
-    >
+    <Shell title="Researcher coding" subtitle={unit.timepoint} meta={`${done} done · ${remaining} left`}>
       <main className="eval">
         <section className="materials">
-          <h2>Task</h2>
-          <p className="lead">{task.brief}</p>
-          <h2>{unit.timepoint} intent</h2>
+          <h2>Picture</h2>
+          <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
+          <h2>Description</h2>
           <pre className="intent-block">{unit.text || '—'}</pre>
-          {unit.timepoint === 'T2' && t1 ? (
-            <p className="hint">
-              Discovery rate: {discovery == null ? 'n/a (nothing missing at T1)' : discovery.toFixed(2)}
-              {discovered.length ? ` · new: ${discovered.join(', ')}` : ''}
-            </p>
-          ) : null}
         </section>
         <section className="scores">
-          <h2>G1 Intent Precision (0–3 each, total {total ?? '—'} / 18)</h2>
+          <h2>Intent Precision (0–3 each, total {total ?? '—'} / 18)</h2>
           <p className="hint">0 absent · 1 vague · 2 partial · 3 clear and executable</p>
           {PRECISION_DIMS.map((dim) => (
             <DimScale
@@ -174,16 +144,16 @@ function CodingForm({
               onChange={(n) => setPrecision({ ...precision, [dim]: n })}
             />
           ))}
-          {unit.timepoint === 'T2' ? (
+          {unit.timepoint === 'final' ? (
             <>
               <Likert
-                label="G2 Naturalness"
+                label="Naturalness"
                 hint="Does this remain the participant's own language rather than a formulaic prompt?"
                 value={naturalness}
                 onChange={setNaturalness}
               />
               <Likert
-                label="G4 Copying"
+                label="Copying"
                 hint="How much does the text copy system/AI wording? 1 = authored, 7 = copied."
                 value={copying}
                 onChange={setCopying}
@@ -197,39 +167,17 @@ function CodingForm({
           fill
           disabled={!ready}
           onClick={() => {
-            const p = precisionTotal(precision)
-            const t1coding = store.codings.find(
-              (item) =>
-                item.trial_id === unit.trial.trial_id &&
-                item.timepoint === 'T1' &&
-                item.coder_id === coderId,
-            )
-            const t1s = loadStore()
-              .codings.filter(
-                (item) =>
-                  item.participant_id === unit.trial.participant_id &&
-                  item.timepoint === 'T1' &&
-                  item.coder_id === coderId,
-              )
-              .map((item) => item.precision_total)
             const coding: IntentCoding = {
               participant_id: unit.trial.participant_id,
-              trial_id: unit.trial.trial_id,
+              trial_id: unit.trial.task_id,
               task_id: unit.trial.task_id,
-              condition: unit.trial.condition,
+              stage: unit.trial.stage,
               timepoint: unit.timepoint,
               coder_id: coderId,
               precision,
-              precision_total: p,
-              naturalness: unit.timepoint === 'T2' ? naturalness : null,
-              copying: unit.timepoint === 'T2' ? copying : null,
-              discovery_rate:
-                unit.timepoint === 'T2' && t1coding
-                  ? discoveryRate(t1coding.precision, precision, task.required_dimensions)
-                  : null,
-              learning_gain:
-                unit.timepoint === 'T2' && t1coding ? learningGain(t1coding.precision_total, p) : null,
-              transfer_gain: unit.timepoint === 'T3' ? transferGain(p, mean(t1s)) : null,
+              precision_total: precisionTotal(precision),
+              naturalness: unit.timepoint === 'final' ? naturalness : null,
+              copying: unit.timepoint === 'final' ? copying : null,
               coded_at: nowIso(),
             }
             upsertCoding(coding)
@@ -262,12 +210,7 @@ function DimScale({
       </div>
       <div className="likert-scale" role="radiogroup" aria-label={label}>
         {[0, 1, 2, 3].map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={value === n ? 'tick on' : 'tick'}
-            onClick={() => onChange(n)}
-          >
+          <button key={n} type="button" className={value === n ? 'tick on' : 'tick'} onClick={() => onChange(n)}>
             {n}
           </button>
         ))}

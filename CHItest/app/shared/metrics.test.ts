@@ -40,7 +40,7 @@ describe('G3 discovery rate', () => {
 })
 
 describe('gains', () => {
-  it('computes learning and transfer gain', () => {
+  it('computes AI, sketch, and transfer gains', () => {
     expect(learningGain(6, 11)).toBe(5)
     expect(transferGain(9, 6)).toBe(3)
     expect(learningGain(null, 11)).toBeNull()

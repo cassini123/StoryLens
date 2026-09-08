@@ -1,85 +1,285 @@
 {
   "tasks": [
     {
-      "id": "T01",
-      "pair": "P01",
-      "title": "Train Station",
-      "setting": "train station",
-      "core": ["gaze", "spatial_relation", "character_relation"],
-      "required_dimensions": ["object", "spatial", "relation"],
-      "brief": "一个人走进安静的火车站，注意到窗边的另一个人。设计一个单镜头，让观众能够理解两个人之间的位置关系以及谁在看谁。"
+      "id": "E01",
+      "image_id": "E01",
+      "group": "environment",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "image_path": "data/tasks/images/environment/E01.svg",
+      "title": "空剧院"
     },
     {
-      "id": "T02",
-      "pair": "P01",
-      "title": "Museum",
-      "setting": "museum",
-      "core": ["gaze", "spatial_relation", "character_relation"],
-      "required_dimensions": ["object", "spatial", "relation"],
-      "brief": "一个人走进一个小型博物馆，注意到展墙旁边的另一个人。设计一个单镜头，让观众能够理解两个人之间的位置关系以及谁在看谁。"
+      "id": "E02",
+      "image_id": "E02",
+      "group": "environment",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "camera"
+      ],
+      "image_path": "data/tasks/images/environment/E02.svg",
+      "title": "轮渡甲板"
     },
     {
-      "id": "T03",
-      "pair": "P02",
-      "title": "Café",
-      "setting": "café",
-      "core": ["foreground_background", "spatial_relation"],
-      "required_dimensions": ["object", "spatial", "relation"],
-      "brief": "一个女人在咖啡馆里面等待，一个男人站在玻璃门外。设计一个单镜头，让画面能够清楚表现两个人所处的不同空间。"
+      "id": "E03",
+      "image_id": "E03",
+      "group": "environment",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "image_path": "data/tasks/images/environment/E03.svg",
+      "title": "书店门口"
     },
     {
-      "id": "T04",
-      "pair": "P02",
-      "title": "Bookstore",
-      "setting": "bookstore",
-      "core": ["foreground_background", "spatial_relation"],
-      "required_dimensions": ["object", "spatial", "relation"],
-      "brief": "一个男人在书店里面，一个女人站在入口外。设计一个单镜头，让画面能够清楚表现两个人所处的不同空间。"
+      "id": "E04",
+      "image_id": "E04",
+      "group": "environment",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "image_path": "data/tasks/images/environment/E04.svg",
+      "title": "公园长椅"
     },
     {
-      "id": "T05",
-      "pair": "P03",
-      "title": "Theater",
-      "setting": "theater",
-      "core": ["camera_subject", "attention"],
-      "required_dimensions": ["object", "spatial", "camera", "emotion"],
-      "brief": "一个人走进旧剧院，看向空舞台。设计一个单镜头，让观众能够理解人物的位置、注意方向以及摄影机与人物的关系。"
+      "id": "E05",
+      "image_id": "E05",
+      "group": "environment",
+      "difficulty": "hard",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "camera"
+      ],
+      "image_path": "data/tasks/images/environment/E05.svg",
+      "title": "前后景"
     },
     {
-      "id": "T06",
-      "pair": "P03",
-      "title": "Underground Station",
-      "setting": "underground station",
-      "core": ["camera_subject", "attention"],
-      "required_dimensions": ["object", "spatial", "camera", "emotion"],
-      "brief": "一个人进入地下车站，看向正在驶来的列车。设计一个单镜头，让观众能够理解人物的位置、注意方向以及摄影机与人物的关系。"
+      "id": "C01",
+      "image_id": "C01",
+      "group": "character_space",
+      "difficulty": "medium",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial",
+        "camera"
+      ],
+      "image_path": "data/tasks/images/character_space/C01.svg",
+      "title": "火车站窗边"
     },
     {
-      "id": "T07",
-      "pair": "P04",
-      "title": "Hallway",
-      "setting": "hallway",
-      "core": ["movement", "composition"],
-      "required_dimensions": ["object", "spatial", "relation", "camera"],
-      "brief": "一个人沿着狭窄走廊向前走，另一个人在走廊尽头等待。设计一个单镜头，让画面能够表现人物的运动和两个人之间的空间关系。"
+      "id": "C02",
+      "image_id": "C02",
+      "group": "character_space",
+      "difficulty": "medium",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "emotion"
+      ],
+      "image_path": "data/tasks/images/character_space/C02.svg",
+      "title": "咖啡馆对坐"
     },
     {
-      "id": "T08",
-      "pair": "P04",
-      "title": "Gallery",
-      "setting": "gallery",
-      "core": ["movement", "composition"],
-      "required_dimensions": ["object", "spatial", "relation", "camera"],
-      "brief": "一个人穿过画廊，另一个人在入口附近等待。设计一个单镜头，让画面能够表现人物运动以及两个人之间的空间关系。"
+      "id": "C03",
+      "image_id": "C03",
+      "group": "character_space",
+      "difficulty": "hard",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/character_space/C03.svg",
+      "title": "庭院对望"
     },
     {
-      "id": "T09",
-      "pair": "TRANSFER",
-      "title": "Ferry Deck",
-      "setting": "ferry deck",
-      "core": ["gaze", "spatial_relation", "transfer"],
-      "required_dimensions": ["object", "spatial", "relation", "camera"],
-      "brief": "一个人走上轮渡甲板，突然注意到栏杆边站着另一个人。请尽可能清楚地描述这个镜头。"
+      "id": "C04",
+      "image_id": "C04",
+      "group": "character_space",
+      "difficulty": "medium",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/character_space/C04.svg",
+      "title": "街角三人"
+    },
+    {
+      "id": "A01",
+      "image_id": "A01",
+      "group": "camera",
+      "difficulty": "hard",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/camera/A01.svg",
+      "title": "楼梯仰拍"
+    },
+    {
+      "id": "A02",
+      "image_id": "A02",
+      "group": "camera",
+      "difficulty": "easy",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "image_path": "data/tasks/images/camera/A02.svg",
+      "title": "博物馆展墙"
+    },
+    {
+      "id": "A03",
+      "image_id": "A03",
+      "group": "camera",
+      "difficulty": "medium",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/camera/A03.svg",
+      "title": "俯视走廊"
+    },
+    {
+      "id": "A04",
+      "image_id": "A04",
+      "group": "camera",
+      "difficulty": "hard",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "emotion"
+      ],
+      "image_path": "data/tasks/images/camera/A04.svg",
+      "title": "地铁来车"
+    },
+    {
+      "id": "A05",
+      "image_id": "A05",
+      "group": "camera",
+      "difficulty": "easy",
+      "primary_target": [
+        "camera"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "image_path": "data/tasks/images/camera/A05.svg",
+      "title": "长椅分神"
+    },
+    {
+      "id": "D01",
+      "image_id": "D01",
+      "group": "composition",
+      "difficulty": "hard",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "image_path": "data/tasks/images/composition/D01.svg",
+      "title": "柱后半隐"
+    },
+    {
+      "id": "D02",
+      "image_id": "D02",
+      "group": "composition",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "object"
+      ],
+      "image_path": "data/tasks/images/composition/D02.svg",
+      "title": "门后身影"
+    },
+    {
+      "id": "D03",
+      "image_id": "D03",
+      "group": "composition",
+      "difficulty": "easy",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "image_path": "data/tasks/images/composition/D03.svg",
+      "title": "走廊走向"
+    },
+    {
+      "id": "D04",
+      "image_id": "D04",
+      "group": "composition",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "relation"
+      ],
+      "image_path": "data/tasks/images/composition/D04.svg",
+      "title": "画廊穿过"
+    },
+    {
+      "id": "D05",
+      "image_id": "D05",
+      "group": "composition",
+      "difficulty": "hard",
+      "primary_target": [
+        "relation"
+      ],
+      "secondary_target": [
+        "spatial"
+      ],
+      "image_path": "data/tasks/images/composition/D05.svg",
+      "title": "餐桌三人"
+    },
+    {
+      "id": "D06",
+      "image_id": "D06",
+      "group": "composition",
+      "difficulty": "medium",
+      "primary_target": [
+        "spatial"
+      ],
+      "secondary_target": [
+        "camera"
+      ],
+      "image_path": "data/tasks/images/composition/D06.svg",
+      "title": "玻璃内外"
     }
   ]
 }

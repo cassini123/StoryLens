@@ -11,10 +11,55 @@ const SERVICE = 'cv'
 const API_VERSION = '2022-08-31'
 const REQ_KEY = 'jimeng_t2i_v40'
 
+const ACCESS_ALIASES = [
+  'JIMENG_ACCESS_KEY',
+  'JIMENG_ACCESS_KEY_ID',
+  'VOLC_ACCESS_KEY',
+  'VOLCENGINE_ACCESS_KEY',
+]
+const SECRET_ALIASES = [
+  'JIMENG_SECRET_KEY',
+  'JIMENG_SECRET_ACCESS_KEY',
+  'VOLC_SECRET_KEY',
+  'VOLCENGINE_SECRET_KEY',
+]
+
+function cleanEnv(value) {
+  if (value == null) return ''
+  return String(value)
+    .trim()
+    .replace(/^['"]|['"]$/g, '')
+    .trim()
+}
+
+function readEnv(names) {
+  for (const name of names) {
+    const value = cleanEnv(process.env[name])
+    if (value) return { name, value }
+  }
+  return { name: '', value: '' }
+}
+
 function credentials() {
+  const access = readEnv(ACCESS_ALIASES)
+  const secret = readEnv(SECRET_ALIASES)
   return {
-    accessKey: process.env.JIMENG_ACCESS_KEY || '',
-    secretKey: process.env.JIMENG_SECRET_KEY || '',
+    accessKey: access.value,
+    secretKey: secret.value,
+    accessKeyName: access.name,
+    secretKeyName: secret.name,
+  }
+}
+
+function credentialStatus() {
+  const { accessKey, secretKey, accessKeyName, secretKeyName } = credentials()
+  return {
+    credentials: Boolean(accessKey && secretKey),
+    has_access_key: Boolean(accessKey),
+    has_secret_key: Boolean(secretKey),
+    access_key_source: accessKeyName || null,
+    secret_key_source: secretKeyName || null,
+    expected: ['JIMENG_ACCESS_KEY', 'JIMENG_SECRET_KEY'],
   }
 }
 
@@ -93,10 +138,12 @@ function jimengRequest(action, bodyParams, accessKey, secretKey) {
   })
 }
 
-async function submitTask(prompt, width = 1664, height = 936) {
+async function submitTask(prompt, width = 1664, height = 936, images = []) {
   const { accessKey, secretKey } = credentials()
   if (!accessKey || !secretKey) {
-    const err = new Error('Jimeng credentials are not configured')
+    const err = new Error(
+      'Jimeng credentials are not configured. Set JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY on the Vercel project for Production + Preview, then Redeploy.',
+    )
     err.statusCode = 503
     throw err
   }
@@ -107,9 +154,19 @@ async function submitTask(prompt, width = 1664, height = 936) {
     w = Math.ceil((w * scale) / 8) * 8
     h = Math.ceil((h * scale) / 8) * 8
   }
+  const body = { req_key: REQ_KEY, prompt, width: w, height: h }
+  const binaries = (Array.isArray(images) ? images : [])
+    .map((item) => {
+      if (!item) return ''
+      const text = String(item)
+      const comma = text.indexOf(',')
+      return comma >= 0 ? text.slice(comma + 1) : text
+    })
+    .filter(Boolean)
+  if (binaries.length) body.binary_data_base64 = binaries
   const result = await jimengRequest(
     'CVSync2AsyncSubmitTask',
-    { req_key: REQ_KEY, prompt, width: w, height: h },
+    body,
     accessKey,
     secretKey,
   )
@@ -161,7 +218,9 @@ async function extractImage(result) {
 async function pollTask(taskId) {
   const { accessKey, secretKey } = credentials()
   if (!accessKey || !secretKey) {
-    const err = new Error('Jimeng credentials are not configured')
+    const err = new Error(
+      'Jimeng credentials are not configured. Set JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY on the Vercel project for Production + Preview, then Redeploy.',
+    )
     err.statusCode = 503
     throw err
   }
@@ -185,4 +244,4 @@ async function pollTask(taskId) {
   return { status: status || 'generating' }
 }
 
-module.exports = { credentials, submitTask, pollTask, REQ_KEY }
+module.exports = { credentials, credentialStatus, submitTask, pollTask, REQ_KEY }

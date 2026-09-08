@@ -90,7 +90,7 @@ export function sceneToSvg(scene: SketchScene): string {
   }
 
   const cam = scene.camera
-  parts.push(`<g transform="translate(${cam.x} ${cam.y}) rotate(${cam.rotation})">`)
+  parts.push(`<g transform="translate(${cam.x} ${cam.y}) rotate(${cam.rotation}) scale(${cam.distance || 1})">`)
   parts.push('<polygon points="0,-11 22,0 0,11" fill="#fff" stroke="#000" stroke-width="1.5" />')
   parts.push('</g>')
   parts.push(`<text x="${cam.x}" y="${cam.y + 28}" text-anchor="middle" font-size="11">CAM</text>`)
