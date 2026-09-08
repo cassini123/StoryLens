@@ -1,0 +1,74 @@
+{
+  "study": {
+    "id": "chitest",
+    "title": "CHItest",
+    "subtitle": "Cinematography Expression Study",
+    "year": 2027
+  },
+  "debug_short_session": false,
+  "sketch_mode": "mock",
+  "sketch_model": {
+    "name": "mock-svg",
+    "version": "1.0.0"
+  },
+  "experts": [
+    {
+      "expert_id": "expert_01",
+      "slug": "xinxiangyang",
+      "name": "辛向阳",
+      "label": "Expert 01"
+    },
+    {
+      "expert_id": "expert_02",
+      "slug": "louyongqi",
+      "name": "娄永琪",
+      "label": "Expert 02"
+    },
+    {
+      "expert_id": "expert_03",
+      "slug": "lihejin",
+      "name": "李何槿",
+      "label": "Expert 03"
+    },
+    {
+      "expert_id": "expert_04",
+      "slug": "liuzhejun",
+      "name": "柳喆俊",
+      "label": "Expert 04"
+    }
+  ],
+  "groups": {
+    "A_direct_first": {
+      "task_set": "A",
+      "condition_order": "direct_first",
+      "direct": ["T01", "T03", "T05", "T07"],
+      "sketch": ["T02", "T04", "T06", "T08"]
+    },
+    "A_sketch_first": {
+      "task_set": "A",
+      "condition_order": "sketch_first",
+      "direct": ["T01", "T03", "T05", "T07"],
+      "sketch": ["T02", "T04", "T06", "T08"]
+    },
+    "B_direct_first": {
+      "task_set": "B",
+      "condition_order": "direct_first",
+      "direct": ["T02", "T04", "T06", "T08"],
+      "sketch": ["T01", "T03", "T05", "T07"]
+    },
+    "B_sketch_first": {
+      "task_set": "B",
+      "condition_order": "sketch_first",
+      "direct": ["T02", "T04", "T06", "T08"],
+      "sketch": ["T01", "T03", "T05", "T07"]
+    }
+  },
+  "transfer_task_id": "T09",
+  "prompts": {
+    "introduction": "You will complete several cinematography tasks. There are no correct answers. Please describe what you intend as naturally as possible. Do not try to write a professional prompt.",
+    "t1": "There is no sketch and no AI assistance. Describe the shot as naturally as possible.",
+    "direct_refine": "Look at your earlier description. There is still no sketch. Describe the shot again as clearly as possible.",
+    "sketch_refine": "Based on your sketch, please describe your intended shot again as clearly as possible. Use your own words.",
+    "transfer": "This is a new task. There is no sketch and no assistance. Describe the shot as clearly as possible."
+  }
+}

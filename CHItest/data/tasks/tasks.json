@@ -1,0 +1,85 @@
+{
+  "tasks": [
+    {
+      "id": "T01",
+      "pair": "P01",
+      "title": "Train Station",
+      "setting": "train station",
+      "core": ["gaze", "spatial_relation", "character_relation"],
+      "required_dimensions": ["object", "spatial", "relation"],
+      "brief": "一个人走进安静的火车站，注意到窗边的另一个人。设计一个单镜头，让观众能够理解两个人之间的位置关系以及谁在看谁。"
+    },
+    {
+      "id": "T02",
+      "pair": "P01",
+      "title": "Museum",
+      "setting": "museum",
+      "core": ["gaze", "spatial_relation", "character_relation"],
+      "required_dimensions": ["object", "spatial", "relation"],
+      "brief": "一个人走进一个小型博物馆，注意到展墙旁边的另一个人。设计一个单镜头，让观众能够理解两个人之间的位置关系以及谁在看谁。"
+    },
+    {
+      "id": "T03",
+      "pair": "P02",
+      "title": "Café",
+      "setting": "café",
+      "core": ["foreground_background", "spatial_relation"],
+      "required_dimensions": ["object", "spatial", "relation"],
+      "brief": "一个女人在咖啡馆里面等待，一个男人站在玻璃门外。设计一个单镜头，让画面能够清楚表现两个人所处的不同空间。"
+    },
+    {
+      "id": "T04",
+      "pair": "P02",
+      "title": "Bookstore",
+      "setting": "bookstore",
+      "core": ["foreground_background", "spatial_relation"],
+      "required_dimensions": ["object", "spatial", "relation"],
+      "brief": "一个男人在书店里面，一个女人站在入口外。设计一个单镜头，让画面能够清楚表现两个人所处的不同空间。"
+    },
+    {
+      "id": "T05",
+      "pair": "P03",
+      "title": "Theater",
+      "setting": "theater",
+      "core": ["camera_subject", "attention"],
+      "required_dimensions": ["object", "spatial", "camera", "emotion"],
+      "brief": "一个人走进旧剧院，看向空舞台。设计一个单镜头，让观众能够理解人物的位置、注意方向以及摄影机与人物的关系。"
+    },
+    {
+      "id": "T06",
+      "pair": "P03",
+      "title": "Underground Station",
+      "setting": "underground station",
+      "core": ["camera_subject", "attention"],
+      "required_dimensions": ["object", "spatial", "camera", "emotion"],
+      "brief": "一个人进入地下车站，看向正在驶来的列车。设计一个单镜头，让观众能够理解人物的位置、注意方向以及摄影机与人物的关系。"
+    },
+    {
+      "id": "T07",
+      "pair": "P04",
+      "title": "Hallway",
+      "setting": "hallway",
+      "core": ["movement", "composition"],
+      "required_dimensions": ["object", "spatial", "relation", "camera"],
+      "brief": "一个人沿着狭窄走廊向前走，另一个人在走廊尽头等待。设计一个单镜头，让画面能够表现人物的运动和两个人之间的空间关系。"
+    },
+    {
+      "id": "T08",
+      "pair": "P04",
+      "title": "Gallery",
+      "setting": "gallery",
+      "core": ["movement", "composition"],
+      "required_dimensions": ["object", "spatial", "relation", "camera"],
+      "brief": "一个人穿过画廊，另一个人在入口附近等待。设计一个单镜头，让画面能够表现人物运动以及两个人之间的空间关系。"
+    },
+    {
+      "id": "T09",
+      "pair": "TRANSFER",
+      "title": "Ferry Deck",
+      "setting": "ferry deck",
+      "core": ["gaze", "spatial_relation", "transfer"],
+      "required_dimensions": ["object", "spatial", "relation", "camera"],
+      "brief": "一个人走上轮渡甲板，突然注意到栏杆边站着另一个人。请尽可能清楚地描述这个镜头。"
+    }
+  ]
+}
