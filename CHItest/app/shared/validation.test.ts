@@ -3,7 +3,7 @@ import { createSessionBase } from './sessionInit'
 import { TASK_SEQUENCE_VERSION } from './types'
 import { makeSession, makeTask } from './testSession'
 import { validateSession, validateTask } from './validation'
-import { assignImages, groupForParticipant } from './assign'
+import { assignImages } from './assign'
 import { images } from './config'
 
 describe('formal group metadata', () => {
@@ -11,9 +11,9 @@ describe('formal group metadata', () => {
     const scaffold = createSessionBase({
       participantId: 'P001',
       sessionId: 'S001',
-      group: groupForParticipant('P001'),
+      group: 'scaffold',
       pattern: 'A',
-      plan: assignImages(images, 'P001'),
+      plan: assignImages(images, 'P001', 'A', 'scaffold'),
       demographics: makeSession().demographics,
       shortSession: false,
       startedAt: '2026-01-01T00:00:00.000Z',
@@ -21,9 +21,9 @@ describe('formal group metadata', () => {
     const control = createSessionBase({
       participantId: 'P002',
       sessionId: 'S002',
-      group: groupForParticipant('P002'),
+      group: 'control',
       pattern: 'B',
-      plan: assignImages(images, 'P002'),
+      plan: assignImages(images, 'P002', 'B', 'control'),
       demographics: makeSession().demographics,
       shortSession: false,
       startedAt: '2026-01-01T00:00:00.000Z',

@@ -1,3 +1,4 @@
+import { groupCode, groupSequence } from './assign'
 import { experiment, getImage } from './config'
 import { getGeneratedImages } from './imageStore'
 import { measuresForSession, measuresForTask } from './behavior'
@@ -101,6 +102,8 @@ export function participantRows(sessions: Session[]): Record<string, unknown>[] 
     participant_id: session.participant_id,
     session_id: session.session_id,
     assignment_pattern: session.assignment_pattern,
+    group: groupCode(session.experimental_group),
+    group_sequence: groupSequence(session.experimental_group),
     experimental_group: session.experimental_group,
     condition_order: session.condition_order?.join('>') ?? '',
     task_sequence_version: session.task_sequence_version ?? '',
@@ -130,6 +133,7 @@ export function taskRows(sessions: Session[], codings: IntentCoding[]): Record<s
         task_id: task.task_id,
         stage: task.stage,
         block: task.block,
+        group_code: groupCode(task.experimental_group ?? session.experimental_group),
         experimental_group: task.experimental_group ?? session.experimental_group,
         image_id: task.image_id,
         category: image.group,
@@ -446,6 +450,8 @@ export function timelinePayload(session: Session) {
     session_start: session.started_at,
     session_end: session.completed_at,
     assignment_pattern: session.assignment_pattern,
+    group: groupCode(session.experimental_group),
+    group_sequence: groupSequence(session.experimental_group),
     experimental_group: session.experimental_group,
     condition_order: session.condition_order,
     task_sequence_version: session.task_sequence_version,
@@ -612,40 +618,45 @@ export async function downloadParticipantPacket(session: Session): Promise<void>
     if (typeof window !== 'undefined') window.alert(message)
     throw new Error(message)
   }
+  const store = loadStore()
   const imageIds = session.generations.map((item) => item.generation_id)
   const images = await getGeneratedImages(imageIds)
-  download(
-    `${session.participant_id}-session.json`,
-    JSON.stringify(
-      {
-        study: experiment.study.title,
-        exported_at: new Date().toISOString(),
-        export_ready: session.export_ready,
-        validation,
-        ...timelinePayload(session),
-        demographics: session.demographics,
-        tasks: session.tasks,
-        text_versions: session.text_versions,
-        generations: session.generations.map((item) => ({
-          ...item,
-          output_image_data: images[item.generation_id] || null,
-        })),
-        events: eventLogRows([session]),
-        sketch_snapshots: session.sketch_snapshots,
-        sketch_interactions: interactionRows([session]),
-        auto_prompts: autoPromptRows([session]),
-        self_alignment: selfAlignmentRows([session]),
-        official_tables: officialTableFiles([session], loadStore().ratings.filter((item) => item.participant_id === session.participant_id), loadStore().codings.filter((item) => item.participant_id === session.participant_id)).map((item) => item.name),
-        measures: measuresForSession(session),
-        task_measures: session.tasks.map((task) => ({
-          task_id: task.task_id,
-          ...measuresForTask(session, task),
-        })),
-      },
-      null,
-      2,
-    ),
-    'application/json',
+  const ratings = store.ratings.filter((item) => item.participant_id === session.participant_id)
+  const codings = store.codings.filter((item) => item.participant_id === session.participant_id)
+  const sessionJson = JSON.stringify(
+    {
+      study: experiment.study.title,
+      exported_at: new Date().toISOString(),
+      export_ready: session.export_ready,
+      validation,
+      ...timelinePayload(session),
+      demographics: session.demographics,
+      tasks: session.tasks,
+      text_versions: session.text_versions,
+      generations: session.generations.map((item) => ({
+        ...item,
+        output_image_data: images[item.generation_id] || null,
+      })),
+      events: eventLogRows([session]),
+      sketch_snapshots: session.sketch_snapshots,
+      sketch_interactions: interactionRows([session]),
+      auto_prompts: autoPromptRows([session]),
+      self_alignment: selfAlignmentRows([session]),
+      measures: measuresForSession(session),
+      task_measures: session.tasks.map((task) => ({
+        task_id: task.task_id,
+        ...measuresForTask(session, task),
+      })),
+    },
+    null,
+    2,
+  )
+  downloadBlob(
+    `${session.participant_id}-packet.zip`,
+    zipStore([
+      ...officialTableFiles([session], ratings, codings),
+      { name: `${session.participant_id}-session.json`, content: sessionJson },
+    ]),
   )
 }
 

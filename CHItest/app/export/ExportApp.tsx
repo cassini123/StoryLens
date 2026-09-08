@@ -1,21 +1,4 @@
-import {
-  downloadEventLogCsv,
-  downloadEventsCsv,
-  downloadExpertRatingsCsv,
-  downloadFullJson,
-  downloadOfficialZip,
-  downloadGenerationsCsv,
-  downloadIntentCsv,
-  downloadAutoPromptsCsv,
-  downloadParticipantCsv,
-  downloadParticipantPacket,
-  downloadSelfAlignmentCsv,
-  downloadSketchInteractionsCsv,
-  downloadSketchSnapshotsJson,
-  downloadTaskCsv,
-  downloadTextVersionsCsv,
-  downloadTimelinesJson,
-} from '../shared/export'
+import { downloadOfficialZip } from '../shared/export'
 import { markExportReadiness } from '../shared/validation'
 import { clearAllData, loadStore } from '../shared/store'
 import { Button, FooterBar, Shell } from '../shared/ui'
@@ -25,16 +8,13 @@ export function ExportApp() {
   const taskCount = store.sessions.reduce((n, session) => n + session.tasks.length, 0)
   const eventCount = store.sessions.reduce((n, session) => n + session.event_log.length, 0)
   return (
-    <Shell title="Export" subtitle="JSON / CSV">
+    <Shell title="Export" subtitle="One zip of every official table">
       <main className="page">
         <p className="lead">
           {store.sessions.length} sessions · {taskCount} tasks · {eventCount} events · {store.ratings.length}{' '}
           expert ratings · {store.codings.length} researcher codes
         </p>
-        <p>
-          event_log.csv is the primary behavioral record. Intent Precision scores come from expert ratings and
-          researcher coding — not from click counts or writing speed.
-        </p>
+        <p>Participant complete page also packs that person’s own zip. Group in the tables is 0 (four T1s) or 1 (T1 T1 T2 T2).</p>
         <div className="stack">
           {store.sessions.map((session) => {
             const validation = markExportReadiness(session)
@@ -46,35 +26,12 @@ export function ExportApp() {
                   : validation.ok
                     ? 'validation passed, session incomplete'
                     : `validation failed (${validation.issues.length})`}
-                {validation.issues.length
-                  ? ` — ${validation.issues
-                      .slice(0, 4)
-                      .map((item) => item.code)
-                      .join(', ')}`
-                  : ''}
               </p>
             )
           })}
-          <Button onClick={downloadOfficialZip}>Download official tables (zip)</Button>
-          <Button onClick={downloadFullJson}>Download full JSON</Button>
-          <Button onClick={downloadParticipantCsv}>Download participants.csv</Button>
-          <Button onClick={downloadTaskCsv}>Download tasks.csv</Button>
-          <Button onClick={downloadEventLogCsv}>Download event_log.csv</Button>
-          <Button onClick={downloadEventsCsv}>Download events.csv</Button>
-          <Button onClick={downloadTextVersionsCsv}>Download text_versions.csv</Button>
-          <Button onClick={downloadSelfAlignmentCsv}>Download self_alignment.csv</Button>
-          <Button onClick={downloadIntentCsv}>Download intents.csv</Button>
-          <Button onClick={downloadGenerationsCsv}>Download generations.csv</Button>
-          <Button onClick={downloadSketchInteractionsCsv}>Download sketch_interactions.csv</Button>
-          <Button onClick={downloadAutoPromptsCsv}>Download auto_prompts.csv</Button>
-          <Button onClick={downloadSketchSnapshotsJson}>Download sketch_snapshots.json</Button>
-          <Button onClick={downloadExpertRatingsCsv}>Download expert_ratings.csv</Button>
-          <Button onClick={downloadTimelinesJson}>Download full_session_timeline.json</Button>
-          {store.sessions.map((session) => (
-            <Button key={session.session_id} onClick={() => void downloadParticipantPacket(session)}>
-              Download {session.participant_id} packet
-            </Button>
-          ))}
+          <Button fill onClick={downloadOfficialZip}>
+            Download zip
+          </Button>
         </div>
       </main>
       <FooterBar>

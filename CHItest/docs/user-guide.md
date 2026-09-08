@@ -16,12 +16,12 @@ npm run dev
 
 | 地址 | 角色 |
 | --- | --- |
-| `#/` | 首页 |
-| `#/participant` | 被试：7 题。奇数编号 scaffold，偶数编号 control |
+| `#/` | 首页：Participant 直接进入；Researcher 需登录（Mickey / Cassini，密码 12345678） |
+| `#/participant` | 被试：手输编号，1/2 随机分组。导出 `group`：0 = 四个 T1，1 = T1 T1 T2 T2 |
 | `#/participant?short=1` | 干跑：scaffold 为 T0/T1/T2/T3，control 为 T0/T1/T1′/T3 |
-| `#/expert` | 四专家盲评（对照 Target Modification，不评像不像原图） |
-| `#/coding` | 研究者按 active dimensions 编码；主指标 P_norm |
-| `#/export` | 一次导出全部正式表（zip）/ event_log / auto_prompts / self_alignment / practice_control 等 |
+| `#/expert` | 四专家盲评（需 Researcher 登录） |
+| `#/coding` | 研究者按 active dimensions 编码（需登录） |
+| `#/export` | 全部正式表打一个 zip（需登录）。被试完成页也会打自己的包 |
 
 数据在当前浏览器。存储键 `chitest.store.v7`，旧进度（含 P001 试跑）不会自动接上，也不当作正式结果。
 
@@ -31,8 +31,8 @@ npm run dev
 
 不要告诉被试自己在哪一组。
 
-- **scaffold（奇数 ID）**：T0×1 + T1×2 + T2×2 + T3×2
-- **control（偶数 ID）**：T0×1 + T1×4 + T3×2
+- **1 / scaffold**：T0×1 + T1×2 + T2×2 + T3×2
+- **0 / control**：T0×1 + T1×4 + T3×2
 
 中间两题才是条件差异。T3 两组都没有草图，用来看撤掉脚手架后的近迁移。
 
