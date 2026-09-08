@@ -30,8 +30,8 @@ npm run dev
 ## 2. 实验员
 
 1. 打开 Participant，填 Participant ID 与背景题。
-2. 不要提示镜头术语、构图清单或 Object/Spatial 等编码维度。
-3. 统一指导语用系统里的中文：请观察画面，用自己的语言描述希望 AI 生成的画面。
+2. 不要提示编码维度（Object / Spatial 等），也不要发一份镜头/构图术语表。被试自己会用的专业说法可以保留，不要说「不要用专业术语」。
+3. 统一用系统里的引导词：请看图，用自己的话尽可能清楚描述希望 AI 重新生成的画面。顶栏左上角可切换中文/英文。
 4. T1/T2/T3 最多 3 轮生成，满意即可 **Satisfied / Next**。
 5. 结束后下载 session packet 与 `event_log.csv`。
 6. 清浏览器数据：Export → Clear local data，或页脚 **Start over**。

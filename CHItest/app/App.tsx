@@ -4,6 +4,7 @@ import { ExpertApp } from './expert/ExpertApp'
 import { ExportApp } from './export/ExportApp'
 import { Home } from './Home'
 import { ParticipantApp } from './participant/ParticipantApp'
+import { LocaleProvider } from './shared/i18n'
 import type { AppRoute } from './shared/types'
 
 function routeFromHash(): AppRoute {
@@ -24,9 +25,18 @@ export function App() {
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
-  if (route === 'participant') return <ParticipantApp />
-  if (route === 'expert') return <ExpertApp />
-  if (route === 'coding') return <CodingApp />
-  if (route === 'export') return <ExportApp />
-  return <Home />
+  const screen =
+    route === 'participant' ? (
+      <ParticipantApp />
+    ) : route === 'expert' ? (
+      <ExpertApp />
+    ) : route === 'coding' ? (
+      <CodingApp />
+    ) : route === 'export' ? (
+      <ExportApp />
+    ) : (
+      <Home />
+    )
+
+  return <LocaleProvider>{screen}</LocaleProvider>
 }
