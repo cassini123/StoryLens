@@ -1,9 +1,19 @@
 import { experiment, getImage } from './config'
 import { getGeneratedImages } from './imageStore'
 import { measuresForSession, measuresForTask } from './behavior'
-import { aiFeedbackGain, mean, sketchGain, transferGain, withinTaskDelta } from './metrics'
+import {
+  aiFeedbackGain,
+  mean,
+  practiceControlContrast,
+  precisionNorm,
+  sketchGain,
+  transferContrast,
+  transferGain,
+  withinTaskDelta,
+} from './metrics'
 import { loadStore } from './store'
-import type { IntentCoding, Session, Stage, TaskRun, Timepoint } from './types'
+import { copyRatio, levenshtein, textSimilarity } from './textCompare'
+import type { ExperimentalGroup, IntentCoding, Session, Stage, TaskBlock, TaskRun, Timepoint } from './types'
 
 function csvEscape(value: unknown): string {
   const text = value == null ? '' : String(value)
@@ -49,6 +59,32 @@ function codingFor(codings: IntentCoding[], trialId: string, timepoint: Timepoin
   )
 }
 
+function imageActiveCount(imageId: string): number {
+  try {
+    const image = getImage(imageId)
+    return image.target_dimensions.length || 6
+  } catch {
+    return 6
+  }
+}
+
+function codingNorm(coding: IntentCoding | undefined, imageId: string): number | null {
+  if (coding?.precision_norm != null) return coding.precision_norm
+  return precisionNorm(coding?.precision_total ?? null, imageActiveCount(imageId))
+}
+
+function meanBlock(sessions: Session[], group: ExperimentalGroup, block: TaskBlock, codings: IntentCoding[]): number | null {
+  return mean(
+    sessions
+      .filter((session) => session.experimental_group === group)
+      .flatMap((session) =>
+        session.tasks
+          .filter((task) => task.block === block)
+          .map((task) => codingNorm(codingFor(codings, task.task_id, 'final'), task.image_id)),
+      ),
+  )
+}
+
 function meanStage(session: Session, codings: IntentCoding[], stage: Stage, timepoint: Timepoint): number | null {
   const totals = session.tasks
     .filter((task) => task.stage === stage)
@@ -61,6 +97,7 @@ export function participantRows(sessions: Session[]): Record<string, unknown>[] 
     participant_id: session.participant_id,
     session_id: session.session_id,
     assignment_pattern: session.assignment_pattern,
+    experimental_group: session.experimental_group,
     background: session.demographics.visual_experience,
     AI_familiarity: session.demographics.ai_familiarity,
     cinematography_experience: session.demographics.cinematography_experience,
@@ -83,6 +120,8 @@ export function taskRows(sessions: Session[], codings: IntentCoding[]): Record<s
         session_id: session.session_id,
         task_id: task.task_id,
         stage: task.stage,
+        block: task.block,
+        experimental_group: session.experimental_group,
         image_id: task.image_id,
         group: image.group,
         difficulty: image.difficulty,
@@ -92,6 +131,7 @@ export function taskRows(sessions: Session[], codings: IntentCoding[]): Record<s
         ended_at: task.ended_at,
         P_initial: pInitial ?? '',
         P_final: pFinal ?? '',
+        P_norm: codingNorm(codingFor(codings, task.task_id, 'final'), task.image_id) ?? '',
         delta_P: withinTaskDelta(pFinal, pInitial) ?? '',
         ...measuresForTask(session, task),
       }
@@ -120,10 +160,11 @@ export function intentRows(sessions: Session[], codings: IntentCoding[]): Record
   const rows: Record<string, unknown>[] = []
   for (const session of sessions) {
     for (const version of session.text_versions) {
+      const task = session.tasks.find((item) => item.task_id === version.task_id)
       const coding = codings.find(
         (item) =>
           item.trial_id === version.task_id &&
-          item.timepoint === (version.text_type === 'initial' ? 'initial' : 'final') &&
+          item.timepoint === (version.text_type === 'initial' ? 'initial' : version.text_type === 'auto' ? 'auto' : 'final') &&
           item.coder_id,
       )
       rows.push({
@@ -145,6 +186,7 @@ export function intentRows(sessions: Session[], codings: IntentCoding[]): Record
         precision_emotion: coding?.precision.emotion ?? '',
         precision_constraint: coding?.precision.constraint ?? '',
         precision_total: coding?.precision_total ?? '',
+        precision_norm: coding?.precision_norm ?? (task ? codingNorm(coding, task.image_id) : '') ?? '',
       })
     }
     const p0 = meanStage(session, codings, 'T0', 'final')
@@ -234,6 +276,9 @@ export function autoPromptRows(sessions: Session[]): Record<string, unknown>[] {
             p_user_id: pUser?.text_version_id ?? '',
             p_user_length: pUser?.text_length ?? '',
             p_user_timestamp: pUser?.timestamp ?? '',
+            edit_distance: pAuto && pUser ? levenshtein(pAuto.text, pUser.text) : '',
+            text_similarity: pAuto && pUser ? textSimilarity(pAuto.text, pUser.text) : '',
+            copy_ratio: pAuto && pUser ? copyRatio(pAuto.text, pUser.text) : '',
           }
         })
         .filter((row): row is NonNullable<typeof row> => row != null)
@@ -308,6 +353,31 @@ export function snapshotPayload(sessions: Session[]) {
   )
 }
 
+export function practiceControlAnalysis(sessions: Session[], codings: IntentCoding[]) {
+  const scaffoldEarly = meanBlock(sessions, 'scaffold', 'early', codings)
+  const scaffoldMiddle = meanBlock(sessions, 'scaffold', 'middle', codings)
+  const controlEarly = meanBlock(sessions, 'control', 'early', codings)
+  const controlMiddle = meanBlock(sessions, 'control', 'middle', codings)
+  const scaffoldT3 = meanBlock(sessions, 'scaffold', 'transfer', codings)
+  const controlT3 = meanBlock(sessions, 'control', 'transfer', codings)
+  const scaffoldDelta =
+    scaffoldMiddle != null && scaffoldEarly != null ? scaffoldMiddle - scaffoldEarly : null
+  const controlDelta = controlMiddle != null && controlEarly != null ? controlMiddle - controlEarly : null
+  return {
+    scaffold_early: scaffoldEarly,
+    scaffold_middle: scaffoldMiddle,
+    control_early: controlEarly,
+    control_middle: controlMiddle,
+    scaffold_middle_minus_early: scaffoldDelta,
+    control_middle_minus_early: controlDelta,
+    primary_scaffold_test: practiceControlContrast(scaffoldDelta, controlDelta),
+    scaffold_t3: scaffoldT3,
+    control_t3: controlT3,
+    transfer_scaffold_minus_control: transferContrast(scaffoldT3, controlT3),
+    note: 'Do not claim T2 improvement from T2 > T1 alone. T3 is same-session near-term transfer.',
+  }
+}
+
 export function timelinePayload(session: Session) {
   return {
     participant_id: session.participant_id,
@@ -315,6 +385,7 @@ export function timelinePayload(session: Session) {
     session_start: session.started_at,
     session_end: session.completed_at,
     assignment_pattern: session.assignment_pattern,
+    experimental_group: session.experimental_group,
     events: session.event_log.map((event) => ({
       timestamp: event.timestamp,
       relative_time_ms: event.relative_time_ms,
@@ -350,6 +421,7 @@ export function buildExportPayload() {
     auto_prompts: autoPromptRows(store.sessions),
     sketch_snapshots: snapshotPayload(store.sessions),
     expert_ratings: expertRows(store.ratings),
+    practice_control: practiceControlAnalysis(store.sessions, store.codings),
     timelines: store.sessions.map(timelinePayload),
   }
 }

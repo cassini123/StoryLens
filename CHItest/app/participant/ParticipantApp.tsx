@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { getImage, stageHasGeneration, stageHasSketch, stimulusUrl, STUDY_TITLE } from '../shared/config'
+import { getImage, stageHasGeneration, stageHasSketch, stimulusUrl } from '../shared/config'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
 import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import {
@@ -16,7 +16,8 @@ import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
 import { cloneScene } from '../shared/sketch/templates'
 import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
-import { buildTaskPlan, nextParticipantId, patternForParticipant } from '../shared/schedule'
+import { buildTaskPlan, groupForParticipant, nextParticipantId, patternForParticipant } from '../shared/schedule'
+import { pastedFromAuto } from '../shared/textCompare'
 import { downloadParticipantPacket } from '../shared/export'
 import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
 import { nowIso } from '../shared/time'
@@ -77,6 +78,7 @@ function emptyTask(sessionId: string, participantId: string, planned: PlannedTas
     task_id: planned.task_id,
     image_id: planned.image_id,
     stage: planned.stage,
+    block: planned.block,
     round: 0,
     rounds: [],
     initial_text_version_id: '',
@@ -97,7 +99,8 @@ function confirmRestart(session: Session, setSession: (session: Session | null) 
   if (!confirm(message)) return
   abandonSession(session.participant_id)
   setSession(null)
-  window.location.hash = '#/participant'
+  const short = /(?:\?|&)short=1\b/.test(window.location.hash)
+  window.location.hash = short ? '#/participant?short=1' : '#/participant'
   window.location.reload()
 }
 
@@ -120,7 +123,7 @@ export function ParticipantApp() {
       demo.visual_experience !== '' &&
       demo.ai_familiarity !== ''
     return (
-      <SessionChrome title={t.setupTitle} extra={STUDY_TITLE} session={null}>
+      <SessionChrome title={t.setupTitle} extra={t.studyBrand} session={null}>
         <main className="page">
           <p className="lead">{t.setupLead}</p>
           {health && !health.credentials ? (
@@ -214,6 +217,7 @@ export function ParticipantApp() {
                 participant_id: id,
                 session_id: sessionId,
                 assignment_pattern: patternForParticipant(id),
+                experimental_group: groupForParticipant(id),
                 demographics: demo,
                 tasks: plan.map((item) => emptyTask(sessionId, id, item)),
                 event_log: [],
@@ -447,9 +451,6 @@ function ParticipantFlow({
       next.runtime.auto_prompt_view_started = true
       logEvent(next, 'auto_prompt_view_start', { text_version_id: version.text_version_id })
     }
-    if (!next.runtime.user_prompt_started) {
-      next.runtime.draft_text = text
-    }
   }
 
   function finishTask() {
@@ -491,7 +492,6 @@ function ParticipantFlow({
     const active = currentTask(live)
     if (!active) return
     const nextRound = Math.min(MAX_ROUNDS, live.runtime.round + 1)
-    const includeSketch = stageHasSketch(active.stage) && nextRound > 1 && Boolean(live.runtime.working_scene)
     if (live.runtime.step === 'review') logEvent(live, 'generated_image_view_end')
     if (live.runtime.sketch_editing) {
       live.runtime.sketch_editing = false
@@ -501,31 +501,26 @@ function ParticipantFlow({
     active.round = nextRound
     logEvent(live, 'generate_click')
     logEvent(live, 'round_start', { round: nextRound })
-    if (includeSketch) commitAutoPrompt(live, locale)
+    if (stageHasSketch(active.stage)) commitAutoPrompt(live, locale)
     if (nextRound > 1 && stageHasSketch(active.stage)) {
       saveDraftText(live, 'refined')
     } else {
       saveDraftText(live, nextRound === 1 ? 'initial' : 'refined')
     }
-    if (live.runtime.working_scene) {
-      addSketchSnapshot(live, live.runtime.working_scene, sceneToSvg(live.runtime.working_scene), 'before')
-    }
+    const researchSnap = live.runtime.working_scene
+      ? addSketchSnapshot(live, live.runtime.working_scene, sceneToSvg(live.runtime.working_scene), 'after')
+      : null
     live.runtime.step = 'generating'
     live.runtime.generate_error = ''
     const started = nowIso()
-    logEvent(live, 'generation_start')
+    logEvent(live, 'generation_start', { api_input: 'image+text', sketch_sent: false })
     persist(live)
     setSession(live)
 
-    const sketchSvg = includeSketch && live.runtime.working_scene ? sceneToSvg(live.runtime.working_scene) : null
-    const sketchSnap =
-      includeSketch && live.runtime.working_scene
-        ? addSketchSnapshot(live, live.runtime.working_scene, sketchSvg || '', 'generation')
-        : null
     let images: string[] = []
     try {
       const originalUrl = stimulusUrl(getImage(active.image_id).image_path)
-      const composed = await composeConditioning(originalUrl, includeSketch ? sketchSvg : null)
+      const composed = await composeConditioning(originalUrl, null)
       images = [composed]
     } catch (error) {
       logEvent(live, 'error', { where: 'compose', message: String(error) })
@@ -545,7 +540,7 @@ function ParticipantFlow({
       input_image_id: active.image_id,
       input_text: text,
       input_text_version_id: active.final_text_version_id,
-      input_sketch_snapshot_id: sketchSnap?.snapshot_id || '',
+      input_sketch_snapshot_id: '',
       output_image_id: '',
       success,
       error: result.meta.error,
@@ -562,8 +557,8 @@ function ParticipantFlow({
       round: live.runtime.round,
       text_version_id: active.final_text_version_id,
       generation_id: generation.generation_id,
-      sketch_snapshot_before_id: sketchSnap?.snapshot_id || '',
-      sketch_snapshot_after_id: sketchSnap?.snapshot_id || '',
+      sketch_snapshot_before_id: researchSnap?.snapshot_id || '',
+      sketch_snapshot_after_id: researchSnap?.snapshot_id || '',
       started_at: started,
       ended_at: ended,
     })
@@ -647,7 +642,15 @@ function ParticipantFlow({
   const generating = session.runtime.step === 'generating'
   const showSketch = stageHasSketch(task.stage)
   const prompt =
-    task.stage === 'T0' ? t.observeT0 : session.runtime.step === 'review' ? t.refine : t.observeAdjust
+    task.stage === 'T0'
+      ? t.observeT0
+      : task.stage === 'T3'
+        ? session.runtime.step === 'review'
+          ? t.refineT3
+          : t.observeT3
+        : session.runtime.step === 'review'
+          ? t.refine
+          : t.observeAdjust
 
   return (
     <SessionChrome
@@ -679,6 +682,18 @@ function ParticipantFlow({
           }
           onTextChange={onTextChange}
           onSketchChange={onSketchChange}
+          onCopyAuto={() =>
+            update((next) => {
+              logEvent(next, 'copy', { source: 'auto_prompt', text_length: next.runtime.auto_prompt.length })
+            })
+          }
+          onPasteUser={(pasted) =>
+            update((next) => {
+              const fromAuto = pastedFromAuto(next.runtime.auto_prompt, pasted)
+              logEvent(next, 'paste', { text_length: pasted.length, from_auto: fromAuto })
+              if (fromAuto) logEvent(next, 'paste_from_auto_prompt', { text_length: pasted.length })
+            })
+          }
           onSelect={(id) =>
             update((next) => {
               next.runtime.selected_node_id = id
@@ -724,6 +739,8 @@ function TaskWorkspace({
   onTextFocus,
   onTextChange,
   onSketchChange,
+  onCopyAuto,
+  onPasteUser,
   onSelect,
 }: {
   image: ImageDef
@@ -739,6 +756,8 @@ function TaskWorkspace({
   onTextFocus: () => void
   onTextChange: (value: string) => void
   onSketchChange: (scene: SketchScene, action?: SketchEdit) => void
+  onCopyAuto: () => void
+  onPasteUser: (pasted: string) => void
   onSelect: (id: string | null) => void
 }) {
   const columns = stage === 'T0' ? 'workspace-t0' : showSketch ? 'workspace-t2' : 'workspace-t1'
@@ -777,19 +796,31 @@ function TaskWorkspace({
           <section>
             <h2>{t.aiInterpretation}</h2>
             <p className="hint">{t.autoPromptHint}</p>
-            <div className="auto-prompt">{autoPrompt || t.autoPromptEmpty}</div>
+            <div className="auto-prompt" onCopy={onCopyAuto}>
+              {autoPrompt || t.autoPromptEmpty}
+            </div>
           </section>
           <section>
-            <h2>{t.description}</h2>
+            <h2>{t.userPrompt}</h2>
             <p className="hint">{prompt}</p>
-            <textarea value={text} onFocus={onTextFocus} onChange={(e) => onTextChange(e.target.value)} />
+            <textarea
+              value={text}
+              onFocus={onTextFocus}
+              onChange={(e) => onTextChange(e.target.value)}
+              onPaste={(e) => onPasteUser(e.clipboardData.getData('text'))}
+            />
           </section>
         </div>
       ) : (
         <section className="desc-pane">
           <h2>{t.description}</h2>
           <p className="hint">{prompt}</p>
-          <textarea value={text} onFocus={onTextFocus} onChange={(e) => onTextChange(e.target.value)} />
+          <textarea
+            value={text}
+            onFocus={onTextFocus}
+            onChange={(e) => onTextChange(e.target.value)}
+            onPaste={(e) => onPasteUser(e.clipboardData.getData('text'))}
+          />
         </section>
       )}
     </main>

@@ -1,8 +1,8 @@
 import { clearGeneratedImages, deleteGeneratedImages } from './imageStore'
 import type { ExpertRating, IntentCoding, Session, StoreShape, TaskRun } from './types'
 
-const KEY = 'chitest.store.v5'
-const LEGACY_KEYS = ['chitest.store.v4', 'chitest.store.v3', 'chitest.store.v2', 'chitest.store.v1']
+const KEY = 'chitest.store.v6'
+const LEGACY_KEYS = ['chitest.store.v5', 'chitest.store.v4', 'chitest.store.v3', 'chitest.store.v2', 'chitest.store.v1']
 const ACTIVE_KEY = 'chitest.activeParticipantId'
 
 function emptyStore(): StoreShape {

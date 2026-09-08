@@ -4,87 +4,86 @@ Controlled research prototype for CHI 2027. Independent of StoryLens product fea
 
 ## Research question
 
-When an AI image is already a current generated state that does not fully match the user’s intent, can the user externalize the intended change through an editable sketch, have that sketch turned into everyday language, then refine that language?
-
-Sketch is **not** a reference image to copy. It is an **editable visual representation of the intended modification**. The core mechanism is:
+The study is not testing whether Sketch makes better images. It tests whether a temporary visual scaffold helps users express visual modifications more precisely in natural language.
 
 ```text
-Current generated state
-→ visual externalization (Sketch)
-→ auto language representation (P_auto)
+Current visual state
+→ user's text
+→ AI feedback
+→ (T2 only: Sketch manipulation)
+→ Sketch-to-language (P_auto)
 → human re-expression (P_user)
-→ more precise intent
+→ final text
+→ AI(currentImage, finalUserPrompt)
 ```
+
+**Sketch never enters the image-generation API.** Final generation is always current image + the participant’s own prompt.
+
+## Between-subject groups
+
+Assignment is deterministic from participant ID (odd = scaffold, even = control) and is stored as `experimental_group`. Participants never see the group name.
+
+| Group | 7 tasks | Middle block |
+| --- | --- | --- |
+| **scaffold** | T0×1 + T1×2 + T2×2 + T3×2 | Sketch-mediated scaffold |
+| **control** | T0×1 + T1×4 + T3×2 | Extra text-only practice (T1′) |
+
+Both groups have the same number of tasks. The scaffold group differs only in the middle two tasks.
+
+Task `block` is recorded for analysis: `baseline` (T0), `early` (first two T1), `middle` (T2 or T1′), `transfer` (T3).
 
 ## Stages
 
-Each participant completes **7 tasks** from a 20-image stimulus pool:
+| Stage | AI | Sketch | Auto prompt | Generation input |
+| --- | --- | --- | --- | --- |
+| **T0** | no | no | no | — |
+| **T1** | ≤3 rounds | no | no | currentImage + userPrompt |
+| **T2** (scaffold only) | ≤3 rounds | always visible | yes, from Sketch only | currentImage + userPrompt |
+| **T3** | ≤3 rounds | **no** | **no** | currentImage + userPrompt |
 
-| Stage | Count | AI | Sketch | Auto prompt | Generation input |
-| --- | --- | --- | --- | --- | --- |
-| **T0** Initial visual representation | 1 | no | no | no | — (observe → describe → Submit) |
-| **T1** AI output feedback | 2 | yes, ≤3 rounds | no | no | Original image + text |
-| **T2** Sketch-based visual scaffolding | 2 | yes, ≤3 rounds | always visible | yes, after sketch edits | Round 1: image + text. Later: image + sketch + P_user |
-| **T3** Transfer | 2 | yes, ≤3 rounds | always visible | yes | Same as T2 on unseen images |
+T3 tests near-term transfer after scaffold removal, not long-term learning.
 
-Participants may stop a T1/T2/T3 task after any round via **Satisfied / Next**. They are not forced to use all 3 rounds.
-
-T3 keeps Sketch and Auto Prompt. It tests whether visual externalization plus language re-expression transfers to a new picture — not whether people can work without a sketch.
+Participants may stop T1/T2/T3 early via **Satisfied / Next**.
 
 ## Stimulus pool
 
-20 pictures in `data/tasks/stimuli.json`, grouped as:
+20 pictures in `data/tasks/stimuli.json` (environment×5, character_space×4, camera×5, composition×6). Stratified rotation A/B/C. No image repeats inside a session.
 
-- environment × 5
-- character_space × 4
-- camera × 5
-- composition × 6
+Researcher-only target modification: `data/tasks/target_modifications.json` (`current_visual_state`, `target_modification` / `target_modification_specification`). Never shown to participants.
 
-Assignment is **balanced stratified sampling + rotation** (patterns A/B/C). No image repeats inside a session.
+## Scoring
 
-Researcher-only fields live in `data/tasks/target_modifications.json`: `current_visual_state`, `target_modification`, plus each image’s `difficulty` / `primary_target` / `secondary_target`. Participants never see target modification or dimension names.
-
-These pictures are **current / reference visual states**, not answer keys to reproduce.
-
-## Participant instruction
-
-T0: observe the current frame and describe visual information in the participant’s own words.
-
-T1/T2/T3: the still is a current AI result; describe how to adjust it so it is closer to what they want.
-
-Do not ask people to reproduce the still. Do not mention Object / Spatial / Relation / Camera / Emotion / Constraint on the participant UI.
-
-Labels they may see: Current Image, Sketch, AI Interpretation, Your Description, Generate, Satisfied / Next.
-
-## T2/T3 prompt split
-
-After the first generation and after the participant edits the sketch:
-
-- **P_auto** — system converts the sketch into everyday language. Shown read-only. Never overwritten by the user’s edits.
-- **P_user** — the participant’s revision of that wording. Used for later generation.
-
-Both versions are stored as append-only `text_versions` (`text_type`: `auto` vs `refined` / `final`). Export `auto_prompts.csv` pairs them by task and round.
-
-## Outcomes
-
-Primary outcome: **Intent Precision** against the task’s **target modification**, not similarity to the original still. Score only that image’s active dimensions (0–3 each).
+Each active criterion is 0–3. Professional vocabulary is never enough for a 3. Plain language can receive 3 if it is executable.
 
 ```text
-P0, P1, P2, P3
-G_AI = P1 − P0
-G_Sketch = P2 − P1
-G_Transfer = P3 − P1
-ΔP = P_final − P_initial
+P_i = sum of active criteria
+P_norm = P_i / (3 × number_of_active_criteria)
 ```
 
-Also compare **P_auto vs P_user**. Timeline events, text versions, sketch actions, and generation logs are **process measures**. Do not treat click counts, text length, round count, or speed as cognitive improvement.
+Use **P_norm** as the main cross-task metric when active-target counts differ.
+
+## Practice-control analysis
+
+Do **not** claim T2 improvement from T2 > T1 alone.
+
+```text
+Primary scaffold test
+= (Scaffold middle − Scaffold early) − (Control middle − Control early)
+
+Transfer
+= Scaffold T3 − Control T3
+```
+
+T3 is same-session near-term transfer only.
+
+Time is interaction cost. Report it alongside precision; a sensitivity model may include log(task_time). Do not treat time, click counts, or copy ratio as cognitive improvement. Do not auto-exclude high-copy participants.
 
 ## Logging
 
-Every session stores `event_log` with ISO-8601 `timestamp` and `relative_time_ms` from `session_start`. T2 alignment events include `sketch_edit_start/end`, `auto_prompt_generated`, `auto_prompt_view_start/end`, `user_prompt_edit_start`, `user_prompt_submit`, `generation_start/end`.
+`event_log` with ISO-8601 `timestamp` and `relative_time_ms`. T2 must reconstruct Sketch action → Auto Prompt → Auto Prompt view → user prompt edit (including copy/paste) → Generation.
 
-Export: `participants.csv`, `tasks.csv`, `event_log.csv`, `intents.csv`, `generations.csv`, `sketch_interactions.csv`, `sketch_snapshots.json`, `auto_prompts.csv`, `expert_ratings.csv`, `full_session_timeline.json`.
+Text versions are append-only (`initial` / `auto` / `refined` / `final`). Generation records store the API input actually sent (`input_sketch_snapshot_id` is empty). Sketch snapshots are stored separately for process analysis.
 
-## Local data
+Export: participants, tasks, event_log, intents, generations, sketch_interactions, sketch_snapshots, auto_prompts (with edit distance / similarity / copy ratio), expert_ratings, full_session_timeline.json. Full JSON also includes `practice_control`.
 
-Browser `localStorage` key `chitest.store.v5` plus IndexedDB generated images. Download from Export after each session.
+Local store key: `chitest.store.v6`.

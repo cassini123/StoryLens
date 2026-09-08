@@ -9,6 +9,7 @@ function task(stage: TaskRun['stage'], ended: boolean, id: string): TaskRun {
     task_id: id,
     image_id: id,
     stage,
+    block: stage === 'T0' ? 'baseline' : stage === 'T1' ? 'early' : stage === 'T2' ? 'middle' : 'transfer',
     round: 0,
     rounds: [],
     initial_text_version_id: '',
@@ -46,6 +47,7 @@ function session(partial: Partial<Session> = {}): Session {
     participant_id: 'P001',
     session_id: 'S001',
     assignment_pattern: 'A',
+    experimental_group: 'scaffold',
     demographics: {
       cinematography_experience: 'none',
       cinematography_years: '0',
@@ -120,6 +122,28 @@ describe('sessionProgress', () => {
     expect(progress.stages[2].slots[0]).toBe('current')
     expect(progress.percent).toBeGreaterThan(40)
     expect(progress.percent).toBeLessThan(60)
+  })
+
+  it('omits T2 from the control-group bar', () => {
+    const tasks = [
+      task('T0', true, 't0'),
+      task('T1', true, 't1a'),
+      task('T1', true, 't1b'),
+      task('T1', false, 't1c'),
+      task('T1', false, 't1d'),
+      task('T3', false, 't3a'),
+      task('T3', false, 't3b'),
+    ]
+    const progress = sessionProgress(
+      session({
+        experimental_group: 'control',
+        tasks,
+        runtime: runtime({ step: 'describe', task_index: 3 }),
+      }),
+    )
+    expect(progress.stages.map((item) => item.stage)).toEqual(['T0', 'T1', 'T3'])
+    expect(progress.stages[1].total).toBe(4)
+    expect(progress.stages[1].slots[2]).toBe('current')
   })
 
   it('is 96% on the questionnaire and 100% when complete', () => {

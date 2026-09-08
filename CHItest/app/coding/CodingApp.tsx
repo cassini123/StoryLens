@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { getImage, stimulusUrl } from '../shared/config'
 import { textAt } from '../shared/export'
-import { emptyPrecision, precisionComplete, precisionTotal } from '../shared/metrics'
+import { emptyPrecision, precisionComplete, precisionNorm, precisionTotal } from '../shared/metrics'
 import { allCompletedTrials, getSession, loadStore, upsertCoding } from '../shared/store'
 import { nowIso } from '../shared/time'
 import type { IntentCoding, PrecisionDim, PrecisionScores, TaskRun, Timepoint } from '../shared/types'
@@ -196,6 +196,7 @@ function CodingForm({
               coder_id: coderId,
               precision,
               precision_total: precisionTotal(precision, active),
+              precision_norm: precisionNorm(precisionTotal(precision, active), active.length),
               naturalness: unit.timepoint === 'final' ? naturalness : null,
               copying: unit.timepoint === 'final' ? copying : null,
               coded_at: nowIso(),

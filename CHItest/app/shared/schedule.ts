@@ -1,4 +1,4 @@
-import { assignImages, nextParticipantId, patternForParticipant, shortPlan } from './assign'
+import { assignImages, groupForParticipant, nextParticipantId, patternForParticipant, shortPlan } from './assign'
 import { experiment, images } from './config'
 import type { PlannedTask } from './types'
 
@@ -9,8 +9,9 @@ function shortSession(): boolean {
 }
 
 export function buildTaskPlan(participantId = 'P000'): PlannedTask[] {
-  const plan = assignImages(images, participantId, patternForParticipant(participantId))
+  const group = groupForParticipant(participantId)
+  const plan = assignImages(images, participantId, patternForParticipant(participantId), group)
   return shortSession() ? shortPlan(plan) : plan
 }
 
-export { nextParticipantId, patternForParticipant }
+export { groupForParticipant, nextParticipantId, patternForParticipant }

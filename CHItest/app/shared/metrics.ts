@@ -21,6 +21,11 @@ export function precisionTotal(scores: PrecisionScores, active: PrecisionDim[] =
   return active.reduce((sum, dim) => sum + (scores[dim] ?? 0), 0)
 }
 
+export function precisionNorm(total: number | null, activeCount: number): number | null {
+  if (total == null || activeCount <= 0) return null
+  return total / (3 * activeCount)
+}
+
 export function dimensionExpressed(score: number | null, threshold = 2): boolean {
   return score != null && score >= threshold
 }
@@ -71,6 +76,19 @@ export function sketchGain(p2: number | null, p1: number | null): number | null 
 export function withinTaskDelta(pFinal: number | null, pInitial: number | null): number | null {
   if (pFinal == null || pInitial == null) return null
   return pFinal - pInitial
+}
+
+export function practiceControlContrast(
+  scaffoldMiddleMinusEarly: number | null,
+  controlMiddleMinusEarly: number | null,
+): number | null {
+  if (scaffoldMiddleMinusEarly == null || controlMiddleMinusEarly == null) return null
+  return scaffoldMiddleMinusEarly - controlMiddleMinusEarly
+}
+
+export function transferContrast(scaffoldT3: number | null, controlT3: number | null): number | null {
+  if (scaffoldT3 == null || controlT3 == null) return null
+  return scaffoldT3 - controlT3
 }
 
 export function mean(values: Array<number | null>): number | null {

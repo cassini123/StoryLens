@@ -13,10 +13,16 @@ const targetMods = targetModsJson as Record<
   }
 >
 
-export const images: ImageDef[] = (stimuliJson.images as ImageDef[]).map((image) => ({
-  ...image,
-  ...(targetMods[image.image_id] ?? {}),
-}))
+export const images: ImageDef[] = (stimuliJson.images as ImageDef[]).map((image) => {
+  const extra = targetMods[image.image_id] ?? {}
+  const spec = extra.target_modification ?? image.target_modification
+  return {
+    ...image,
+    ...extra,
+    target_modification: spec,
+    target_modification_specification: spec,
+  }
+})
 export const tasks: TaskDef[] = images
 export const STUDY_TITLE = experiment.study.title
 
@@ -49,7 +55,7 @@ export function getExpert(expertId: string) {
 }
 
 export function stageHasSketch(stage: Stage): boolean {
-  return stage === 'T2' || stage === 'T3'
+  return stage === 'T2'
 }
 
 export function stageHasGeneration(stage: Stage): boolean {

@@ -1,4 +1,12 @@
-import type { AssignmentPattern, ImageDef, PlannedTask, Session, Stage, StimulusGroup } from './types'
+import type {
+  AssignmentPattern,
+  ExperimentalGroup,
+  ImageDef,
+  PlannedTask,
+  Session,
+  StimulusGroup,
+} from './types'
+import { BLOCK_SEQUENCE, STAGE_SEQUENCE } from './types'
 
 function hashString(value: string): number {
   let h = 2166136261
@@ -42,6 +50,11 @@ export function patternForParticipant(participantId: string): AssignmentPattern 
   return PATTERNS[(n - 1 + PATTERNS.length) % PATTERNS.length]
 }
 
+export function groupForParticipant(participantId: string): ExperimentalGroup {
+  const n = Number(/^P(\d+)$/i.exec(participantId)?.[1] ?? hashString(participantId))
+  return n % 2 === 1 ? 'scaffold' : 'control'
+}
+
 function pickFromGroup(
   pool: ImageDef[],
   group: StimulusGroup,
@@ -61,13 +74,15 @@ function pickFromGroup(
   return picked
 }
 
-function assignStages(picked: ImageDef[], rand: () => number): PlannedTask[] {
+function assignStages(picked: ImageDef[], rand: () => number, group: ExperimentalGroup): PlannedTask[] {
   const mixed = shuffle(picked, rand)
-  const stages: Stage[] = ['T0', 'T1', 'T1', 'T2', 'T2', 'T3', 'T3']
+  const stages = STAGE_SEQUENCE[group]
+  const blocks = BLOCK_SEQUENCE[group]
   return mixed.map((image, index) => ({
-    task_id: `${stages[index]}_${image.image_id}`,
+    task_id: `${stages[index]}_${blocks[index]}_${image.image_id}`,
     image_id: image.image_id,
     stage: stages[index],
+    block: blocks[index],
   }))
 }
 
@@ -75,15 +90,16 @@ export function assignImages(
   images: ImageDef[],
   participantId: string,
   pattern: AssignmentPattern = patternForParticipant(participantId),
+  group: ExperimentalGroup = groupForParticipant(participantId),
 ): PlannedTask[] {
-  const rand = mulberry32(hashString(`${participantId}:${pattern}`))
+  const rand = mulberry32(hashString(`${participantId}:${pattern}:${group}`))
   const used = new Set<string>()
   const counts = PATTERN_COUNTS[pattern]
-  const picked = (Object.keys(counts) as StimulusGroup[]).flatMap((group) =>
-    pickFromGroup(images, group, counts[group], rand, used),
+  const picked = (Object.keys(counts) as StimulusGroup[]).flatMap((item) =>
+    pickFromGroup(images, item, counts[item], rand, used),
   )
   if (picked.length !== 7) throw new Error('Expected 7 stratified images')
-  const plan = assignStages(picked, rand)
+  const plan = assignStages(picked, rand, group)
   const ids = plan.map((item) => item.image_id)
   if (new Set(ids).size !== 7) throw new Error('Image assignment reused an image')
   const groups = new Set(plan.map((item) => images.find((image) => image.image_id === item.image_id)?.group))
@@ -93,10 +109,11 @@ export function assignImages(
 
 export function shortPlan(plan: PlannedTask[]): PlannedTask[] {
   const t0 = plan.find((item) => item.stage === 'T0')
-  const t1 = plan.find((item) => item.stage === 'T1')
+  const t1Early = plan.find((item) => item.stage === 'T1' && item.block === 'early')
   const t2 = plan.find((item) => item.stage === 'T2')
+  const t1Middle = plan.find((item) => item.stage === 'T1' && item.block === 'middle')
   const t3 = plan.find((item) => item.stage === 'T3')
-  return [t0, t1, t2, t3].filter((item): item is PlannedTask => Boolean(item))
+  return [t0, t1Early, t2 ?? t1Middle, t3].filter((item): item is PlannedTask => Boolean(item))
 }
 
 export function nextParticipantId(sessions: Session[]): string {

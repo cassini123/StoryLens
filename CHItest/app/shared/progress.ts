@@ -48,7 +48,8 @@ export function sessionProgress(session: Session | null): SessionProgress {
   const step = session.runtime.step
   const active = inTaskStep(step) ? session.tasks[session.runtime.task_index] : undefined
 
-  const stages: StageProgress[] = STAGES.map((stage) => {
+  const present = STAGES.filter((stage) => session.tasks.some((item) => item.stage === stage))
+  const stages: StageProgress[] = (present.length ? present : STAGES).map((stage) => {
     const items = session.tasks.filter((item) => item.stage === stage)
     const total = items.length || DEFAULT_COUNTS[stage]
     const slots: SlotState[] = (items.length ? items : Array.from({ length: total }, () => null)).map((item) => {

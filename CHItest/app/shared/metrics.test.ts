@@ -3,7 +3,10 @@ import {
   discoveryRate,
   emptyPrecision,
   learningGain,
+  practiceControlContrast,
+  precisionNorm,
   precisionTotal,
+  transferContrast,
   transferGain,
 } from './metrics'
 
@@ -33,6 +36,11 @@ describe('G1 precision total', () => {
       ),
     ).toBe(6)
   })
+
+  it('normalizes by 3 × active criteria', () => {
+    expect(precisionNorm(6, 3)).toBe(6 / 9)
+    expect(precisionNorm(null, 3)).toBeNull()
+  })
 })
 
 describe('G3 discovery rate', () => {
@@ -53,5 +61,7 @@ describe('gains', () => {
     expect(learningGain(6, 11)).toBe(5)
     expect(transferGain(9, 6)).toBe(3)
     expect(learningGain(null, 11)).toBeNull()
+    expect(practiceControlContrast(0.4, 0.1)).toBeCloseTo(0.3)
+    expect(transferContrast(0.7, 0.5)).toBeCloseTo(0.2)
   })
 })
