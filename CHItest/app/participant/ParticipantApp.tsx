@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { experiment, getImage, stageHasGeneration, stageHasSketch, stimulusUrl, STUDY_TITLE } from '../shared/config'
+import { getImage, stageHasGeneration, stageHasSketch, stimulusUrl, STUDY_TITLE } from '../shared/config'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
 import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import {
@@ -34,6 +34,7 @@ import type {
 } from '../shared/types'
 import { MAX_ROUNDS } from '../shared/types'
 import { SessionChrome } from '../shared/SessionChrome'
+import { useI18n } from '../shared/i18n'
 import { Button, Field, FooterBar, Likert } from '../shared/ui'
 
 const emptyDemo: Demographics = {
@@ -86,8 +87,8 @@ function persist(session: Session): Session {
   return session
 }
 
-function confirmRestart(session: Session, setSession: (session: Session | null) => void): void {
-  if (!confirm('Discard this incomplete session on this browser and start over?')) return
+function confirmRestart(session: Session, setSession: (session: Session | null) => void, message: string): void {
+  if (!confirm(message)) return
   abandonSession(session.participant_id)
   setSession(null)
   window.location.hash = '#/participant'
@@ -95,6 +96,7 @@ function confirmRestart(session: Session, setSession: (session: Session | null) 
 }
 
 export function ParticipantApp() {
+  const { t } = useI18n()
   const existing = useMemo(() => loadStore().sessions, [])
   const [session, setSession] = useState<Session | null>(() => getActiveSession() ?? null)
   const [setupId, setSetupId] = useState(nextParticipantId(existing))
@@ -112,19 +114,19 @@ export function ParticipantApp() {
       demo.visual_experience !== '' &&
       demo.ai_familiarity !== ''
     return (
-      <SessionChrome title="Participant setup" extra={STUDY_TITLE} session={null}>
+      <SessionChrome title={t.setupTitle} extra={STUDY_TITLE} session={null}>
         <main className="page">
-          <p className="lead">Start a new session. Do not reuse a participant ID.</p>
+          <p className="lead">{t.setupLead}</p>
           {health && !health.credentials ? (
             <p className="api-status bad">
-              {health.error || 'Jimeng API is not configured on this deployment.'}
+              {health.error || t.apiMissing}
             </p>
           ) : null}
           <div className="stack">
-            <Field label="Participant ID">
+            <Field label={t.participantId}>
               <input value={setupId} onChange={(e) => setSetupId(e.target.value.trim())} />
             </Field>
-            <Field label="Cinematography experience">
+            <Field label={t.cineExp}>
               <select
                 value={demo.cinematography_experience}
                 onChange={(e) =>
@@ -135,20 +137,20 @@ export function ParticipantApp() {
                   })
                 }
               >
-                <option value="">Select</option>
-                <option value="none">None</option>
-                <option value="some">Some</option>
-                <option value="frequent">Frequent</option>
+                <option value="">{t.select}</option>
+                <option value="none">{t.none}</option>
+                <option value="some">{t.some}</option>
+                <option value="frequent">{t.frequent}</option>
               </select>
             </Field>
-            <Field label="Years of cinematography experience (0 if none)">
+            <Field label={t.cineYears}>
               <input
                 value={demo.cinematography_years}
                 onChange={(e) => setDemo({ ...demo, cinematography_years: e.target.value, film_years: e.target.value })}
                 placeholder="0"
               />
             </Field>
-            <Field label="Visual / design experience">
+            <Field label={t.visualExp}>
               <select
                 value={demo.visual_experience}
                 onChange={(e) =>
@@ -159,13 +161,13 @@ export function ParticipantApp() {
                   })
                 }
               >
-                <option value="">Select</option>
-                <option value="none">None</option>
-                <option value="some">Some</option>
-                <option value="frequent">Frequent</option>
+                <option value="">{t.select}</option>
+                <option value="none">{t.none}</option>
+                <option value="some">{t.some}</option>
+                <option value="frequent">{t.frequent}</option>
               </select>
             </Field>
-            <Field label="AI familiarity">
+            <Field label={t.aiFam}>
               <select
                 value={demo.ai_familiarity}
                 onChange={(e) =>
@@ -177,10 +179,10 @@ export function ParticipantApp() {
                   })
                 }
               >
-                <option value="">Select</option>
-                <option value="none">None</option>
-                <option value="some">Some</option>
-                <option value="frequent">Frequent</option>
+                <option value="">{t.select}</option>
+                <option value="none">{t.none}</option>
+                <option value="some">{t.some}</option>
+                <option value="frequent">{t.frequent}</option>
               </select>
             </Field>
           </div>
@@ -192,7 +194,7 @@ export function ParticipantApp() {
             onClick={() => {
               const id = setupId.trim()
               if (getSession(id)?.completed_at) {
-                alert('This participant ID already completed a session.')
+                alert(t.idUsed)
                 return
               }
               const prior = getSession(id)
@@ -223,7 +225,7 @@ export function ParticipantApp() {
               setSession(persist(created))
             }}
           >
-            Continue
+            {t.continue}
           </Button>
         </FooterBar>
       </SessionChrome>
@@ -240,6 +242,7 @@ function ParticipantFlow({
   session: Session
   setSession: (session: Session | null) => void
 }) {
+  const { t } = useI18n()
   const changeTimer = useRef<number | null>(null)
 
   function update(mutator: (next: Session) => void) {
@@ -273,18 +276,18 @@ function ParticipantFlow({
     return (
       <SessionChrome
         session={session}
-        title="Introduction"
+        title={t.introTitle}
         extra={session.participant_id}
         onSessionChange={setSession}
       >
         <main className="page">
-          <p className="lead">{experiment.prompts.introduction}</p>
-          <p>You will complete 7 pictures: T0 × 1, T1 × 2, T2 × 2, T3 × 2.</p>
+          <p className="lead">{t.introduction}</p>
+          <p>{t.introCount}</p>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
-          <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
+          <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
           <Button fill onClick={() => startTask(0)}>
-            Continue
+            {t.continue}
           </Button>
         </FooterBar>
       </SessionChrome>
@@ -297,7 +300,7 @@ function ParticipantFlow({
         session={session}
         onSessionChange={setSession}
         onChange={(subjective) => update((next) => { next.subjective = subjective })}
-        onRestart={() => confirmRestart(session, setSession)}
+        onRestart={() => confirmRestart(session, setSession, t.restartConfirm)}
         onSubmit={() =>
           update((next) => {
             next.completed_at = nowIso()
@@ -313,21 +316,21 @@ function ParticipantFlow({
     return (
       <SessionChrome
         session={session}
-        title="Session complete"
+        title={t.completeTitle}
         extra={session.participant_id}
         onSessionChange={setSession}
       >
         <main className="page">
-          <p className="lead">Thank you. Please download your session data and give the file to the experimenter.</p>
+          <p className="lead">{t.completeLead}</p>
           <div className="stack">
             <Button fill onClick={() => void downloadParticipantPacket(session)}>
-              Download my session data
+              {t.downloadData}
             </Button>
           </div>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
-          <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
-          <Button onClick={() => (window.location.hash = '#/')}>Home</Button>
+          <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
+          <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
         </FooterBar>
       </SessionChrome>
     )
@@ -335,9 +338,9 @@ function ParticipantFlow({
 
   if (!task) {
     return (
-      <SessionChrome session={session} title="Error" onSessionChange={setSession}>
+      <SessionChrome session={session} title={t.error} onSessionChange={setSession}>
         <main className="page">
-          <p>No active task.</p>
+          <p>{t.noTask}</p>
         </main>
       </SessionChrome>
     )
@@ -549,18 +552,18 @@ function ParticipantFlow({
 
   const generating = session.runtime.step === 'generating'
   const showSketch = stageHasSketch(task.stage) && Boolean(session.runtime.working_scene)
-  const prompt = session.runtime.step === 'review' ? experiment.prompts.refine : experiment.prompts.observe
+  const prompt = session.runtime.step === 'review' ? t.refine : t.observe
 
   return (
     <SessionChrome
       session={session}
       title={`${task.stage} · ${session.runtime.task_index + 1}/${planLength}`}
-      extra={generating ? experiment.prompts.generating : session.participant_id}
+      extra={generating ? t.generating : session.participant_id}
       onSessionChange={setSession}
     >
       {generating ? (
         <main className="page">
-          <p className="lead">{experiment.prompts.generating}</p>
+          <p className="lead">{t.generating}</p>
         </main>
       ) : (
         <TaskWorkspace
@@ -585,30 +588,30 @@ function ParticipantFlow({
         />
       )}
       <FooterBar style={{ justifyContent: 'space-between' }}>
-        <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
+        <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
         <div className="stack-row">
           {task.stage === 'T0' ? (
             <Button fill disabled={!canSatisfy} onClick={finishTask}>
-              Submit
+              {t.submit}
             </Button>
           ) : null}
           {task.stage !== 'T0' && session.runtime.step === 'describe' && stageHasSketch(task.stage) ? (
             <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={openSketch}>
-              Continue
+              {t.continue}
             </Button>
           ) : null}
           {task.stage !== 'T0' && session.runtime.step === 'describe' && !stageHasSketch(task.stage) ? (
             <Button fill disabled={session.runtime.draft_text.trim().length === 0 || !canGenerate} onClick={() => void runGenerate()}>
-              Generate
+              {t.generate}
             </Button>
           ) : null}
           {(session.runtime.step === 'sketch_edit' || session.runtime.step === 'review') && canGenerate ? (
             <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={() => void runGenerate()}>
-              Generate{session.runtime.round > 0 ? ` (${session.runtime.round}/${MAX_ROUNDS})` : ''}
+              {t.generate}{session.runtime.round > 0 ? ` (${session.runtime.round}/${MAX_ROUNDS})` : ''}
             </Button>
           ) : null}
           {task.stage !== 'T0' && canSatisfy ? (
-            <Button onClick={finishTask}>Satisfied / Next</Button>
+            <Button onClick={finishTask}>{t.satisfied}</Button>
           ) : null}
         </div>
       </FooterBar>
@@ -646,32 +649,33 @@ function TaskWorkspace({
   onSelect: (id: string | null) => void
 }) {
   const columns = stage === 'T0' ? 'workspace-t0' : showSketch ? 'workspace-t2' : 'workspace-t1'
+  const { t, format } = useI18n()
   return (
     <main className={`workspace ${columns}`}>
       <section>
-        <h2>Original</h2>
+        <h2>{t.original}</h2>
         <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
       </section>
       {showSketch && scene ? (
         <section>
-          <h2>Sketch</h2>
+          <h2>{t.sketch}</h2>
           <SceneEditor scene={scene} onChange={onSketchChange} onSelect={onSelect} />
         </section>
       ) : null}
       {stage !== 'T0' ? (
         <section>
-          <h2>AI generated</h2>
+          <h2>{t.generated}</h2>
           {lastGenerationId ? (
             <GeneratedImage trialId={lastGenerationId} />
           ) : (
-            <div className="empty-sketch">Generated image appears after Generate.</div>
+            <div className="empty-sketch">{t.emptyGenerated}</div>
           )}
           {generateError ? <p className="hint">{generateError}</p> : null}
-          {round > 0 ? <p className="hint">Round {round} / {MAX_ROUNDS}</p> : null}
+          {round > 0 ? <p className="hint">{format(t.round, { n: round, max: MAX_ROUNDS })}</p> : null}
         </section>
       ) : null}
       <section className="desc-pane">
-        <h2>Description</h2>
+        <h2>{t.description}</h2>
         <p className="hint">{prompt}</p>
         <textarea
           value={text}
@@ -685,11 +689,12 @@ function TaskWorkspace({
 }
 
 function GeneratedImage({ trialId }: { trialId: string }) {
+  const { t } = useI18n()
   const [src, setSrc] = useState<string | null>(null)
   useEffect(() => {
     void getGeneratedImage(trialId).then(setSrc)
   }, [trialId])
-  if (!src) return <div className="empty-sketch">Loading generated image…</div>
+  if (!src) return <div className="empty-sketch">{t.loadingGenerated}</div>
   return <img className="generated" src={src} alt="" />
 }
 
@@ -706,6 +711,7 @@ function Questionnaire({
   onSubmit: () => void
   onSessionChange: (session: Session) => void
 }) {
+  const { t } = useI18n()
   const value = session.subjective ?? {
     perceived_control: null,
     perceived_usefulness: null,
@@ -720,41 +726,41 @@ function Questionnaire({
   return (
     <SessionChrome
       session={session}
-      title="Short questionnaire"
+      title={t.questionnaireTitle}
       extra={session.participant_id}
       onSessionChange={onSessionChange}
     >
       <main className="page">
-        <p className="lead">These questions are secondary. Answer based on the session as a whole.</p>
+        <p className="lead">{t.questionnaireLead}</p>
         <Likert
-          label="Perceived control"
-          hint="How much control did you feel over expressing your intended picture?"
+          label={t.control}
+          hint={t.controlHint}
           value={value.perceived_control}
           onChange={(n) => onChange({ ...value, perceived_control: n })}
         />
         <Likert
-          label="Perceived usefulness"
-          hint="How useful was the process for clarifying your intention?"
+          label={t.usefulness}
+          hint={t.usefulnessHint}
           value={value.perceived_usefulness}
           onChange={(n) => onChange({ ...value, perceived_usefulness: n })}
         />
         <Likert
-          label="Cognitive effort"
-          hint="How much mental effort did the session require?"
+          label={t.effort}
+          hint={t.effortHint}
           value={value.cognitive_effort}
           onChange={(n) => onChange({ ...value, cognitive_effort: n })}
         />
         <Likert
-          label="Confidence"
-          hint="How confident are you that someone else could stage your intended pictures?"
+          label={t.confidence}
+          hint={t.confidenceHint}
           value={value.confidence}
           onChange={(n) => onChange({ ...value, confidence: n })}
         />
       </main>
       <FooterBar style={{ justifyContent: 'space-between' }}>
-        <Button onClick={onRestart}>Start over</Button>
+        <Button onClick={onRestart}>{t.startOver}</Button>
         <Button fill disabled={!ready} onClick={onSubmit}>
-          Submit
+          {t.submit}
         </Button>
       </FooterBar>
     </SessionChrome>

@@ -1,4 +1,5 @@
 import { experiment } from './config'
+import { LangSwitch } from './i18n'
 import type { CSSProperties, ReactNode } from 'react'
 
 export function Shell({
@@ -15,9 +16,12 @@ export function Shell({
   return (
     <div className="shell">
       <header className="topbar">
-        <div>
-          <div className="brand">{experiment.study.title}</div>
-          <div className="sub">{title}</div>
+        <div className="topbar-leading">
+          <LangSwitch />
+          <div>
+            <div className="brand">{experiment.study.title}</div>
+            <div className="sub">{title}</div>
+          </div>
         </div>
         <div className="meta">
           {subtitle ? <div>{subtitle}</div> : null}

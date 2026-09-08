@@ -32,7 +32,9 @@ Assignment is **balanced stratified sampling + rotation** (patterns A/B/C). No i
 
 ## Participant instruction
 
-Use only the natural-language prompt in `config/experiment.json` (`prompts.observe`). Do not mention Object / Spatial / Relation / Camera / Emotion / Constraint, and do not prompt for shot size, camera terms, or composition jargon.
+Use only the prompts in `config/experiment.json` / the in-app copy (`observe`, `refine`). Ask people to describe the picture they want regenerated, as clearly as they can, in their own words.
+
+Do not mention Object / Spatial / Relation / Camera / Emotion / Constraint, and do not hand participants a shot-size or composition glossary. If they already use professional language, that is allowed — do not tell them to avoid it.
 
 ## Outcomes
 

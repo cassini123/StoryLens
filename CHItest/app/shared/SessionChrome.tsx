@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { experiment } from './config'
 import { downloadParticipantPacket } from './export'
+import { LangSwitch, useI18n } from './i18n'
 import { logEvent } from './logging'
 import { sessionProgress } from './progress'
 import { upsertSession } from './store'
@@ -19,10 +20,21 @@ export function SessionChrome({
   onSessionChange?: (session: Session) => void
   children: ReactNode
 }) {
+  const { t } = useI18n()
   const progress = sessionProgress(session)
   const [menuOpen, setMenuOpen] = useState(false)
   const [toast, setToast] = useState('')
   const menuRef = useRef<HTMLDivElement>(null)
+  const progressLabel =
+    progress.label === '介绍'
+      ? t.progressIntro
+      : progress.label === '问卷'
+        ? t.progressSurvey
+        : progress.label === '完成'
+          ? t.progressDone
+          : progress.label === '未开始'
+            ? t.progressNotStarted
+            : progress.label
 
   useEffect(() => {
     if (!toast) return
@@ -58,7 +70,7 @@ export function SessionChrome({
   function save() {
     setMenuOpen(false)
     const next = persistWithLog('manual_save')
-    setToast(next ? '已保存到本机' : '还没有可保存的进度')
+    setToast(next ? t.saved : t.nothingToSave)
   }
 
   function refresh() {
@@ -77,39 +89,42 @@ export function SessionChrome({
     setMenuOpen(false)
     const next = persistWithLog('manual_export')
     if (!next) {
-      setToast('还没有可导出的数据')
+      setToast(t.nothingToExport)
       return
     }
     await downloadParticipantPacket(next)
-    setToast('已导出到下载文件夹')
+    setToast(t.exported)
   }
 
   return (
     <div className="shell">
       <header className="topbar session-topbar">
         <div className="topbar-row">
-          <div>
-            <div className="brand">{experiment.study.title}</div>
-            {title ? <div className="sub">{title}</div> : null}
-            {extra ? <div className="meta">{extra}</div> : null}
+          <div className="topbar-leading">
+            <LangSwitch />
+            <div>
+              <div className="brand">{experiment.study.title}</div>
+              {title ? <div className="sub">{title}</div> : null}
+              {extra ? <div className="meta">{extra}</div> : null}
+            </div>
           </div>
           <div className="settings-wrap" ref={menuRef}>
             <button className="btn settings-btn" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
-              设置
+              {t.settings}
             </button>
             {menuOpen ? (
               <div className="settings-menu" role="menu">
                 <button type="button" role="menuitem" onClick={save}>
-                  保存
+                  {t.save}
                 </button>
                 <button type="button" role="menuitem" onClick={refresh}>
-                  刷新
+                  {t.refresh}
                 </button>
                 <button type="button" role="menuitem" onClick={exit}>
-                  退出
+                  {t.exit}
                 </button>
                 <button type="button" role="menuitem" onClick={() => void exportSession()}>
-                  导出
+                  {t.export}
                 </button>
               </div>
             ) : null}
@@ -119,11 +134,11 @@ export function SessionChrome({
           <div
             className="stage-bar"
             role="progressbar"
-            aria-label="实验进度"
+            aria-label={t.progressAria}
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={progress.percent}
-            aria-valuetext={`${progress.label} ${progress.percent}%`}
+            aria-valuetext={`${progressLabel} ${progress.percent}%`}
           >
             {progress.stages.map((stage) => (
               <div key={stage.stage} className={stage.current ? 'stage-seg current' : 'stage-seg'} style={{ flex: stage.total }}>
