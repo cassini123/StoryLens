@@ -99,7 +99,8 @@ function confirmRestart(session: Session, setSession: (session: Session | null) 
   if (!confirm(message)) return
   abandonSession(session.participant_id)
   setSession(null)
-  window.location.hash = '#/participant'
+  const short = /(?:\?|&)short=1\b/.test(window.location.hash)
+  window.location.hash = short ? '#/participant?short=1' : '#/participant'
   window.location.reload()
 }
 
