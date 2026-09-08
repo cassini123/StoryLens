@@ -424,8 +424,12 @@ function ParticipantFlow({
 
   function commitAutoPrompt(next: Session, loc: Locale) {
     const scene = next.runtime.working_scene
-    const active = currentTask(next)
-    if (!scene || next.runtime.round < 1 || !active?.sketch_actions.length) return
+    if (!scene || next.runtime.round < 1) return
+    const baseline = next.runtime.baseline_scene
+    const edited =
+      Boolean(currentTask(next)?.sketch_actions.length) ||
+      (baseline != null && JSON.stringify(scene) !== JSON.stringify(baseline))
+    if (!edited) return
     const text = sceneToAutoPrompt(scene, loc, next.runtime.baseline_scene)
     if (!text || text === next.runtime.auto_prompt) return
     next.runtime.auto_prompt = text
@@ -609,28 +613,35 @@ function ParticipantFlow({
   }
 
   function onSketchChange(scene: SketchScene, action?: SketchEdit) {
-    update((next) => {
-      if (!next.runtime.sketch_editing) {
-        next.runtime.sketch_editing = true
-        logEvent(next, 'sketch_edit_start')
-      }
-      next.runtime.working_scene = cloneScene(scene)
-      if (action) {
-        addSketchAction(next, action.action_type || action.action, action.target_id, action.before_state, action.after_state)
-      }
-    })
+    const latest = structuredClone(getSession(session.participant_id) ?? session)
+    if (!latest.runtime.sketch_editing) {
+      latest.runtime.sketch_editing = true
+      logEvent(latest, 'sketch_edit_start')
+    }
+    latest.runtime.working_scene = cloneScene(scene)
+    if (action) {
+      addSketchAction(
+        latest,
+        action.action_type || action.action,
+        action.target_id || action.target,
+        action.before_state,
+        action.after_state,
+      )
+    }
+    persist(latest)
+    setSession(latest)
     if (sketchTimer.current) window.clearTimeout(sketchTimer.current)
     sketchTimer.current = window.setTimeout(() => {
-      const latest = getSession(session.participant_id)
-      if (!latest) return
-      if (latest.runtime.sketch_editing) {
-        latest.runtime.sketch_editing = false
-        logEvent(latest, 'sketch_edit_end')
+      const current = getSession(session.participant_id)
+      if (!current) return
+      if (current.runtime.sketch_editing) {
+        current.runtime.sketch_editing = false
+        logEvent(current, 'sketch_edit_end')
       }
-      commitAutoPrompt(latest, locale)
-      persist(latest)
-      setSession(structuredClone(latest))
-    }, 500)
+      commitAutoPrompt(current, locale)
+      persist(current)
+      setSession(structuredClone(current))
+    }, 400)
   }
 
   const generating = session.runtime.step === 'generating'
