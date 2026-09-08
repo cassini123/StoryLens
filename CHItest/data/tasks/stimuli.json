@@ -14,7 +14,7 @@
         "spatial",
         "object"
       ],
-      "image_path": "data/tasks/images/environment/E01.svg",
+      "image_path": "data/tasks/images/environment/E01.png",
       "title": "空剧院",
       "source_id": "IMG08",
       "ground_truth": {
@@ -68,7 +68,7 @@
         "spatial",
         "camera"
       ],
-      "image_path": "data/tasks/images/environment/E02.svg",
+      "image_path": "data/tasks/images/environment/E02.png",
       "title": "轮渡甲板",
       "source_id": "IMG17",
       "ground_truth": {
@@ -127,7 +127,7 @@
         "spatial",
         "object"
       ],
-      "image_path": "data/tasks/images/environment/E03.svg",
+      "image_path": "data/tasks/images/environment/E03.png",
       "title": "书店门口",
       "source_id": "IMG11",
       "ground_truth": {
@@ -191,7 +191,7 @@
         "spatial",
         "relation"
       ],
-      "image_path": "data/tasks/images/environment/E04.svg",
+      "image_path": "data/tasks/images/environment/E04.png",
       "title": "公园长椅",
       "source_id": "IMG02",
       "ground_truth": {
@@ -250,7 +250,7 @@
         "spatial",
         "camera"
       ],
-      "image_path": "data/tasks/images/environment/E05.svg",
+      "image_path": "data/tasks/images/environment/E05.png",
       "title": "前后景",
       "source_id": "IMG15",
       "ground_truth": {
@@ -311,7 +311,7 @@
         "spatial",
         "camera"
       ],
-      "image_path": "data/tasks/images/character_space/C01.svg",
+      "image_path": "data/tasks/images/character_space/C01.png",
       "title": "火车站窗边",
       "source_id": "IMG01",
       "ground_truth": {
@@ -375,7 +375,7 @@
         "relation",
         "emotion"
       ],
-      "image_path": "data/tasks/images/character_space/C02.svg",
+      "image_path": "data/tasks/images/character_space/C02.png",
       "title": "咖啡馆对坐",
       "source_id": "IMG04",
       "ground_truth": {
@@ -434,7 +434,7 @@
         "relation",
         "spatial"
       ],
-      "image_path": "data/tasks/images/character_space/C03.svg",
+      "image_path": "data/tasks/images/character_space/C03.png",
       "title": "庭院对望",
       "source_id": "IMG10",
       "ground_truth": {
@@ -493,7 +493,7 @@
         "relation",
         "spatial"
       ],
-      "image_path": "data/tasks/images/character_space/C04.svg",
+      "image_path": "data/tasks/images/character_space/C04.png",
       "title": "街角三人",
       "source_id": "IMG09",
       "ground_truth": {
@@ -552,7 +552,7 @@
         "camera",
         "spatial"
       ],
-      "image_path": "data/tasks/images/camera/A01.svg",
+      "image_path": "data/tasks/images/camera/A01.png",
       "title": "楼梯仰拍",
       "source_id": "IMG03",
       "ground_truth": {
@@ -606,7 +606,7 @@
         "camera",
         "object"
       ],
-      "image_path": "data/tasks/images/camera/A02.svg",
+      "image_path": "data/tasks/images/camera/A02.png",
       "title": "博物馆展墙",
       "source_id": "IMG12",
       "ground_truth": {
@@ -660,7 +660,7 @@
         "camera",
         "spatial"
       ],
-      "image_path": "data/tasks/images/camera/A03.svg",
+      "image_path": "data/tasks/images/camera/A03.png",
       "title": "俯视走廊",
       "source_id": "IMG19",
       "ground_truth": {
@@ -709,7 +709,7 @@
         "camera",
         "emotion"
       ],
-      "image_path": "data/tasks/images/camera/A04.svg",
+      "image_path": "data/tasks/images/camera/A04.png",
       "title": "地铁来车",
       "source_id": "IMG13",
       "ground_truth": {
@@ -768,7 +768,7 @@
         "camera",
         "relation"
       ],
-      "image_path": "data/tasks/images/camera/A05.svg",
+      "image_path": "data/tasks/images/camera/A05.png",
       "title": "长椅分神",
       "source_id": "IMG20",
       "ground_truth": {
@@ -827,7 +827,7 @@
         "spatial",
         "object"
       ],
-      "image_path": "data/tasks/images/composition/D01.svg",
+      "image_path": "data/tasks/images/composition/D01.png",
       "title": "柱后半隐",
       "source_id": "IMG07",
       "ground_truth": {
@@ -886,7 +886,7 @@
         "spatial",
         "object"
       ],
-      "image_path": "data/tasks/images/composition/D02.svg",
+      "image_path": "data/tasks/images/composition/D02.png",
       "title": "门后身影",
       "source_id": "IMG16",
       "ground_truth": {
@@ -935,7 +935,7 @@
         "spatial",
         "relation"
       ],
-      "image_path": "data/tasks/images/composition/D03.svg",
+      "image_path": "data/tasks/images/composition/D03.png",
       "title": "走廊走向",
       "source_id": "IMG05",
       "ground_truth": {
@@ -994,7 +994,7 @@
         "spatial",
         "relation"
       ],
-      "image_path": "data/tasks/images/composition/D04.svg",
+      "image_path": "data/tasks/images/composition/D04.png",
       "title": "画廊穿过",
       "source_id": "IMG14",
       "ground_truth": {
@@ -1053,7 +1053,7 @@
         "relation",
         "spatial"
       ],
-      "image_path": "data/tasks/images/composition/D05.svg",
+      "image_path": "data/tasks/images/composition/D05.png",
       "title": "餐桌三人",
       "source_id": "IMG18",
       "ground_truth": {
@@ -1117,7 +1117,7 @@
         "spatial",
         "camera"
       ],
-      "image_path": "data/tasks/images/composition/D06.svg",
+      "image_path": "data/tasks/images/composition/D06.png",
       "title": "玻璃内外",
       "source_id": "IMG06",
       "ground_truth": {

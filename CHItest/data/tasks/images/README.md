@@ -6,15 +6,9 @@
 CHItest/public/data/tasks/images/
 ```
 
-请把原图放到这里，覆盖现在的 SVG 占位图。建议同时在 `CHItest/data/tasks/images/` 放一份相同文件，方便仓库里对照。
+原图用 **PNG（`.png`）**，文件名必须是 `E01`–`E05`、`C01`–`C04`、`A01`–`A05`、`D01`–`D06`。`stimuli.json` 里的 `image_path` 已指向这些 `.png`。
 
-## 格式
-
-- **JPG（`.jpg`）或 PNG（`.png`）**，彩色照片即可。
-- 横图更好（大约 16:9 或 3:2）。宽边 **1600–2400 px** 足够，单张最好 **< 4 MB**。
-- 不要用 HEIC / WebP / PSD。文件名只用半角字母数字，不要空格。
-
-若使用 `.jpg`，需要把 `CHItest/data/tasks/stimuli.json`（以及 `tasks.json`）里对应的 `image_path` 从 `.svg` 改成 `.jpg`。若你把文件交给我，我可以改路径并部署。
+请同时在 `CHItest/data/tasks/images/` 保留一份相同文件。
 
 ## 命名与文件夹（必须一致）
 
@@ -28,10 +22,10 @@ CHItest/public/data/tasks/images/
 完整路径示例：
 
 ```text
-CHItest/public/data/tasks/images/environment/E01.jpg
-CHItest/public/data/tasks/images/character_space/C01.jpg
-CHItest/public/data/tasks/images/camera/A01.jpg
-CHItest/public/data/tasks/images/composition/D01.jpg
+CHItest/public/data/tasks/images/environment/E01.png
+CHItest/public/data/tasks/images/character_space/C01.png
+CHItest/public/data/tasks/images/camera/A01.png
+CHItest/public/data/tasks/images/composition/D01.png
 ```
 
 对应题面（方便你对照 Word 里的静帧）：
