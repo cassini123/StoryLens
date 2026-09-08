@@ -102,6 +102,11 @@ module.exports = async function handler(req, res) {
     return
   }
 
+  if (process.env.CHITEST_REQUIRE_UPLOAD_TOKEN === '1' && !viewTokenOk(requestToken(req, url))) {
+    send(res, 401, { error: 'Missing or invalid upload token' })
+    return
+  }
+
   const chunks = []
   for await (const chunk of req) chunks.push(chunk)
   let body = {}

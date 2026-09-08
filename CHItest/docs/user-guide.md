@@ -76,9 +76,34 @@ npm run dev
 
 本机 `npm run dev` 时文件写在 `CHItest/data/participants/received/`，不需要 token。
 
-线上在 Vercel Production 增加：
+实验网站 `www.2027mitgo.top` 在 Vercel，不是腾讯云轻量服务器 `101.34.248.192`。要 SSH 进轻量服务器后用 `ls` 看到 JSON，按下面做。
 
-- `CHITEST_GITHUB_TOKEN`：GitHub token，勾选 **gist** 权限（数据存为私密 gist，不会触发网站重新部署）
-- `CHITEST_VIEW_TOKEN`：你自己定的查看口令
+### 5.1 登录轻量服务器
 
-保存后 Redeploy。没有这两项时，被试结束页会提示上传失败，仍可下载 JSON。
+控制台「登录」里用户名填 `ubuntu` 是对的。密码栏必须填这台机的密码（或点下拉选托管密码）。空着点登录会一直停在「正在登录…」。
+
+没有密码时：选 **免密连接 (TAT)**，或点 **忘记密码?** 在控制台重置后再 SSH。也可用 **VNC登录**。防火墙需放行 22。
+
+### 5.2 在轻量服务器上收 JSON
+
+SSH 进去后（把仓库克隆到这台机，或至少拷 `api/` 与 `scripts/chitest-lighthouse-receiver.js`）：
+
+```bash
+mkdir -p /home/ubuntu/chitest-sessions
+export CHITEST_VIEW_TOKEN='你自己定的口令'
+export CHITEST_DATA_DIR=/home/ubuntu/chitest-sessions
+node scripts/chitest-lighthouse-receiver.js
+```
+
+防火墙放行 **TCP 8787**。然后在 Vercel Production 设置：
+
+- `CHITEST_FORWARD_URL`=`http://101.34.248.192:8787`
+- `CHITEST_VIEW_TOKEN`=与上面相同的口令
+
+保存后 Redeploy。被试提交后，Vercel 把 JSON 转到这台机：
+
+```bash
+ls -l /home/ubuntu/chitest-sessions
+```
+
+没有接收进程或没开 8787 时，结束页会提示上传失败，被试仍可下载备份 JSON。也可改用 `CHITEST_GITHUB_TOKEN`（gist）作后备。

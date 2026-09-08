@@ -36,13 +36,25 @@ function viewToken() {
   return env(['CHITEST_VIEW_TOKEN'])
 }
 
+function forwardUrl() {
+  return env(['CHITEST_FORWARD_URL'])
+}
+
+function forwardToken() {
+  const dedicated = env(['CHITEST_FORWARD_TOKEN'])
+  return dedicated.value ? dedicated : viewToken()
+}
+
 function isVercel() {
   return Boolean(process.env.VERCEL)
 }
 
 function storageKind() {
   const forced = cleanEnv(process.env.CHITEST_STORAGE)
-  if (forced === 'fs' || forced === 'gist' || forced === 'blob' || forced === 'none') return forced
+  if (forced === 'fs' || forced === 'gist' || forced === 'blob' || forced === 'http' || forced === 'none') {
+    return forced
+  }
+  if (forwardUrl().value) return 'http'
   if (!isVercel()) return 'fs'
   if (blobToken().value) return 'blob'
   if (githubToken().value) return 'gist'
@@ -52,6 +64,7 @@ function storageKind() {
 function storageStatus() {
   const kind = storageKind()
   const view = viewToken()
+  const forward = forwardUrl()
   return {
     storage: kind,
     storage_ready: kind !== 'none',
@@ -59,7 +72,8 @@ function storageStatus() {
     view_token_source: view.name || null,
     github_token_configured: Boolean(githubToken().value),
     blob_configured: Boolean(blobToken().value),
-    expected: ['CHITEST_GITHUB_TOKEN or BLOB_READ_WRITE_TOKEN', 'CHITEST_VIEW_TOKEN'],
+    forward_url_configured: Boolean(forward.value),
+    expected: ['CHITEST_FORWARD_URL (Lighthouse) or CHITEST_GITHUB_TOKEN', 'CHITEST_VIEW_TOKEN'],
   }
 }
 
@@ -350,13 +364,71 @@ async function getBlob(id) {
   return await res.json()
 }
 
+function forwardHeaders(json = false) {
+  const headers = {
+    Authorization: `Bearer ${forwardToken().value}`,
+    Accept: 'application/json',
+  }
+  if (json) headers['Content-Type'] = 'application/json'
+  return headers
+}
+
+function forwardBase() {
+  return forwardUrl().value.replace(/\/+$/, '')
+}
+
+async function forwardFetch(pathSuffix, init = {}) {
+  const res = await fetch(`${forwardBase()}${pathSuffix}`, init)
+  const text = await res.text()
+  let json = {}
+  try {
+    json = text ? JSON.parse(text) : {}
+  } catch {
+    json = { raw: text }
+  }
+  if (!res.ok) {
+    const err = new Error(json.error || `Forward HTTP ${res.status}`)
+    err.statusCode = res.status
+    throw err
+  }
+  return json
+}
+
+async function saveHttp(_meta, payload) {
+  const json = await forwardFetch('/', {
+    method: 'POST',
+    headers: forwardHeaders(true),
+    body: JSON.stringify({
+      kind: payload.kind,
+      participant_id: payload.participant_id,
+      session_id: payload.session_id,
+      packet: payload.packet,
+    }),
+  })
+  return { id: json.id || '', backend: 'http', bytes: json.bytes || 0 }
+}
+
+async function listHttp() {
+  const json = await forwardFetch(`/?format=json&token=${encodeURIComponent(forwardToken().value)}`, {
+    headers: forwardHeaders(),
+  })
+  return json.records || []
+}
+
+async function getHttp(id) {
+  return forwardFetch(`/?format=json&id=${encodeURIComponent(id)}&token=${encodeURIComponent(forwardToken().value)}`, {
+    headers: forwardHeaders(),
+  })
+}
+
 async function saveRecord(meta, payload) {
   const kind = storageKind()
+  if (kind === 'http') return saveHttp(meta, payload)
   if (kind === 'blob') return saveBlob(meta, payload)
   if (kind === 'gist') return saveGist(meta, payload)
   if (kind === 'fs') return saveFs(meta, payload)
   const err = new Error(
-    'No persistent storage. Set CHITEST_GITHUB_TOKEN (gist) or BLOB_READ_WRITE_TOKEN on Vercel Production.',
+    'No persistent storage. Set CHITEST_FORWARD_URL (Lighthouse) or CHITEST_GITHUB_TOKEN on Vercel Production.',
   )
   err.statusCode = 503
   throw err
@@ -364,6 +436,7 @@ async function saveRecord(meta, payload) {
 
 async function listRecords() {
   const kind = storageKind()
+  if (kind === 'http') return listHttp()
   if (kind === 'blob') return listBlobs()
   if (kind === 'gist') return listGists()
   if (kind === 'fs') return listFs()
@@ -372,6 +445,7 @@ async function listRecords() {
 
 async function getRecord(id) {
   const kind = storageKind()
+  if (kind === 'http') return getHttp(id)
   if (kind === 'blob') return getBlob(id)
   if (kind === 'gist') return getGist(id)
   if (kind === 'fs') return getFs(id)

@@ -29,4 +29,4 @@ Odd participant IDs → scaffold; even IDs → control. Assignment is recorded, 
 
 `chitest.store.v6`. Event timeline, append-only text versions, copy/paste from Auto Prompt, sketch snapshots (process only), generation I/O without sketch input. Primary cross-task metric: **P_norm**.
 
-On questionnaire Submit, the full participant JSON is POSTed to `/api/chitest-session`. Locally it is written to `data/participants/received/`. In production set `CHITEST_GITHUB_TOKEN` (gist) and `CHITEST_VIEW_TOKEN`, then open `#/export` or `/api/chitest-session/?token=...`.
+On questionnaire Submit, the full participant JSON is POSTed to `/api/chitest-session`. Locally it is written to `data/participants/received/`. In production set `CHITEST_FORWARD_URL` to the Lighthouse receiver (or `CHITEST_GITHUB_TOKEN`) and `CHITEST_VIEW_TOKEN`.

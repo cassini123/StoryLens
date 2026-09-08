@@ -47,7 +47,7 @@ const zh = {
   loadServerData: '从服务器加载',
   noServerData: '服务器上还没有记录。',
   storageHint:
-    '被试在问卷页点「提交」后，整场 JSON 会 POST 到 /api/chitest-session。线上请在 Vercel 设置 CHITEST_GITHUB_TOKEN（gist 权限）和 CHITEST_VIEW_TOKEN。本地开发会写入 data/participants/received/。',
+    '被试在问卷页点「提交」后，整场 JSON 会 POST 到 /api/chitest-session。线上可转发到腾讯云轻量服务器，请设置 CHITEST_FORWARD_URL 与 CHITEST_VIEW_TOKEN。本地开发会写入 data/participants/received/。',
   downloadServerJson: '下载这份 JSON',
   openServerList: '在服务器打开列表',
   home: '首页',
@@ -155,7 +155,7 @@ const en: Copy = {
   loadServerData: 'Load from server',
   noServerData: 'No submissions on the server yet.',
   storageHint:
-    'When a participant clicks Submit on the questionnaire, the full session JSON is POSTed to /api/chitest-session. On Vercel set CHITEST_GITHUB_TOKEN (gist scope) and CHITEST_VIEW_TOKEN. Locally it writes to data/participants/received/.',
+    'When a participant clicks Submit on the questionnaire, the full session JSON is POSTed to /api/chitest-session. On Vercel set CHITEST_FORWARD_URL to your Lighthouse receiver and CHITEST_VIEW_TOKEN. Locally it writes to data/participants/received/.',
   downloadServerJson: 'Download this JSON',
   openServerList: 'Open server list',
   home: 'Home',
