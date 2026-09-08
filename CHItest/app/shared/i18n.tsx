@@ -90,6 +90,7 @@ const zh = {
   coding: '研究者编码',
   exportPage: '导出',
   language: '语言',
+  studyBrand: 'CHItest',
 }
 
 export type Copy = typeof zh
@@ -180,6 +181,7 @@ const en: Copy = {
   coding: 'Researcher coding',
   exportPage: 'Export',
   language: 'Language',
+  studyBrand: 'CHItest',
 }
 
 export const COPY: Record<Locale, Copy> = { zh, en }
