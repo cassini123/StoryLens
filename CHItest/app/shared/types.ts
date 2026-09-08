@@ -6,6 +6,8 @@ export type Difficulty = 'easy' | 'medium' | 'hard'
 export type StimulusGroup = 'environment' | 'character_space' | 'camera' | 'composition'
 export type ExperienceLevel = 'none' | 'some' | 'frequent'
 export type AssignmentPattern = 'A' | 'B' | 'C'
+export type ExperimentalGroup = 'scaffold' | 'control'
+export type TaskBlock = 'baseline' | 'early' | 'middle' | 'transfer'
 
 export const PRECISION_DIMS: PrecisionDim[] = [
   'object',
@@ -18,6 +20,16 @@ export const PRECISION_DIMS: PrecisionDim[] = [
 
 export const STAGES: Stage[] = ['T0', 'T1', 'T2', 'T3']
 export const MAX_ROUNDS = 3
+
+export const STAGE_SEQUENCE: Record<ExperimentalGroup, Stage[]> = {
+  scaffold: ['T0', 'T1', 'T1', 'T2', 'T2', 'T3', 'T3'],
+  control: ['T0', 'T1', 'T1', 'T1', 'T1', 'T3', 'T3'],
+}
+
+export const BLOCK_SEQUENCE: Record<ExperimentalGroup, TaskBlock[]> = {
+  scaffold: ['baseline', 'early', 'early', 'middle', 'middle', 'transfer', 'transfer'],
+  control: ['baseline', 'early', 'early', 'middle', 'middle', 'transfer', 'transfer'],
+}
 
 export type ParticipantStep =
   | 'setup'
@@ -53,6 +65,7 @@ export interface ImageDef {
   source_id: string
   current_visual_state?: string
   target_modification?: Partial<Record<PrecisionDim, string>>
+  target_modification_specification?: Partial<Record<PrecisionDim, string>>
   ground_truth: {
     nodes: GroundTruthNode[]
     relations: GroundTruthRelation[]
@@ -283,6 +296,7 @@ export interface TaskRun {
   task_id: string
   image_id: string
   stage: Stage
+  block: TaskBlock
   round: number
   rounds: TaskRound[]
   initial_text_version_id: string
@@ -324,6 +338,7 @@ export interface Session {
   participant_id: string
   session_id: string
   assignment_pattern: AssignmentPattern
+  experimental_group: ExperimentalGroup
   demographics: Demographics
   tasks: TaskRun[]
   event_log: TimelineEvent[]
@@ -341,6 +356,7 @@ export interface PlannedTask {
   task_id: string
   image_id: string
   stage: Stage
+  block: TaskBlock
 }
 
 export type PlannedTrial = PlannedTask
@@ -383,6 +399,7 @@ export interface IntentCoding {
   coder_id: string
   precision: PrecisionScores
   precision_total: number | null
+  precision_norm: number | null
   naturalness: number | null
   copying: number | null
   coded_at: string

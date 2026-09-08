@@ -1,10 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import { assignImages, patternForParticipant, PATTERNS, PATTERN_COUNTS, shortPlan } from './assign'
+import {
+  assignImages,
+  groupForParticipant,
+  patternForParticipant,
+  PATTERNS,
+  PATTERN_COUNTS,
+  shortPlan,
+} from './assign'
 import { images } from './config'
 import type { StimulusGroup } from './types'
 
 describe('stratified 7-task assignment', () => {
-  it('gives each participant 7 unique images covering all groups', () => {
+  it('assigns odd IDs to scaffold and even IDs to control', () => {
+    expect(groupForParticipant('P001')).toBe('scaffold')
+    expect(groupForParticipant('P002')).toBe('control')
+    expect(groupForParticipant('P003')).toBe('scaffold')
+  })
+
+  it('gives scaffold participants T0×1 T1×2 T2×2 T3×2', () => {
     const plan = assignImages(images, 'P001')
     expect(plan).toHaveLength(7)
     expect(new Set(plan.map((item) => item.image_id)).size).toBe(7)
@@ -12,8 +25,27 @@ describe('stratified 7-task assignment', () => {
     expect(plan.filter((item) => item.stage === 'T1')).toHaveLength(2)
     expect(plan.filter((item) => item.stage === 'T2')).toHaveLength(2)
     expect(plan.filter((item) => item.stage === 'T3')).toHaveLength(2)
-    const groups = new Set(plan.map((item) => images.find((image) => image.image_id === item.image_id)?.group))
-    expect(groups.size).toBe(4)
+    expect(plan.map((item) => item.block)).toEqual([
+      'baseline',
+      'early',
+      'early',
+      'middle',
+      'middle',
+      'transfer',
+      'transfer',
+    ])
+  })
+
+  it('gives control participants T0×1 T1×4 T3×2 and no T2', () => {
+    const plan = assignImages(images, 'P002')
+    expect(plan).toHaveLength(7)
+    expect(new Set(plan.map((item) => item.image_id)).size).toBe(7)
+    expect(plan.filter((item) => item.stage === 'T0')).toHaveLength(1)
+    expect(plan.filter((item) => item.stage === 'T1')).toHaveLength(4)
+    expect(plan.filter((item) => item.stage === 'T2')).toHaveLength(0)
+    expect(plan.filter((item) => item.stage === 'T3')).toHaveLength(2)
+    expect(plan.filter((item) => item.block === 'early')).toHaveLength(2)
+    expect(plan.filter((item) => item.block === 'middle')).toHaveLength(2)
   })
 
   it('rotates composition patterns', () => {
@@ -38,11 +70,18 @@ describe('stratified 7-task assignment', () => {
 
   it('is deterministic for a participant id', () => {
     expect(assignImages(images, 'P007')).toEqual(assignImages(images, 'P007'))
+    expect(assignImages(images, 'P008')).toEqual(assignImages(images, 'P008'))
   })
 
-  it('short plan keeps one of each stage', () => {
-    const plan = shortPlan(assignImages(images, 'P002'))
-    expect(plan.map((item) => item.stage).sort()).toEqual(['T0', 'T1', 'T2', 'T3'])
+  it('short plan keeps the group’s key stages', () => {
+    expect(shortPlan(assignImages(images, 'P001')).map((item) => item.stage)).toEqual(['T0', 'T1', 'T2', 'T3'])
+    expect(shortPlan(assignImages(images, 'P002')).map((item) => item.stage)).toEqual(['T0', 'T1', 'T1', 'T3'])
+    expect(shortPlan(assignImages(images, 'P002')).map((item) => item.block)).toEqual([
+      'baseline',
+      'early',
+      'middle',
+      'transfer',
+    ])
   })
 
   it('exposes three rotation patterns', () => {

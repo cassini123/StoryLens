@@ -8,16 +8,19 @@ const zh = {
   observeT0:
     '请观察这张图，用你自己的语言描述你从这个画面中读到的视觉信息。你可以描述人物、空间、位置关系、构图、镜头、动作或氛围。没有标准答案，也不需要使用专业术语。',
   observeAdjust:
-    '这是一张你目前在 AI 生成过程中得到的画面。请观察当前结果，并用自己的语言描述：你希望如何调整这个画面，使它更接近你想表达的效果。没有标准答案，也不需要使用专业术语。',
+    '请描述你希望 AI 生成的画面。生成结果出现后，请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。没有标准答案，也不需要使用专业术语。',
   observe:
-    '这是一张你目前在 AI 生成过程中得到的画面。请观察当前结果，并用自己的语言描述：你希望如何调整这个画面，使它更接近你想表达的效果。没有标准答案，也不需要使用专业术语。',
+    '请描述你希望 AI 生成的画面。生成结果出现后，请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。没有标准答案，也不需要使用专业术语。',
+  observeT3:
+    '请描述你希望 AI 生成的画面。生成结果出现后，请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。',
   refine:
     '请看生成结果。如果还想调整，请继续改你的描述。没有标准答案，也不需要使用专业术语。',
+  refineT3: '请看生成结果。请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。',
   generating: '正在根据你的描述生成画面，请稍候。',
   viewImage: '这是根据你的描述生成的对照图，用来帮你继续调整，不是评分。',
   introduction:
     '接下来你会看到几张静帧。每张图都是生成过程中的一个当前结果。请用自己的语言描述你看到的内容，或你希望如何调整。没有标准答案，也不需要使用专业术语。',
-  introCount: '一共 7 张图：T0 × 1，T1 × 2，T2 × 2，T3 × 2。',
+  introCount: '一共 7 张图。',
   setupTitle: '填写信息',
   setupLead: '开始一场新的实验。请不要重复使用已经做过的编号。',
   participantId: '被试编号',
@@ -42,9 +45,10 @@ const zh = {
   currentImage: '当前画面',
   sketch: '草图',
   generated: 'AI 生成',
-  aiInterpretation: '系统根据草图写出的描述',
-  autoPromptHint: '系统根据草图自动生成。请先阅读，再在右侧改成你自己的话。两栏不会互相覆盖。',
+  aiInterpretation: 'AI 对你草图变化的文字描述',
+  autoPromptHint: '这段话只根据草图生成，供你对照阅读。它不会直接拿去生成，也不会覆盖你自己写的描述。',
   autoPromptEmpty: '改动草图后，这里会出现一段根据草图写出的描述。',
+  userPrompt: '你可以修改的生成描述',
   description: '你的描述',
   submit: '提交',
   generate: '生成',
@@ -81,7 +85,7 @@ const zh = {
   apiMissing: '即梦接口尚未配置。',
   homeLead: '这是一项关于人们如何向生成式图像模型表达画面意图的实验。',
   homeBody:
-    '每位被试完成 7 张图。当前画面是生成过程中的一个结果。你需要描述希望如何调整。部分题目会提供可编辑草图，系统会把草图转成一段描述，你再改写成自己的话后生成。生成图只作对照，不是评分。',
+    '每位被试完成 7 张图。请根据当前画面写下你希望如何调整。生成图只作对照，不是评分。',
   apiChecking: '正在检查即梦接口…',
   apiReady: '即梦接口已连接',
   apiHint: '请在 Vercel Production 设置 JIMENG_ACCESS_KEY 与 JIMENG_SECRET_KEY，然后 Redeploy。',
@@ -99,16 +103,20 @@ const en: Copy = {
   observeT0:
     'Look at this picture. In your own words, describe the visual information you read from the frame. You can mention people, space, positions, composition, the camera, action, or atmosphere. There is no single correct answer, and you do not need professional terms.',
   observeAdjust:
-    'This is a picture you currently have from an AI generation process. Look at this result and, in your own words, describe how you would like to adjust it so it is closer to what you want. There is no single correct answer, and you do not need professional terms.',
+    'Describe the picture you want the AI to generate. After the result appears, look at how it differs from what you wanted, and revise your description so the next generation is closer. There is no single correct answer, and you do not need professional terms.',
   observe:
-    'This is a picture you currently have from an AI generation process. Look at this result and, in your own words, describe how you would like to adjust it so it is closer to what you want. There is no single correct answer, and you do not need professional terms.',
+    'Describe the picture you want the AI to generate. After the result appears, look at how it differs from what you wanted, and revise your description so the next generation is closer. There is no single correct answer, and you do not need professional terms.',
+  observeT3:
+    'Describe the picture you want the AI to generate. After the result appears, look at how it differs from what you wanted, and revise your description so the next generation is closer.',
   refine:
     'Look at the generated result. If you want to adjust it, keep editing your description. There is no single correct answer, and you do not need professional terms.',
+  refineT3:
+    'Look at the generated result. Notice how it differs from what you wanted, and revise your description so the next generation is closer.',
   generating: 'Generating an image from your description. Please wait.',
   viewImage: 'This is a comparison image generated from your description. Use it to keep adjusting — it is not a score.',
   introduction:
     'You will see a series of still images. Each one is a current result from a generation process. In your own words, describe what you see, or how you would like to adjust it. There is no single correct answer, and you do not need professional terms.',
-  introCount: 'You will complete 7 pictures: T0 × 1, T1 × 2, T2 × 2, T3 × 2.',
+  introCount: 'You will complete 7 pictures.',
   setupTitle: 'Participant setup',
   setupLead: 'Start a new session. Do not reuse a participant ID that has already been used.',
   participantId: 'Participant ID',
@@ -133,9 +141,10 @@ const en: Copy = {
   currentImage: 'Current image',
   sketch: 'Sketch',
   generated: 'AI generated',
-  aiInterpretation: 'AI interpretation',
-  autoPromptHint: 'The system wrote this from your sketch. Read it first, then edit your own wording on the right. The two texts are saved separately.',
+  aiInterpretation: 'AI wording of the changes in your sketch',
+  autoPromptHint: 'This wording comes from the sketch only. It is for you to read. It is not sent to generation, and it will not overwrite your description.',
   autoPromptEmpty: 'After you change the sketch, a description written from the sketch appears here.',
+  userPrompt: 'Description you can edit for generation',
   description: 'Your description',
   submit: 'Submit',
   generate: 'Generate',
@@ -172,7 +181,7 @@ const en: Copy = {
   apiMissing: 'Jimeng API is not configured on this deployment.',
   homeLead: 'A study of how people express intended changes to a generated image.',
   homeBody:
-    'Each participant completes 7 pictures. The current image is a result in an AI generation process. You describe how you want to adjust it. Some tasks include an editable sketch; the system turns the sketch into wording, then you revise that wording before generating. Generated images are for comparison, not scoring.',
+    'Each participant completes 7 pictures. Describe how you want to adjust the current image. Generated images are for comparison, not scoring.',
   apiChecking: 'Checking Jimeng API…',
   apiReady: 'Jimeng API connected',
   apiHint: 'Vercel Production must define JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY, then Redeploy.',

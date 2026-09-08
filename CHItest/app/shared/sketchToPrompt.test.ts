@@ -33,6 +33,7 @@ describe('sceneToAutoPrompt', () => {
     expect(text).toMatch(/人物/)
     expect(text).toMatch(/摄影机/)
     expect(text).not.toMatch(/Over-the-shoulder|Dutch angle|cinematic/i)
+    expect(sceneToAutoPrompt.length).toBeLessThanOrEqual(3)
   })
 
   it('mentions increased distance when people move farther apart', () => {
