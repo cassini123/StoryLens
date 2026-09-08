@@ -3,7 +3,7 @@
   "outputDirectory": ".vercel-dist",
   "installCommand": "cd CHItest && npm ci",
   "framework": null,
-  "trailingSlash": false,
+  "trailingSlash": true,
   "regions": ["hnd1"],
   "functions": {
     "api/jimeng.js": {
@@ -11,7 +11,6 @@
     }
   },
   "redirects": [
-    { "source": "/chitest", "destination": "/chitest/", "permanent": false },
     { "source": "/CHItest", "destination": "/chitest/", "permanent": false },
     { "source": "/CHItest/", "destination": "/chitest/", "permanent": false },
     { "source": "/CHItest/:path*", "destination": "/chitest/:path*", "permanent": false }
