@@ -8,6 +8,9 @@
   "functions": {
     "api/jimeng.js": {
       "maxDuration": 30
+    },
+    "api/chitest-session.js": {
+      "maxDuration": 30
     }
   },
   "redirects": [
@@ -16,6 +19,7 @@
     { "source": "/CHItest/:path*", "destination": "/chitest/:path*", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/api/jimeng/", "destination": "/api/jimeng" }
+    { "source": "/api/jimeng/", "destination": "/api/jimeng" },
+    { "source": "/api/chitest-session/", "destination": "/api/chitest-session" }
   ]
 }

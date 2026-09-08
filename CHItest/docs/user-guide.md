@@ -23,7 +23,14 @@ npm run dev
 | `#/coding` | 研究者按 active dimensions 编码；主指标 P_norm |
 | `#/export` | event_log / auto_prompts / practice_control 等 |
 
-数据在当前浏览器。存储键 `chitest.store.v6`，旧进度不会自动接上。
+数据仍会先写在当前浏览器（`chitest.store.v6`）。被试在最后问卷点「提交」后，整场 JSON 会上传到服务器；每完成一题也会先存一份 checkpoint。
+
+查看：
+
+- 本机：`CHItest/data/participants/received/`
+- 线上：`#/export` 填 `CHITEST_VIEW_TOKEN`，或打开 `https://www.2027mitgo.top/api/chitest-session/?token=你的口令`
+
+线上必须在 Vercel Production 设置 `CHITEST_GITHUB_TOKEN`（gist 权限）和 `CHITEST_VIEW_TOKEN`，然后 Redeploy。否则提交会失败，被试仍可下载备份 JSON。
 
 ---
 
@@ -55,3 +62,48 @@ npm run dev
 ## 4. 生图 API
 
 `POST /api/jimeng/`。所有生成轮次：当前图 + 用户最终描述。T2 草图只用于自动语言，不作为条件图。
+
+---
+
+## 5. 被试 JSON 上传
+
+被试在 `#/participant` 做到问卷并点「提交」后，浏览器会把与下载文件相同的整场 JSON `POST` 到 `/api/chitest-session/`（含 event_log、文本版本、草图快照、问卷等）。每完成一题会先传一份 `checkpoint`。
+
+研究者查看：
+
+1. `#/export` → 填查看口令 → 从服务器加载
+2. `https://www.2027mitgo.top/api/chitest-session/?token=口令` 打开列表，点进即是完整 JSON
+
+本机 `npm run dev` 时文件写在 `CHItest/data/participants/received/`，不需要 token。
+
+实验网站 `www.2027mitgo.top` 在 Vercel，不是腾讯云轻量服务器 `101.34.248.192`。要 SSH 进轻量服务器后用 `ls` 看到 JSON，按下面做。
+
+### 5.1 登录轻量服务器
+
+控制台「登录」里用户名填 `ubuntu` 是对的。密码栏必须填这台机的密码（或点下拉选托管密码）。空着点登录会一直停在「正在登录…」。
+
+没有密码时：选 **免密连接 (TAT)**，或点 **忘记密码?** 在控制台重置后再 SSH。也可用 **VNC登录**。防火墙需放行 22。
+
+### 5.2 在轻量服务器上收 JSON
+
+SSH 进去后（把仓库克隆到这台机，或至少拷 `api/` 与 `scripts/chitest-lighthouse-receiver.js`）：
+
+```bash
+mkdir -p /home/ubuntu/chitest-sessions
+export CHITEST_VIEW_TOKEN='你自己定的口令'
+export CHITEST_DATA_DIR=/home/ubuntu/chitest-sessions
+node scripts/chitest-lighthouse-receiver.js
+```
+
+防火墙放行 **TCP 8787**。然后在 Vercel Production 设置：
+
+- `CHITEST_FORWARD_URL`=`http://101.34.248.192:8787`
+- `CHITEST_VIEW_TOKEN`=与上面相同的口令
+
+保存后 Redeploy。被试提交后，Vercel 把 JSON 转到这台机：
+
+```bash
+ls -l /home/ubuntu/chitest-sessions
+```
+
+没有接收进程或没开 8787 时，结束页会提示上传失败，被试仍可下载备份 JSON。也可改用 `CHITEST_GITHUB_TOKEN`（gist）作后备。

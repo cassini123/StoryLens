@@ -19,6 +19,7 @@ import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
 import { buildTaskPlan, groupForParticipant, nextParticipantId, patternForParticipant } from '../shared/schedule'
 import { pastedFromAuto } from '../shared/textCompare'
 import { downloadParticipantPacket } from '../shared/export'
+import { uploadParticipantPacket } from '../shared/upload'
 import { abandonSession, getActiveSession, getSession, loadStore, upsertSession } from '../shared/store'
 import { nowIso } from '../shared/time'
 import type {
@@ -256,10 +257,12 @@ function ParticipantFlow({
   const changeTimer = useRef<number | null>(null)
   const sketchTimer = useRef<number | null>(null)
 
-  function update(mutator: (next: Session) => void) {
+  function update(mutator: (next: Session) => void): Session {
     const next = structuredClone(session)
     mutator(next)
-    setSession(persist(next))
+    const saved = persist(next)
+    setSession(saved)
+    return saved
   }
 
   useEffect(() => {
@@ -324,27 +327,7 @@ function ParticipantFlow({
   }
 
   if (session.runtime.step === 'complete') {
-    return (
-      <SessionChrome
-        session={session}
-        title={t.completeTitle}
-        extra={session.participant_id}
-        onSessionChange={setSession}
-      >
-        <main className="page">
-          <p className="lead">{t.completeLead}</p>
-          <div className="stack">
-            <Button fill onClick={() => void downloadParticipantPacket(session)}>
-              {t.downloadData}
-            </Button>
-          </div>
-        </main>
-        <FooterBar style={{ justifyContent: 'space-between' }}>
-          <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
-          <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
-        </FooterBar>
-      </SessionChrome>
-    )
+    return <CompleteScreen session={session} setSession={setSession} />
   }
 
   if (!task) {
@@ -454,7 +437,7 @@ function ParticipantFlow({
   }
 
   function finishTask() {
-    update((next) => {
+    const next = update((next) => {
       const active = currentTask(next)
       if (!active) return
       if (next.runtime.sketch_editing) {
@@ -483,6 +466,7 @@ function ParticipantFlow({
       }
       prepareTask(next, nextIndex)
     })
+    void uploadParticipantPacket(next, 'checkpoint')
   }
 
   async function runGenerate() {
@@ -835,6 +819,76 @@ function GeneratedImage({ trialId }: { trialId: string }) {
   }, [trialId])
   if (!src) return <div className="empty-sketch">{t.loadingGenerated}</div>
   return <img className="generated" src={src} alt="" />
+}
+
+function CompleteScreen({
+  session,
+  setSession,
+}: {
+  session: Session
+  setSession: (session: Session | null) => void
+}) {
+  const { t, format } = useI18n()
+  const [status, setStatus] = useState<'pending' | 'ok' | 'fail'>('pending')
+  const [error, setError] = useState('')
+
+  async function upload() {
+    setStatus('pending')
+    setError('')
+    const result = await uploadParticipantPacket(session, 'final')
+    if (result.ok) {
+      setStatus('ok')
+      return
+    }
+    setStatus('fail')
+    setError(result.error || '')
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    void uploadParticipantPacket(session, 'final').then((result) => {
+      if (cancelled) return
+      if (result.ok) {
+        setStatus('ok')
+        return
+      }
+      setStatus('fail')
+      setError(result.error || '')
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [session, session.session_id, session.completed_at])
+
+  return (
+    <SessionChrome
+      session={session}
+      title={t.completeTitle}
+      extra={session.participant_id}
+      onSessionChange={setSession}
+    >
+      <main className="page">
+        <p className="lead">{t.completeLead}</p>
+        <p className={status === 'fail' ? 'api-status bad' : status === 'ok' ? 'api-status ok' : 'api-status'}>
+          {status === 'pending'
+            ? t.uploadPending
+            : status === 'ok'
+              ? t.uploadOk
+              : format(t.uploadFail, { error })}
+        </p>
+        <div className="stack">
+          <Button fill onClick={() => void downloadParticipantPacket(session)}>
+            {t.downloadData}
+          </Button>
+          {status === 'fail' ? <Button onClick={() => void upload()}>{t.uploadRetry}</Button> : null}
+        </div>
+      </main>
+      <FooterBar style={{ justifyContent: 'space-between' }}>
+        <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
+        <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
+      </FooterBar>
+    </SessionChrome>
+  )
 }
 
 function Questionnaire({
