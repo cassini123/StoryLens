@@ -168,7 +168,7 @@ textarea:disabled {
 .toast {
   position: fixed;
   right: 16px;
-  top: 16px;
+  top: 58px;
   z-index: 60;
   background: #000;
   color: #fff;
