@@ -33,7 +33,8 @@ import type {
   TextType,
 } from '../shared/types'
 import { MAX_ROUNDS } from '../shared/types'
-import { Button, Field, FooterBar, Likert, Shell } from '../shared/ui'
+import { SessionChrome } from '../shared/SessionChrome'
+import { Button, Field, FooterBar, Likert } from '../shared/ui'
 
 const emptyDemo: Demographics = {
   cinematography_experience: '',
@@ -111,7 +112,7 @@ export function ParticipantApp() {
       demo.visual_experience !== '' &&
       demo.ai_familiarity !== ''
     return (
-      <Shell title="Participant setup" subtitle={STUDY_TITLE}>
+      <SessionChrome title="Participant setup" extra={STUDY_TITLE} session={null}>
         <main className="page">
           <p className="lead">Start a new session. Do not reuse a participant ID.</p>
           {health && !health.credentials ? (
@@ -225,7 +226,7 @@ export function ParticipantApp() {
             Continue
           </Button>
         </FooterBar>
-      </Shell>
+      </SessionChrome>
     )
   }
 
@@ -270,7 +271,12 @@ function ParticipantFlow({
 
   if (session.runtime.step === 'intro') {
     return (
-      <Shell title="Introduction" meta={session.participant_id}>
+      <SessionChrome
+        session={session}
+        title="Introduction"
+        extra={session.participant_id}
+        onSessionChange={setSession}
+      >
         <main className="page">
           <p className="lead">{experiment.prompts.introduction}</p>
           <p>You will complete 7 pictures: T0 × 1, T1 × 2, T2 × 2, T3 × 2.</p>
@@ -281,7 +287,7 @@ function ParticipantFlow({
             Continue
           </Button>
         </FooterBar>
-      </Shell>
+      </SessionChrome>
     )
   }
 
@@ -289,6 +295,7 @@ function ParticipantFlow({
     return (
       <Questionnaire
         session={session}
+        onSessionChange={setSession}
         onChange={(subjective) => update((next) => { next.subjective = subjective })}
         onRestart={() => confirmRestart(session, setSession)}
         onSubmit={() =>
@@ -304,7 +311,12 @@ function ParticipantFlow({
 
   if (session.runtime.step === 'complete') {
     return (
-      <Shell title="Session complete" meta={session.participant_id}>
+      <SessionChrome
+        session={session}
+        title="Session complete"
+        extra={session.participant_id}
+        onSessionChange={setSession}
+      >
         <main className="page">
           <p className="lead">Thank you. Please download your session data and give the file to the experimenter.</p>
           <div className="stack">
@@ -317,17 +329,17 @@ function ParticipantFlow({
           <Button onClick={() => confirmRestart(session, setSession)}>Start over</Button>
           <Button onClick={() => (window.location.hash = '#/')}>Home</Button>
         </FooterBar>
-      </Shell>
+      </SessionChrome>
     )
   }
 
   if (!task) {
     return (
-      <Shell title="Error">
+      <SessionChrome session={session} title="Error" onSessionChange={setSession}>
         <main className="page">
           <p>No active task.</p>
         </main>
-      </Shell>
+      </SessionChrome>
     )
   }
 
@@ -540,10 +552,11 @@ function ParticipantFlow({
   const prompt = session.runtime.step === 'review' ? experiment.prompts.refine : experiment.prompts.observe
 
   return (
-    <Shell
+    <SessionChrome
+      session={session}
       title={`${task.stage} · ${session.runtime.task_index + 1}/${planLength}`}
-      subtitle={generating ? experiment.prompts.generating : undefined}
-      meta={session.participant_id}
+      extra={generating ? experiment.prompts.generating : session.participant_id}
+      onSessionChange={setSession}
     >
       {generating ? (
         <main className="page">
@@ -599,7 +612,7 @@ function ParticipantFlow({
           ) : null}
         </div>
       </FooterBar>
-    </Shell>
+    </SessionChrome>
   )
 }
 
@@ -685,11 +698,13 @@ function Questionnaire({
   onChange,
   onRestart,
   onSubmit,
+  onSessionChange,
 }: {
   session: Session
   onChange: (value: SubjectiveRatings) => void
   onRestart: () => void
   onSubmit: () => void
+  onSessionChange: (session: Session) => void
 }) {
   const value = session.subjective ?? {
     perceived_control: null,
@@ -703,7 +718,12 @@ function Questionnaire({
     value.cognitive_effort &&
     value.confidence
   return (
-    <Shell title="Short questionnaire" meta={session.participant_id}>
+    <SessionChrome
+      session={session}
+      title="Short questionnaire"
+      extra={session.participant_id}
+      onSessionChange={onSessionChange}
+    >
       <main className="page">
         <p className="lead">These questions are secondary. Answer based on the session as a whole.</p>
         <Likert
@@ -737,6 +757,6 @@ function Questionnaire({
           Submit
         </Button>
       </FooterBar>
-    </Shell>
+    </SessionChrome>
   )
 }

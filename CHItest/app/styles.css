@@ -50,6 +50,131 @@ textarea:disabled {
   border-bottom: 2px solid #000;
 }
 
+.session-topbar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 16px 12px;
+}
+
+.topbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.stage-bar {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.stage-seg {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 48px;
+}
+
+.stage-seg-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.stage-seg.current .stage-seg-label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.stage-slots {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+}
+
+.slot {
+  flex: 1;
+  min-width: 14px;
+  border: 1.5px solid #000;
+  background: #fff;
+}
+
+.slot.done {
+  background: #000;
+}
+
+.slot.current {
+  background: #ffe600;
+}
+
+.progress-pct {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1;
+  min-width: 3.4em;
+  text-align: right;
+  padding-bottom: 0;
+}
+
+.settings-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.settings-btn {
+  min-width: 72px;
+}
+
+.settings-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 132px;
+  background: #fff;
+  border: 2px solid #000;
+}
+
+.settings-menu button {
+  border: 0;
+  border-bottom: 1px solid #000;
+  text-align: left;
+  padding: 8px 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.settings-menu button:last-child {
+  border-bottom: 0;
+}
+
+.settings-menu button:hover:not(:disabled) {
+  background: #000;
+  color: #fff;
+}
+
+.toast {
+  position: fixed;
+  right: 16px;
+  bottom: 88px;
+  z-index: 50;
+  background: #000;
+  color: #fff;
+  padding: 10px 14px;
+}
+
 .brand {
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -155,7 +280,7 @@ textarea {
 .workspace {
   display: grid;
   grid-template-columns: 1fr 1.4fr 1fr;
-  min-height: calc(100vh - 120px);
+  min-height: calc(100vh - 168px);
 }
 
 .workspace-t0 {
@@ -357,5 +482,13 @@ textarea {
   .materials {
     border-right: 0;
     border-bottom: 1px solid #000;
+  }
+
+  .progress-row {
+    flex-wrap: wrap;
+  }
+
+  .progress-pct {
+    min-width: auto;
   }
 }

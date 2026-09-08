@@ -23,7 +23,7 @@ npm run dev
 | `#/coding` | 研究者六维编码（0–18） |
 | `#/export` | event_log / intents / generations / snapshots 等 |
 
-数据在**当前浏览器**。正式实验结束立刻从 Export 下载。
+数据在**当前浏览器**。顶栏进度条显示 T0 / T1 / T2 / T3 与完成百分比。右上角 **设置**：保存（写入本机）、刷新、退出（回首页，进度保留）、导出。正式实验结束立刻从 Export 或设置里下载。
 
 ---
 
