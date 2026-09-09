@@ -74,6 +74,48 @@ function signingKey(secretKey, dateStamp) {
   return sign(kService, 'request')
 }
 
+const RETRYABLE_CODES = new Set([50200, 50411, 50413, 50429, 50430, 50500])
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isRetryableNetwork(error) {
+  const msg = String((error && error.message) || error || '')
+  return /timed out|timeout|ECONNRESET|ECONNREFUSED|ENOTFOUND|EPIPE|ETIMEDOUT|socket hang up|429|502|503|504/i.test(
+    msg,
+  )
+}
+
+async function jimengRequestRetry(action, bodyParams, accessKey, secretKey, attempts = 3) {
+  let lastError
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      const result = await jimengRequest(action, bodyParams, accessKey, secretKey)
+      if (RETRYABLE_CODES.has(Number(result.code)) && i < attempts - 1) {
+        await sleep(400 * 2 ** i)
+        continue
+      }
+      return result
+    } catch (error) {
+      lastError = error
+      if (i < attempts - 1 && isRetryableNetwork(error)) {
+        await sleep(400 * 2 ** i)
+        continue
+      }
+      throw error
+    }
+  }
+  throw lastError
+}
+
+function rateLimitError(message) {
+  const err = new Error(message)
+  err.statusCode = 429
+  err.retryable = true
+  return err
+}
+
 function jimengRequest(action, bodyParams, accessKey, secretKey) {
   const now = new Date()
   const currentDate = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z')
@@ -113,7 +155,7 @@ function jimengRequest(action, bodyParams, accessKey, secretKey) {
           'X-Content-Sha256': payloadHash,
           'Content-Length': Buffer.byteLength(reqBody),
         },
-        timeout: 25000,
+        timeout: 20000,
       },
       (res) => {
         const chunks = []
@@ -145,6 +187,7 @@ async function submitTask(prompt, width = 1664, height = 936, images = []) {
       'Jimeng credentials are not configured. Set JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY on the Vercel project for Production + Preview, then Redeploy.',
     )
     err.statusCode = 503
+    err.retryable = false
     throw err
   }
   let w = Number(width) || 1664
@@ -164,14 +207,17 @@ async function submitTask(prompt, width = 1664, height = 936, images = []) {
     })
     .filter(Boolean)
   if (binaries.length) body.binary_data_base64 = binaries
-  const result = await jimengRequest(
+  const result = await jimengRequestRetry(
     'CVSync2AsyncSubmitTask',
     body,
     accessKey,
     secretKey,
+    2,
   )
   if (result.code !== 10000) {
-    throw new Error(result.message || JSON.stringify(result).slice(0, 400))
+    const message = result.message || JSON.stringify(result).slice(0, 400)
+    if (RETRYABLE_CODES.has(Number(result.code))) throw rateLimitError(message)
+    throw new Error(message)
   }
   return { task_id: result.data.task_id }
 }
@@ -182,12 +228,16 @@ function guessFormat(buf) {
   return 'png'
 }
 
-function download(url) {
+function downloadOnce(url) {
   return new Promise((resolve, reject) => {
     https
       .get(url, (res) => {
         if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          download(res.headers.location).then(resolve, reject)
+          downloadOnce(res.headers.location).then(resolve, reject)
+          return
+        }
+        if (res.statusCode === 429 || res.statusCode >= 500) {
+          reject(new Error(`Image download HTTP ${res.statusCode}`))
           return
         }
         const chunks = []
@@ -196,6 +246,23 @@ function download(url) {
       })
       .on('error', reject)
   })
+}
+
+async function download(url) {
+  let lastError
+  for (let i = 0; i < 3; i += 1) {
+    try {
+      return await downloadOnce(url)
+    } catch (error) {
+      lastError = error
+      if (i < 2 && isRetryableNetwork(error)) {
+        await sleep(400 * 2 ** i)
+        continue
+      }
+      throw error
+    }
+  }
+  throw lastError
 }
 
 async function extractImage(result) {
@@ -222,16 +289,21 @@ async function pollTask(taskId) {
       'Jimeng credentials are not configured. Set JIMENG_ACCESS_KEY and JIMENG_SECRET_KEY on the Vercel project for Production + Preview, then Redeploy.',
     )
     err.statusCode = 503
+    err.retryable = false
     throw err
   }
-  const result = await jimengRequest(
+  const result = await jimengRequestRetry(
     'CVSync2AsyncGetResult',
     { req_key: REQ_KEY, task_id: taskId },
     accessKey,
     secretKey,
   )
   if (result.code !== 10000) {
-    return { status: 'error', error: result.message || JSON.stringify(result).slice(0, 400) }
+    const error = result.message || JSON.stringify(result).slice(0, 400)
+    if (RETRYABLE_CODES.has(Number(result.code))) {
+      return { status: 'generating', retryable: true, error }
+    }
+    return { status: 'error', error }
   }
   const status = (result.data && result.data.status) || ''
   if (status === 'done') {

@@ -61,7 +61,7 @@ export async function composeConditioning(originalSrc: string, sketchSvg?: strin
     const sketchUrl = await svgToPngDataUrl(sketchSvg, 1024, 1024)
     const sketch = await loadImage(sketchUrl)
     ctx.drawImage(sketch, 1024, 0, 1024, 1024)
-    return canvas.toDataURL('image/jpeg', 0.92)
+    return canvas.toDataURL('image/jpeg', 0.78)
   }
   canvas.width = 1664
   canvas.height = 936
@@ -70,5 +70,5 @@ export async function composeConditioning(originalSrc: string, sketchSvg?: strin
   ctx.fillStyle = '#fff'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.drawImage(original, 0, 0, canvas.width, canvas.height)
-  return canvas.toDataURL('image/jpeg', 0.92)
+  return canvas.toDataURL('image/jpeg', 0.78)
 }

@@ -57,10 +57,21 @@ module.exports = async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({ status: 'submitted', ...result }))
   } catch (error) {
-    res.statusCode = error.statusCode || 500
+    const retryable =
+      error.retryable === true ||
+      error.statusCode === 429 ||
+      (error.retryable !== false &&
+        /timeout|429|502|504|qps|rate.?limit|concurren/i.test(String(error.message || '')))
+    res.statusCode = error.statusCode || (retryable ? 503 : 500)
     res.setHeader('Content-Type', 'application/json')
-    res.end(JSON.stringify({ error: error.message || String(error), ...credentialStatus() }))
+    res.end(
+      JSON.stringify({
+        error: error.message || String(error),
+        retryable,
+        ...credentialStatus(),
+      }),
+    )
   }
 }
 
-module.exports.config = { maxDuration: 30 }
+module.exports.config = { maxDuration: 60 }

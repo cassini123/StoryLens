@@ -7,7 +7,7 @@
   "regions": ["hnd1"],
   "functions": {
     "api/jimeng.js": {
-      "maxDuration": 30
+      "maxDuration": 60
     }
   },
   "redirects": [

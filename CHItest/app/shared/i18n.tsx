@@ -16,7 +16,9 @@ const zh = {
   refine:
     '请看生成结果。如果还想调整，请继续改你的描述。',
   refineT3: '请看生成结果。请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。',
-  generating: '正在根据你的描述生成画面，请稍候。',
+  generating: '正在根据你的描述生成画面，请稍候。人多时可能要等一会儿。',
+  generateBusy: '现在同时生成的人比较多，请再点一次「生成」。描述不用改，也不会占用修改轮次。',
+  generateFailed: '这次没有生成成功，请再点一次「生成」。不会占用修改轮次。',
   viewImage: '这是根据你的描述生成的对照图，用来帮你继续调整，不是评分。',
   introduction:
     '这是当前的视觉状态，描述你认为下一个镜头里会发生的内容。生成结果出现后，请观察它与自己想表达的效果有什么差异，并再次修改你的描述，让下一次生成更接近你的想法。没有设定标准答案，自由发挥！（我们提供<=3的修改轮次）',
@@ -134,7 +136,9 @@ const en: Copy = {
     'Look at the generated result. If you want to adjust it, keep editing your description.',
   refineT3:
     'Look at the generated result. Notice how it differs from what you wanted, and revise your description so the next generation is closer.',
-  generating: 'Generating an image from your description. Please wait.',
+  generating: 'Generating an image from your description. Please wait. This can take longer when many people generate at once.',
+  generateBusy: 'The generator is busy. Click Generate again. You do not need to change your description, and this does not use up a revision round.',
+  generateFailed: 'That generation did not finish. Click Generate again. This does not use up a revision round.',
   viewImage: 'This is a comparison image generated from your description. Use it to keep adjusting — it is not a score.',
   introduction:
     'This is the current visual state. Describe what you think happens in the next shot. After the result appears, look at how it differs from what you wanted to express, and revise your description again so the next generation is closer. There is no set correct answer — feel free to improvise! (You have up to 3 revision rounds.)',

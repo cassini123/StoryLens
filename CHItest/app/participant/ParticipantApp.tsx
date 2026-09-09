@@ -23,6 +23,7 @@ import {
 } from '../shared/logging'
 import { composeConditioning } from '../shared/media'
 import { resolveConditioningImage } from '../shared/generationChain'
+import { publicJimengError } from '../shared/retry'
 import { canSatisfyTask, t2NeedsGenerationAfterInterpret } from '../shared/protocol'
 import { generateSketch } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
@@ -666,22 +667,31 @@ function ParticipantFlow({
       error: result.meta.error,
       meta: result.meta,
     })
-    generation.output_image_id = generation.generation_id
-    await saveGeneratedImage(generation.generation_id, result.data_url)
-    live.runtime.last_output_image_id = generation.generation_id
-    live.runtime.generate_error = result.meta.error
-    live.runtime.step = 'review'
-    live.runtime.user_prompt_started = false
-    live.runtime.text_started = false
-    active.rounds.push({
-      round: live.runtime.round,
-      text_version_id: active.final_text_version_id,
-      generation_id: generation.generation_id,
-      sketch_snapshot_before_id: researchSnap?.snapshot_id || '',
-      sketch_snapshot_after_id: researchSnap?.snapshot_id || '',
-      started_at: started,
-      ended_at: ended,
-    })
+    if (success) {
+      generation.output_image_id = generation.generation_id
+      await saveGeneratedImage(generation.generation_id, result.data_url)
+      live.runtime.last_output_image_id = generation.generation_id
+      live.runtime.generate_error = ''
+      live.runtime.step = 'review'
+      live.runtime.user_prompt_started = false
+      live.runtime.text_started = false
+      active.rounds.push({
+        round: live.runtime.round,
+        text_version_id: active.final_text_version_id,
+        generation_id: generation.generation_id,
+        sketch_snapshot_before_id: researchSnap?.snapshot_id || '',
+        sketch_snapshot_after_id: researchSnap?.snapshot_id || '',
+        started_at: started,
+        ended_at: ended,
+      })
+      openResultView(live)
+    } else {
+      live.runtime.round = Math.max(0, nextRound - 1)
+      active.round = live.runtime.round
+      live.runtime.generate_error =
+        publicJimengError(result.meta.error || '') === 'busy' ? t.generateBusy : t.generateFailed
+      live.runtime.step = live.runtime.last_output_image_id ? 'review' : 'describe'
+    }
     logEvent(live, 'generation_end', {
       generation_id: generation.generation_id,
       success,
@@ -691,9 +701,11 @@ function ParticipantFlow({
       input_image_id: chain.input_image_id,
       previous_generation_id: chain.previous_generation_id,
     })
-    logEvent(live, success ? 'generation_success' : 'generation_failure', { error: result.meta.error })
-    logEvent(live, 'round_end', { round: live.runtime.round })
-    openResultView(live)
+    logEvent(live, success ? 'generation_success' : 'generation_failure', {
+      error: result.meta.error,
+      round: nextRound,
+    })
+    logEvent(live, 'round_end', { round: nextRound, success })
     persist(live)
     setSession(structuredClone(live))
   }
