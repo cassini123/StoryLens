@@ -25,3 +25,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Participant export packets (prompts / images / typed IDs)
+data/participants/*.zip
+data/participants/*-packet/
