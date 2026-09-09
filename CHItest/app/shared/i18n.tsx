@@ -14,7 +14,7 @@ const zh = {
   observeT3:
     '这是当前的视觉状态，描述你认为下一个镜头里会发生的内容。生成结果出现后，请观察它与自己想表达的效果有什么差异，并再次修改你的描述，让下一次生成更接近你的想法。没有设定标准答案，自由发挥！（我们提供<=3的修改轮次）',
   refine:
-    '请看生成结果。如果还想调整，请继续改你的描述。没有标准答案，也不需要使用专业术语。',
+    '请看生成结果。如果还想调整，请继续改你的描述。',
   refineT3: '请看生成结果。请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。',
   generating: '正在根据你的描述生成画面，请稍候。',
   viewImage: '这是根据你的描述生成的对照图，用来帮你继续调整，不是评分。',
@@ -50,7 +50,6 @@ const zh = {
   interpretSketch: '生成文字解释',
   interpretSketchHint: '草图操作只会记录。只有点击这一按钮，才会根据当前草图生成一段文字解释。',
   t2SatisfyHint: '请先改草图，点击「生成文字解释」，修改描述后再生成一次，才能进入下一题。',
-  modificationGoal: '本题指定的视觉修改',
   autoPromptEmpty: '点击「生成文字解释」后，这里会出现根据当前草图写出的描述。',
   userPrompt: '你可以修改的生成描述',
   description: '你的描述',
@@ -132,7 +131,7 @@ const en: Copy = {
   observeT3:
     'This is the current visual state. Describe what you think happens in the next shot. After the result appears, look at how it differs from what you wanted to express, and revise your description again so the next generation is closer. There is no set correct answer — feel free to improvise! (You have up to 3 revision rounds.)',
   refine:
-    'Look at the generated result. If you want to adjust it, keep editing your description. There is no single correct answer, and you do not need professional terms.',
+    'Look at the generated result. If you want to adjust it, keep editing your description.',
   refineT3:
     'Look at the generated result. Notice how it differs from what you wanted, and revise your description so the next generation is closer.',
   generating: 'Generating an image from your description. Please wait.',
@@ -169,7 +168,6 @@ const en: Copy = {
   interpretSketch: 'Interpret Sketch',
   interpretSketchHint: 'Sketch edits are logged only. Auto Prompt is created only when you click this button.',
   t2SatisfyHint: 'Edit the sketch, click Interpret Sketch, revise the wording, then generate again before continuing.',
-  modificationGoal: 'Specified visual change for this picture',
   autoPromptEmpty: 'After you click Interpret Sketch, a description written from the current sketch appears here.',
   userPrompt: 'Description you can edit for generation',
   description: 'Your description',

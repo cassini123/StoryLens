@@ -1,4 +1,4 @@
-import { instructionMatchesSpec } from './stimulusTask'
+import { researcherSpecHiddenFromParticipants, specCoversPrimaryTargets } from './stimulusTask'
 import { REQUIRED_EXPORT_FILES } from './exportManifest'
 import { validateGenerationChain } from './generationChain'
 import { isSystemTextType, t2ScaffoldLoopComplete } from './protocol'
@@ -168,7 +168,13 @@ export function studyFlags(session: Session, issues: ValidationIssue[]): StudyVa
     }
     const spec = task.target_modification_specification
     const instruction = `${task.participant_instruction?.zh ?? ''}\n${task.participant_instruction?.en ?? ''}`
-    return Boolean(task.image_id) && Boolean(task.category) && Boolean(task.difficulty) && instructionMatchesSpec(instruction, spec)
+    return (
+      Boolean(task.image_id) &&
+      Boolean(task.category) &&
+      Boolean(task.difficulty) &&
+      specCoversPrimaryTargets(spec, task.primary_target) &&
+      researcherSpecHiddenFromParticipants(instruction)
+    )
   })
   const t0ok = t0.every(
     (task) =>

@@ -776,7 +776,6 @@ function ParticipantFlow({
       ) : (
         <TaskWorkspace
           image={image}
-          task={task}
           stage={task.stage}
           round={session.runtime.round}
           text={session.runtime.draft_text}
@@ -839,7 +838,6 @@ function ParticipantFlow({
 
 function TaskWorkspace({
   image,
-  task,
   stage,
   round,
   text,
@@ -859,7 +857,6 @@ function TaskWorkspace({
   onSelect,
 }: {
   image: ImageDef
-  task: TaskRun
   stage: TaskRun['stage']
   round: number
   text: string
@@ -880,8 +877,7 @@ function TaskWorkspace({
 }) {
   const columns = stage === 'T0' ? 'workspace-t0' : showSketch ? 'workspace-t2' : 'workspace-t1'
   const splitPrompt = showSketch && round >= 1
-  const { t, locale, format } = useI18n()
-  const instruction = stage === 'T0' ? '' : task.participant_instruction?.[locale] || task.participant_instruction?.zh || ''
+  const { t, format } = useI18n()
   return (
     <main className={`workspace ${columns}`}>
       <section>
@@ -931,12 +927,6 @@ function TaskWorkspace({
           </section>
           <section>
             <h2>{t.userPrompt}</h2>
-            {instruction ? (
-              <>
-                <p className="hint">{t.modificationGoal}</p>
-                <div className="modification-goal">{instruction}</div>
-              </>
-            ) : null}
             <p className="hint">{prompt}</p>
             <textarea
               value={text}
@@ -949,12 +939,6 @@ function TaskWorkspace({
       ) : (
         <section className="desc-pane">
           <h2>{t.description}</h2>
-          {instruction ? (
-            <>
-              <p className="hint">{t.modificationGoal}</p>
-              <div className="modification-goal">{instruction}</div>
-            </>
-          ) : null}
           <p className="hint">{prompt}</p>
           <textarea
             value={text}
