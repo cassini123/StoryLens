@@ -95,6 +95,7 @@ const zh = {
   progressSurvey: '问卷',
   progressDone: '完成',
   progressNotStarted: '未开始',
+  taskNavHint: '可点题目切换。卡住时可以先做下一题，或回看上一题。已保存的记录不会丢。',
   apiMissing: 'API not connected',
   homeLead: '这是一项关于人们如何向生成式图像模型表达画面意图的实验。',
   homeBody:
@@ -215,6 +216,7 @@ const en: Copy = {
   progressSurvey: 'Survey',
   progressDone: 'Done',
   progressNotStarted: 'Not started',
+  taskNavHint: 'Click a task to switch. If one is stuck, continue with the next or go back. Saved records are kept.',
   apiMissing: 'API not connected',
   homeLead: 'A study of how people express intended changes to a generated image.',
   homeBody:

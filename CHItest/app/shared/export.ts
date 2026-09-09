@@ -499,7 +499,7 @@ export function validationPayload(session: Session) {
 
 export function sessionRecoveryPayload(session: Session) {
   const resume = session.event_log.filter((item) =>
-    ['session_resume', 'session_abandon', 'browser_reload', 'visibility_hidden', 'visibility_visible', 'page_exit'].includes(
+    ['session_resume', 'session_abandon', 'browser_reload', 'visibility_hidden', 'visibility_visible', 'page_exit', 'task_navigate'].includes(
       item.event_type,
     ),
   )

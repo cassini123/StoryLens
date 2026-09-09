@@ -31,7 +31,7 @@ import { sceneToSvg } from '../shared/sketch/render'
 import { cloneScene } from '../shared/sketch/templates'
 import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
 import { assignGroup, buildTaskPlan, groupCode, isShortSession, nextParticipantId, randomPattern } from '../shared/schedule'
-import { createSessionBase, summarizeTask } from '../shared/sessionInit'
+import { createSessionBase, hydrateRuntimeForTask, stashTaskDraft, summarizeTask } from '../shared/sessionInit'
 import { markExportReadiness } from '../shared/validation'
 import { pastedFromAuto } from '../shared/textCompare'
 import { downloadParticipantPacket } from '../shared/export'
@@ -339,6 +339,7 @@ function ParticipantFlow({
         title={t.introTitle}
         extra={session.participant_id}
         onSessionChange={setSession}
+        onOpenTask={jumpToTask}
       >
         <main className="page">
           <p className="lead">{t.introduction}</p>
@@ -359,6 +360,7 @@ function ParticipantFlow({
       <Questionnaire
         session={session}
         onSessionChange={setSession}
+        onOpenTask={jumpToTask}
         onChange={(subjective) => update((next) => { next.subjective = subjective })}
         onRestart={() => confirmRestart(session, setSession, t.restartConfirm)}
         onSubmit={() =>
@@ -378,6 +380,7 @@ function ParticipantFlow({
       <SelfReport
         session={session}
         onSessionChange={setSession}
+        onOpenTask={jumpToTask}
         onRestart={() => confirmRestart(session, setSession, t.restartConfirm)}
         onChange={(selfAlignment, resultAlignment) =>
           update((next) => {
@@ -414,6 +417,7 @@ function ParticipantFlow({
         title={t.completeTitle}
         extra={session.participant_id}
         onSessionChange={setSession}
+        onOpenTask={jumpToTask}
       >
         <main className="page">
           <p className="lead">{t.completeLead}</p>
@@ -455,7 +459,7 @@ function ParticipantFlow({
     const active = next.tasks[index]
     if (!active) return
     if (active.started_at && next.event_log.some((item) => item.event_type === 'task_start' && item.task_id === active.task_id)) {
-      next.runtime.task_index = index
+      hydrateRuntimeForTask(next, index)
       return
     }
     next.runtime.task_index = index
@@ -487,6 +491,28 @@ function ParticipantFlow({
     logEvent(next, 'task_start')
     logEvent(next, `${active.stage}_task_start`)
     logEvent(next, 'image_view_start')
+  }
+
+  function jumpToTask(index: number) {
+    update((next) => {
+      if (next.runtime.step === 'generating') return
+      if (index < 0 || index >= next.tasks.length) return
+      if (index === next.runtime.task_index && next.runtime.step !== 'intro' && next.runtime.step !== 'questionnaire' && next.runtime.step !== 'complete' && next.runtime.step !== 'self_report') {
+        return
+      }
+      const fromIndex = next.runtime.task_index
+      const fromId = currentTask(next)?.task_id ?? null
+      stashTaskDraft(next)
+      closeTaskInstruments(next)
+      prepareTask(next, index)
+      const to = next.tasks[index]
+      logEvent(next, 'task_navigate', {
+        from_index: fromIndex,
+        to_index: index,
+        from_task_id: fromId,
+        to_task_id: to?.task_id ?? null,
+      })
+    })
   }
 
   function startTask(index: number) {
@@ -530,7 +556,7 @@ function ParticipantFlow({
     update((next) => {
       const active = currentTask(next)
       const scene = next.runtime.working_scene
-      if (!active || !canAttemptInterpret(next, active)) return
+      if (!active || !scene || !canAttemptInterpret(next, active)) return
       closeSketchEdit(next)
       const text = sceneToAutoPrompt(scene, locale, next.runtime.baseline_scene)
       if (!text) return
@@ -790,6 +816,8 @@ function ParticipantFlow({
       title={`${task.stage} · ${session.runtime.task_index + 1}/${planLength}`}
       extra={generating ? t.generating : session.participant_id}
       onSessionChange={setSession}
+      onOpenTask={jumpToTask}
+      taskNavDisabled={generating}
     >
       {generating ? (
         <main className="page">
@@ -990,12 +1018,14 @@ function SelfReport({
   onRestart,
   onSubmit,
   onSessionChange,
+  onOpenTask,
 }: {
   session: Session
   onChange: (selfAlignment: number | null, resultAlignment: number | null) => void
   onRestart: () => void
   onSubmit: () => void
   onSessionChange: (session: Session) => void
+  onOpenTask: (index: number) => void
 }) {
   const { t } = useI18n()
   const task = currentTask(session)
@@ -1006,6 +1036,7 @@ function SelfReport({
       title={t.selfReportTitle}
       extra={session.participant_id}
       onSessionChange={onSessionChange}
+      onOpenTask={onOpenTask}
     >
       <main className="page">
         <Likert
@@ -1037,12 +1068,14 @@ function Questionnaire({
   onRestart,
   onSubmit,
   onSessionChange,
+  onOpenTask,
 }: {
   session: Session
   onChange: (value: SubjectiveRatings) => void
   onRestart: () => void
   onSubmit: () => void
   onSessionChange: (session: Session) => void
+  onOpenTask: (index: number) => void
 }) {
   const { t } = useI18n()
   const value = session.subjective ?? {
@@ -1062,6 +1095,7 @@ function Questionnaire({
       title={t.questionnaireTitle}
       extra={session.participant_id}
       onSessionChange={onSessionChange}
+      onOpenTask={onOpenTask}
     >
       <main className="page">
         <p className="lead">{t.questionnaireLead}</p>

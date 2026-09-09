@@ -139,6 +139,13 @@ textarea:disabled {
   min-width: 14px;
   border: 1.5px solid #000;
   background: #fff;
+  padding: 0;
+  cursor: pointer;
+}
+
+.slot:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .slot.done {
@@ -147,6 +154,43 @@ textarea:disabled {
 
 .slot.current {
   background: #ffe600;
+}
+
+.task-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.task-nav-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: #fff;
+}
+
+.task-nav-btn.current {
+  background: #ffe600;
+}
+
+.task-nav-btn.done {
+  background: #000;
+  color: #fff;
+}
+
+.task-nav-btn.done.current {
+  background: #ffe600;
+  color: #000;
+}
+
+.task-nav-hint {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #444;
 }
 
 .progress-pct {

@@ -11,12 +11,16 @@ export function SessionChrome({
   title,
   extra,
   onSessionChange,
+  onOpenTask,
+  taskNavDisabled,
   children,
 }: {
   session: Session | null
   title?: string
   extra?: string
   onSessionChange?: (session: Session) => void
+  onOpenTask?: (index: number) => void
+  taskNavDisabled?: boolean
   children: ReactNode
 }) {
   const { t } = useI18n()
@@ -149,16 +153,48 @@ export function SessionChrome({
             {progress.stages.map((stage) => (
               <div key={stage.stage} className={stage.current ? 'stage-seg current' : 'stage-seg'} style={{ flex: stage.total }}>
                 <div className="stage-seg-label">{stage.stage}</div>
-                <div className="stage-slots" aria-hidden="true">
-                  {stage.slots.map((slot, index) => (
-                    <span key={`${stage.stage}-${index}`} className={`slot ${slot}`} />
-                  ))}
+                <div className="stage-slots" aria-hidden={!onOpenTask}>
+                  {stage.slots.map((slot, index) => {
+                    const taskIndex =
+                      session?.tasks.map((item, itemIndex) => (item.stage === stage.stage ? itemIndex : -1)).filter((item) => item >= 0)[
+                        index
+                      ] ?? -1
+                    const clickable = Boolean(onOpenTask) && taskIndex >= 0 && !taskNavDisabled
+                    return (
+                      <button
+                        key={`${stage.stage}-${index}`}
+                        type="button"
+                        className={`slot ${slot}`}
+                        disabled={!clickable}
+                        title={taskIndex >= 0 ? `${stage.stage} ${index + 1}` : stage.stage}
+                        onClick={() => {
+                          if (clickable) onOpenTask?.(taskIndex)
+                        }}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             ))}
           </div>
           <div className="progress-pct">{progress.percent}%</div>
         </div>
+        {session && onOpenTask ? (
+          <div className="task-nav">
+            {session.tasks.map((item, index) => (
+              <button
+                key={item.task_id}
+                type="button"
+                className={`task-nav-btn${index === session.runtime.task_index && session.runtime.step !== 'intro' && session.runtime.step !== 'questionnaire' && session.runtime.step !== 'complete' ? ' current' : ''}${item.ended_at ? ' done' : ''}`}
+                disabled={taskNavDisabled}
+                onClick={() => onOpenTask(index)}
+              >
+                {index + 1} {item.stage}
+              </button>
+            ))}
+            <p className="task-nav-hint">{t.taskNavHint}</p>
+          </div>
+        ) : null}
       </header>
       {children}
       {toast ? <div className="toast">{toast}</div> : null}

@@ -1,6 +1,7 @@
 import { measuresForTask } from './behavior'
 import { getImage } from './config'
-import { stageCapabilities, TASK_SEQUENCE_VERSION } from './protocol'
+import { lastSuccessfulGeneration } from './generationChain'
+import { isSystemTextType, lastAutoPrompt, stageCapabilities, TASK_SEQUENCE_VERSION } from './protocol'
 import { fallbackStimulus, snapshotTaskStimulus } from './stimulusTask'
 import type {
   Demographics,
@@ -160,6 +161,47 @@ export function syncSessionCursor(session: Session): Session {
   session.current_text_version_id = texts[texts.length - 1]?.text_version_id ?? null
   session.current_sketch_snapshot_id = snaps[snaps.length - 1]?.snapshot_id ?? null
   return session
+}
+
+export function stashTaskDraft(session: Session): void {
+  const task = session.tasks[session.runtime.task_index]
+  if (!task) return
+  const draft = session.runtime.draft_text.trim()
+  if (draft) task.final_text = draft
+}
+
+export function hydrateRuntimeForTask(session: Session, index: number): void {
+  const task = session.tasks[index]
+  if (!task) return
+  session.runtime.task_index = index
+  const texts = session.text_versions.filter(
+    (item) => item.task_id === task.task_id && !isSystemTextType(item.text_type),
+  )
+  const lastUser = texts[texts.length - 1]
+  const lastAuto = lastAutoPrompt(session, task.task_id)
+  const lastOk = lastSuccessfulGeneration(session, task.task_id)
+  const gens = session.generations.filter((item) => item.task_id === task.task_id)
+  const lastGen = gens[gens.length - 1]
+  const snaps = session.sketch_snapshots.filter((item) => item.task_id === task.task_id)
+  const initial = snaps.find((item) => item.kind === 'initial') ?? snaps[0]
+  const latest = snaps[snaps.length - 1]
+  session.runtime.round = Math.max(task.round || 0, lastGen?.round || 0)
+  session.runtime.draft_text = task.final_text || lastUser?.text || ''
+  session.runtime.auto_prompt = lastAuto?.auto_prompt || ''
+  session.runtime.auto_prompt_id = lastAuto?.auto_prompt_id || ''
+  session.runtime.user_prompt_started = false
+  session.runtime.auto_prompt_view_started = false
+  session.runtime.auto_prompt_view_id = ''
+  session.runtime.copied_from_auto = []
+  session.runtime.working_scene = latest ? structuredClone(latest.scene) : null
+  session.runtime.baseline_scene = initial ? structuredClone(initial.scene) : null
+  session.runtime.generate_error = lastOk ? '' : lastGen?.error || ''
+  session.runtime.selected_node_id = null
+  session.runtime.last_output_image_id = lastOk?.output_image_id || lastOk?.generation_id || ''
+  session.runtime.text_started = Boolean(session.runtime.draft_text)
+  session.runtime.sketch_editing = false
+  session.runtime.result_viewing = Boolean(lastOk)
+  session.runtime.step = lastOk ? 'review' : 'describe'
 }
 
 export function summarizeTask(session: Session, task: TaskRun): TaskRun {

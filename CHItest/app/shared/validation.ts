@@ -286,6 +286,13 @@ export function validateSession(session: Session): ValidationResult {
       issues.push(issue('task_sequence', 'executed task stages do not match experimental_group'))
     }
   }
+  if (session.completed_at && !session.short_session) {
+    for (const task of session.tasks) {
+      if (!task.ended_at) {
+        issues.push(issue('task_unfinished', `${task.task_id} was skipped or not finished`))
+      }
+    }
+  }
   for (const task of session.tasks) {
     if (task.ended_at || task.started_at) issues.push(...validateTask(session, task))
   }
