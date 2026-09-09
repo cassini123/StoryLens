@@ -1,5 +1,5 @@
 import { experiment } from './config'
-import { LangSwitch } from './i18n'
+import { LangSwitch, useI18n } from './i18n'
 import type { CSSProperties, ReactNode } from 'react'
 
 export function Shell({
@@ -7,12 +7,15 @@ export function Shell({
   subtitle,
   meta,
   children,
+  showHome = true,
 }: {
   title: string
   subtitle?: string
   meta?: string
   children: ReactNode
+  showHome?: boolean
 }) {
+  const { t } = useI18n()
   return (
     <div className="shell">
       <header className="topbar">
@@ -23,9 +26,16 @@ export function Shell({
             <div className="sub">{title}</div>
           </div>
         </div>
-        <div className="meta">
-          {subtitle ? <div>{subtitle}</div> : null}
-          {meta ? <div>{meta}</div> : null}
+        <div className="topbar-actions">
+          <div className="meta">
+            {subtitle ? <div>{subtitle}</div> : null}
+            {meta ? <div>{meta}</div> : null}
+          </div>
+          {showHome ? (
+            <button className="btn" type="button" onClick={() => (window.location.hash = '#/')}>
+              {t.home}
+            </button>
+          ) : null}
         </div>
       </header>
       {children}

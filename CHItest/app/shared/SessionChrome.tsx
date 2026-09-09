@@ -3,7 +3,7 @@ import { downloadParticipantPacket } from './export'
 import { LangSwitch, useI18n } from './i18n'
 import { logEvent } from './logging'
 import { sessionProgress } from './progress'
-import { clearActiveSession, upsertSession } from './store'
+import { upsertSession } from './store'
 import type { Session } from './types'
 
 export function SessionChrome({
@@ -81,7 +81,6 @@ export function SessionChrome({
   function exit() {
     setMenuOpen(false)
     persistWithLog('manual_exit')
-    clearActiveSession()
     window.location.hash = '#/'
   }
 
@@ -113,6 +112,9 @@ export function SessionChrome({
             </div>
           </div>
           <div className="settings-wrap" ref={menuRef}>
+            <button className="btn" type="button" onClick={() => (window.location.hash = '#/')}>
+              {t.home}
+            </button>
             <button className="btn settings-btn" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
               {t.settings}
             </button>
