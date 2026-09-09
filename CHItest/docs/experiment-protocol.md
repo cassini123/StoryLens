@@ -38,18 +38,20 @@ Task `block` is recorded for analysis: `baseline` (T0), `early` (first two T1), 
 | --- | --- | --- | --- | --- |
 | **T0** | no | no | no | — |
 | **T1** | ≤3 rounds | no | no | currentImage + userPrompt |
-| **T2** (scaffold only) | ≤3 rounds | always visible | yes, from Sketch only | currentImage + userPrompt |
+| **T2** (scaffold only) | ≤3 rounds | always visible | only on Interpret Sketch | current generated image + userPrompt |
 | **T3** | ≤3 rounds | **no** | **no** | currentImage + userPrompt |
 
 T3 tests near-term transfer after scaffold removal, not long-term learning.
 
-Participants may stop T1/T2/T3 early via **Satisfied / Next**.
+Participants may stop T1/T2/T3 early via **Satisfied / Next**. T2 Satisfied is blocked until Sketch → Interpret Sketch → user revision → generation on the current image.
+
+Closing or refreshing the browser resumes the **same** `session_id`. Events are append-only. Incomplete sessions keep `completion_status = incomplete` and are not formal efficacy samples. P001-style mid-exit sessions are for recovery/logging checks only.
 
 ## Stimulus pool
 
 20 pictures in `data/tasks/stimuli.json` (environment×5, character_space×4, camera×5, composition×6). Stratified rotation A/B/C. No image repeats inside a session.
 
-Researcher-only target modification: `data/tasks/target_modifications.json` (`current_visual_state`, `target_modification` / `target_modification_specification`). Never shown to participants.
+Researcher target modification lives in `data/tasks/target_modifications.json`. For T1/T2/T3 the same specification is copied into `participant_instruction` so the participant is asked to make that visual change, not a free rewrite of characters/objects/story. T0 has `target_modification_specification = null` and is description only.
 
 ## Scoring
 
@@ -80,14 +82,14 @@ Time is interaction cost. Report it alongside precision; a sensitivity model may
 
 ## Logging
 
-`event_log` with ISO-8601 `timestamp` and `relative_time_ms`. T2 must reconstruct Sketch action → Auto Prompt → Auto Prompt view → user prompt edit (including copy/paste) → Generation.
+`event_log` with ISO-8601 `timestamp` and `relative_time_ms`. T2 must reconstruct Sketch action → Interpret Sketch → Auto Prompt → Auto Prompt view → user prompt edit (including copy/paste) → Generation. Auto Prompt is never generated from raw mouse moves.
 
-Text versions are append-only (`initial` / `auto` / `refined` / `final`). Generation records store the API input actually sent (`input_sketch_snapshot_id` is empty). Sketch snapshots are stored separately for process analysis.
+Text versions are append-only (`initial` / `auto_interpretation` / `user_revised` / `refined` / `final`). Generation records store the API input actually sent (`sketch_sent=false`, `input_sketch_snapshot_id` empty) plus `previous_generation_id` and `generation_input_chain_valid`. Round 2+ must use the previous output image.
 
-T2 snapshots always include `initial`, `pre_auto_prompt`, and `post_user_revision`. User-prompt edits store previous/current text, source Auto Prompt id, edit distance, similarity, copy ratio, and copied segments.
+T2 snapshots always include `initial`, `pre_auto_prompt`, and `post_user_revision`. User-prompt edits store previous/current text, source Auto Prompt id, edit distance, similarity, copy ratio, and copied segments. Copying Auto Prompt is allowed; paraphrase is not required.
 
-Export: one zip of official tables. Participant complete page packs that person’s zip. `group` is `0` (T1×4) or `1` (T1 T1 T2 T2).
+Export: one zip of official tables plus `validation.json` and `session_recovery.json`. `export_ready=true` only if study-level flags all pass and the session is complete. Participant complete page packs that person’s zip. `group` is `0` (T1×4) or `1` (T1 T1 T2 T2).
 
-Local store key: `chitest.store.v7`. Pilot sessions on v6 (including P001) are instrumentation only and are not migrated.
+Local store key: `chitest.store.v8`. Older keys (including P001 / v6 / v7 pilots) are not migrated and are not formal efficacy data.
 
-Export is blocked when validation fails (`export_ready=false`). Official tables: participants, tasks, events, text_versions, generations, sketch_interactions, sketch_snapshots, auto_prompts, expert_ratings, self_alignment, full_session_timeline.
+Official tables: participants, tasks, event_log, text_versions, generations, sketch_interactions, sketch_snapshots, auto_prompts, expert_ratings, self_alignment, full_session_timeline, validation, session_recovery.

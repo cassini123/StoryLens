@@ -27,4 +27,4 @@ Group is assigned at session start with probability 1/2. Export `group` is `0` (
 
 ## Logging
 
-`chitest.store.v7`. Session metadata records `experimental_group`, `assignment_pattern`, `condition_order`, `task_sequence_version`. Event timeline, append-only text versions, Auto Prompt records with view start/end, copy/paste, sketch snapshots (process only), generation I/O with `sketch_sent=false`. Secondary self-alignment ratings. Export is blocked if validation fails. Primary cross-task metric: **P_norm**.
+`chitest.store.v8`. Session metadata records `experimental_group`, `assignment_pattern`, `condition_order`, `task_sequence_version`, and session recovery cursor fields. Event timeline, append-only text versions, Auto Prompt records created only on Interpret Sketch, copy/paste, sketch snapshots (process only), generation I/O with a current-image chain and `sketch_sent=false`. Secondary self-alignment ratings. `export_ready` requires study-level flags in `validation.json`. Primary cross-task metric: **P_norm**. Incomplete/resumed sessions are not formal efficacy samples.

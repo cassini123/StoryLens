@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import { makeGeneration, makeSession, makeTask } from './testSession'
 import {
   associatedGenerationRound,
+  canSatisfyTask,
   conditionOrderFor,
   normalizeSketchActionType,
   stageCapabilities,
+  t2ScaffoldLoopComplete,
 } from './protocol'
 
 describe('formal protocol helpers', () => {
@@ -35,5 +38,16 @@ describe('formal protocol helpers', () => {
     expect(associatedGenerationRound(0)).toBe(1)
     expect(associatedGenerationRound(1)).toBe(2)
     expect(associatedGenerationRound(2)).toBe(3)
+  })
+
+  it('blocks T2 satisfaction until interpret + chained generation', () => {
+    const session = makeSession({
+      tasks: [makeTask({ stage: 'T2', task_id: 't2a', image_id: 'C01' })],
+      generations: [
+        makeGeneration({ generation_id: 'g1', task_id: 't2a', round: 1, stage: 'T2', input_image_id: 'C01', output_image_id: 'g1' }),
+      ],
+    })
+    expect(canSatisfyTask(session, session.tasks[0], 'hello')).toBe(false)
+    expect(t2ScaffoldLoopComplete(session, session.tasks[0])).toBe(false)
   })
 })

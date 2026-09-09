@@ -1,4 +1,4 @@
-import { STAGE_SEQUENCE, TASK_SEQUENCE_VERSION, type ExperimentalGroup, type Stage } from './types'
+import { STAGE_SEQUENCE, TASK_SEQUENCE_VERSION, type ExperimentalGroup, type Session, type Stage, type TaskRun } from './types'
 import type { PlannedTask } from './types'
 
 export { TASK_SEQUENCE_VERSION }
@@ -81,4 +81,48 @@ export function associatedGenerationRound(currentRound: number): number {
 
 export function isFormalSequenceVersion(version: string): boolean {
   return version === TASK_SEQUENCE_VERSION
+}
+
+export function isSystemTextType(textType: string): boolean {
+  return textType === 'auto' || textType === 'auto_interpretation'
+}
+
+export function lastAutoPrompt(session: Session, taskId: string) {
+  const autos = session.auto_prompts.filter((item) => item.task_id === taskId)
+  return autos[autos.length - 1] ?? null
+}
+
+export function t2NeedsGenerationAfterInterpret(session: Session, task: TaskRun): boolean {
+  if (task.stage !== 'T2') return false
+  const lastAuto = lastAutoPrompt(session, task.task_id)
+  if (!lastAuto) return false
+  const gens = session.generations.filter((item) => item.task_id === task.task_id && item.success)
+  const lastGen = gens[gens.length - 1]
+  if (!lastGen) return true
+  return Date.parse(lastGen.timestamp_end) < Date.parse(lastAuto.timestamp_generated)
+}
+
+export function t2ScaffoldLoopComplete(session: Session, task: TaskRun): boolean {
+  if (task.stage !== 'T2') return true
+  const gens = session.generations
+    .filter((item) => item.task_id === task.task_id && item.success)
+    .sort((a, b) => a.round - b.round)
+  const autos = session.auto_prompts.filter((item) => item.task_id === task.task_id)
+  if (gens.length < 2) return false
+  if (!autos.length) return false
+  if (!task.sketch_actions.length) return false
+  const lastAuto = autos[autos.length - 1]
+  const lastGen = gens[gens.length - 1]
+  const prevGen = gens[gens.length - 2]
+  if (Date.parse(lastGen.timestamp_end) < Date.parse(lastAuto.timestamp_generated)) return false
+  if (lastGen.input_image_id === task.image_id && lastGen.previous_generation_id == null) return false
+  return lastGen.previous_generation_id === prevGen.generation_id || lastGen.input_image_id === prevGen.output_image_id
+}
+
+export function canSatisfyTask(session: Session, task: TaskRun, draftText: string): boolean {
+  if (task.stage === 'T0') return draftText.trim().length > 0
+  const hasGen = session.generations.some((item) => item.task_id === task.task_id && item.success)
+  if (!hasGen) return false
+  if (task.stage === 'T2') return t2ScaffoldLoopComplete(session, task)
+  return true
 }
