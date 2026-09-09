@@ -558,8 +558,11 @@ function ParticipantFlow({
       const scene = next.runtime.working_scene
       if (!active || !scene || !canAttemptInterpret(next, active)) return
       closeSketchEdit(next)
-      const text = sceneToAutoPrompt(scene, locale, next.runtime.baseline_scene)
-      if (!text) return
+      const text =
+        sceneToAutoPrompt(scene, locale, next.runtime.baseline_scene).trim() ||
+        (locale === 'zh'
+          ? '根据当前草图调整人物位置、距离和摄影机观察角度。'
+          : 'Adjust the people’s positions, distances, and the camera angle from the current sketch.')
       interpretSketch(next, text)
     })
   }
@@ -833,7 +836,7 @@ function ParticipantFlow({
           prompt={prompt}
           scene={session.runtime.working_scene}
           showSketch={showSketch}
-          lastGenerationId={lastGen?.generation_id || session.runtime.last_output_image_id}
+          lastGenerationId={lastGen?.generation_id || ''}
           generateError={session.runtime.generate_error}
           canInterpret={canInterpret}
           onInterpretSketch={runInterpretSketch}
@@ -926,7 +929,7 @@ function TaskWorkspace({
   onSelect: (id: string | null) => void
 }) {
   const columns = stage === 'T0' ? 'workspace-t0' : showSketch ? 'workspace-t2' : 'workspace-t1'
-  const splitPrompt = showSketch && round >= 1
+  const splitPrompt = showSketch
   const { t, format } = useI18n()
   return (
     <main className={`workspace ${columns}`}>
@@ -971,7 +974,7 @@ function TaskWorkspace({
           <section>
             <h2>{t.aiInterpretation}</h2>
             <p className="hint">{t.autoPromptHint}</p>
-            <div className="auto-prompt" onCopy={onCopyAuto}>
+            <div className={autoPrompt ? 'auto-prompt' : 'auto-prompt empty'} onCopy={onCopyAuto}>
               {autoPrompt || t.autoPromptEmpty}
             </div>
           </section>
@@ -1004,11 +1007,19 @@ function TaskWorkspace({
 
 function GeneratedImage({ trialId }: { trialId: string }) {
   const { t } = useI18n()
-  const [src, setSrc] = useState<string | null>(null)
+  const [src, setSrc] = useState<string | null | undefined>(undefined)
   useEffect(() => {
-    void getGeneratedImage(trialId).then(setSrc)
+    let cancelled = false
+    setSrc(undefined)
+    void getGeneratedImage(trialId).then((value) => {
+      if (!cancelled) setSrc(value)
+    })
+    return () => {
+      cancelled = true
+    }
   }, [trialId])
-  if (!src) return <div className="empty-sketch">{t.loadingGenerated}</div>
+  if (src === undefined) return <div className="empty-sketch">{t.loadingGenerated}</div>
+  if (!src) return <div className="empty-sketch">{t.emptyGenerated}</div>
   return <img className="generated" src={src} alt="" />
 }
 

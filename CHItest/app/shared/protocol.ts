@@ -144,8 +144,8 @@ export function canAttemptGeneration(session: Session, task: TaskRun): boolean {
 
 export function canAttemptInterpret(session: Session, task: TaskRun): boolean {
   if (task.stage !== 'T2') return false
+  if (!task.auto_prompt_enabled) return false
   if (!session.runtime.working_scene) return false
-  if (session.runtime.round < 1) return false
-  if (session.runtime.round < MAX_ROUNDS) return true
-  return !canSatisfyTask(session, task, session.runtime.draft_text)
+  if (session.runtime.step === 'generating') return false
+  return true
 }

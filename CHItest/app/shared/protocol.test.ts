@@ -75,4 +75,13 @@ describe('formal protocol helpers', () => {
     expect(canAttemptInterpret(session, task)).toBe(true)
     expect(canSatisfyTask(session, task, 'hello')).toBe(false)
   })
+
+  it('keeps Interpret Sketch available on T2 even before the first round', () => {
+    const task = makeTask({ stage: 'T2', task_id: 't2a', image_id: 'C01' })
+    const session = makeSession({ tasks: [task] })
+    session.runtime.round = 0
+    session.runtime.step = 'describe'
+    session.runtime.working_scene = { nodes: [] } as never
+    expect(canAttemptInterpret(session, task)).toBe(true)
+  })
 })
