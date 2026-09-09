@@ -4,12 +4,18 @@ import { loadStore } from './store'
 export const SURPRISE_ASSET = 'surprise/surprise-bg.jpg'
 
 export function surpriseThanks(participantId: string): string {
-  return `Hi ${participantId}, thank you very much for your participation!`
+  const name = participantId.trim()
+  return name
+    ? `Hi ${name}, thank you very much for your participation!`
+    : 'Hi, thank you very much for your participation!'
 }
 
 export function latestCompletedParticipantId(): string | null {
-  const done = loadStore().sessions.filter((item) => item.completed_at)
-  return done[done.length - 1]?.participant_id ?? null
+  const sessions = loadStore().sessions
+  const done = sessions.filter((item) => item.completed_at)
+  if (done.length) return done[done.length - 1]?.participant_id ?? null
+  const any = sessions[sessions.length - 1]
+  return any?.participant_id ?? null
 }
 
 export async function downloadSurpriseAsset(): Promise<void> {
