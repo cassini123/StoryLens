@@ -51,7 +51,7 @@ Closing or refreshing the browser resumes the **same** `session_id`. Events are 
 
 20 pictures in `data/tasks/stimuli.json` (environment×5, character_space×4, camera×5, composition×6). Stratified rotation A/B/C. No image repeats inside a session.
 
-Researcher target modification lives in `data/tasks/target_modifications.json`. For T1/T2/T3 the same specification is copied into `participant_instruction` so the participant is asked to make that visual change, not a free rewrite of characters/objects/story. T0 has `target_modification_specification = null` and is description only.
+Researcher target modification lives in `data/tasks/target_modifications.json` and is stored on each task for coding only. It is **never shown** to participants. T0 has `target_modification_specification = null` and is description only.
 
 ## Scoring
 
