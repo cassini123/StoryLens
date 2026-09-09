@@ -4,7 +4,8 @@
 分析单位：zip 包标签 `P001`…`P011`，**不以填写的 participant_id 去重**。  
 本文只报告汇总与过程检查，不含原文 prompt、截图或可识别昵称。
 
-对照协议：`CHItest/docs/experiment-protocol.md`。
+对照协议：`CHItest/docs/experiment-protocol.md`。  
+完整版（内容 + 构念对照 + 效度/去噪）：`CHItest/docs/n11-complete-report.md`。
 
 ---
 
