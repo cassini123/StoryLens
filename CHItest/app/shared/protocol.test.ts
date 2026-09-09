@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { makeGeneration, makeSession, makeTask } from './testSession'
 import {
   associatedGenerationRound,
+  canAttemptGeneration,
+  canAttemptInterpret,
   canSatisfyTask,
   conditionOrderFor,
   normalizeSketchActionType,
@@ -49,5 +51,28 @@ describe('formal protocol helpers', () => {
     })
     expect(canSatisfyTask(session, session.tasks[0], 'hello')).toBe(false)
     expect(t2ScaffoldLoopComplete(session, session.tasks[0])).toBe(false)
+  })
+
+  it('lets a participant retry generate after failed rounds at the cap', () => {
+    const task = makeTask({ stage: 'T2', task_id: 't2a', image_id: 'C01' })
+    const session = makeSession({
+      tasks: [task],
+      generations: [
+        makeGeneration({
+          generation_id: 'g1',
+          task_id: 't2a',
+          round: 3,
+          stage: 'T2',
+          success: false,
+          output_image_id: '',
+        }),
+      ],
+    })
+    session.runtime.round = 3
+    session.runtime.step = 'describe'
+    session.runtime.working_scene = { nodes: [] } as never
+    expect(canAttemptGeneration(session, task)).toBe(true)
+    expect(canAttemptInterpret(session, task)).toBe(true)
+    expect(canSatisfyTask(session, task, 'hello')).toBe(false)
   })
 })

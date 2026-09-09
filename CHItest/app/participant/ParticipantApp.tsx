@@ -22,9 +22,9 @@ import {
   recordPasteEvent,
 } from '../shared/logging'
 import { composeConditioning } from '../shared/media'
-import { resolveConditioningImage } from '../shared/generationChain'
+import { lastSuccessfulGeneration, resolveConditioningImage } from '../shared/generationChain'
 import { publicJimengError } from '../shared/retry'
-import { canSatisfyTask, t2NeedsGenerationAfterInterpret } from '../shared/protocol'
+import { canAttemptGeneration, canAttemptInterpret, canSatisfyTask, t2NeedsGenerationAfterInterpret } from '../shared/protocol'
 import { generateSketch } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
@@ -283,10 +283,24 @@ function ParticipantFlow({
     } catch {
       /* ignore */
     }
-    if (sessionRef.current.runtime.step === 'generating') {
-      const next = structuredClone(sessionRef.current)
+    const next = structuredClone(sessionRef.current)
+    const active = currentTask(next)
+    let recovered = false
+    if (next.runtime.step === 'generating') {
       next.runtime.step = next.runtime.last_output_image_id ? 'review' : 'describe'
       logEvent(next, 'generation_recovery', { duplicate_generation_prevented: true })
+      recovered = true
+    }
+    if (active) {
+      const shown = next.generations.find((item) => item.generation_id === next.runtime.last_output_image_id)
+      if (shown && !shown.success) {
+        const lastOk = lastSuccessfulGeneration(next, active.task_id)
+        next.runtime.last_output_image_id = lastOk?.generation_id || lastOk?.output_image_id || ''
+        next.runtime.step = next.runtime.last_output_image_id ? 'review' : 'describe'
+        recovered = true
+      }
+    }
+    if (recovered) {
       persist(next)
       setSession(next)
     }
@@ -433,13 +447,9 @@ function ParticipantFlow({
 
   const image = getImage(task.image_id)
   const lastGen = [...session.generations].reverse().find((item) => item.task_id === task.task_id && item.success)
-  const canGenerate = Boolean(task.ai_enabled) && session.runtime.round < MAX_ROUNDS && session.runtime.step !== 'generating'
   const canSatisfy = canSatisfyTask(session, task, session.runtime.draft_text)
-  const canInterpret =
-    task.stage === 'T2' &&
-    session.runtime.round >= 1 &&
-    session.runtime.round < MAX_ROUNDS &&
-    Boolean(session.runtime.working_scene)
+  const canGenerate = canAttemptGeneration(session, task)
+  const canInterpret = canAttemptInterpret(session, task)
 
   function prepareTask(next: Session, index: number) {
     const active = next.tasks[index]
@@ -520,7 +530,7 @@ function ParticipantFlow({
     update((next) => {
       const active = currentTask(next)
       const scene = next.runtime.working_scene
-      if (!active || active.stage !== 'T2' || !scene || next.runtime.round < 1 || next.runtime.round >= MAX_ROUNDS) return
+      if (!active || !canAttemptInterpret(next, active)) return
       closeSketchEdit(next)
       const text = sceneToAutoPrompt(scene, locale, next.runtime.baseline_scene)
       if (!text) return

@@ -1,4 +1,12 @@
-import { STAGE_SEQUENCE, TASK_SEQUENCE_VERSION, type ExperimentalGroup, type Session, type Stage, type TaskRun } from './types'
+import {
+  MAX_ROUNDS,
+  STAGE_SEQUENCE,
+  TASK_SEQUENCE_VERSION,
+  type ExperimentalGroup,
+  type Session,
+  type Stage,
+  type TaskRun,
+} from './types'
 import type { PlannedTask } from './types'
 
 export { TASK_SEQUENCE_VERSION }
@@ -125,4 +133,19 @@ export function canSatisfyTask(session: Session, task: TaskRun, draftText: strin
   if (!hasGen) return false
   if (task.stage === 'T2') return t2ScaffoldLoopComplete(session, task)
   return true
+}
+
+export function canAttemptGeneration(session: Session, task: TaskRun): boolean {
+  if (!task.ai_enabled) return false
+  if (session.runtime.step === 'generating') return false
+  if (session.runtime.round < MAX_ROUNDS) return true
+  return !canSatisfyTask(session, task, session.runtime.draft_text)
+}
+
+export function canAttemptInterpret(session: Session, task: TaskRun): boolean {
+  if (task.stage !== 'T2') return false
+  if (!session.runtime.working_scene) return false
+  if (session.runtime.round < 1) return false
+  if (session.runtime.round < MAX_ROUNDS) return true
+  return !canSatisfyTask(session, task, session.runtime.draft_text)
 }
