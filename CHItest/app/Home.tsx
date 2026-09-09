@@ -19,7 +19,7 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
   const [surpriseOpen, setSurpriseOpen] = useState(false)
   const showResearcher = startResearcher || researcherOpen
   const unfinished = getActiveSession()
-  const surpriseId = latestCompletedParticipantId()
+  const surpriseId = latestCompletedParticipantId() ?? ''
 
   useEffect(() => {
     void checkJimengHealth().then(setHealth)
@@ -112,8 +112,8 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
           )
         ) : null}
       </main>
-      {surpriseId ? <SurpriseTrigger onClick={() => setSurpriseOpen(true)} /> : null}
-      {surpriseOpen && surpriseId ? (
+      <SurpriseTrigger onClick={() => setSurpriseOpen(true)} />
+      {surpriseOpen ? (
         <SurpriseModal participantId={surpriseId} onClose={() => setSurpriseOpen(false)} />
       ) : null}
     </Shell>
