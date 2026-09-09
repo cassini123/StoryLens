@@ -48,7 +48,6 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
           <Button fill onClick={() => (window.location.hash = '#/participant')}>
             {unfinished ? t.continueSession : t.participant}
           </Button>
-          {surpriseId ? <SurpriseTrigger onClick={() => setSurpriseOpen(true)} /> : null}
           <Button
             onClick={() => {
               setResearcherOpen(true)
@@ -113,6 +112,7 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
           )
         ) : null}
       </main>
+      {surpriseId ? <SurpriseTrigger onClick={() => setSurpriseOpen(true)} /> : null}
       {surpriseOpen && surpriseId ? (
         <SurpriseModal participantId={surpriseId} onClose={() => setSurpriseOpen(false)} />
       ) : null}

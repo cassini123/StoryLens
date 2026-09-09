@@ -29,8 +29,8 @@ export function SurpriseModal({
 export function SurpriseTrigger({ onClick }: { onClick: () => void }) {
   const { t } = useI18n()
   return (
-    <button type="button" className="surprise-open" onClick={onClick}>
-      {t.surprise}
+    <button type="button" className="surprise-float" onClick={onClick} aria-label={t.surprise}>
+      <span aria-hidden="true">🎁</span>
     </button>
   )
 }

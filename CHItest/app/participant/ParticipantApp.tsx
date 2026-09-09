@@ -349,13 +349,13 @@ function ParticipantFlow({
             <Button fill onClick={() => void downloadParticipantPacket(session)}>
               {t.downloadData}
             </Button>
-            <SurpriseTrigger onClick={() => setSurpriseOpen(true)} />
           </div>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
           <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
           <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
         </FooterBar>
+        <SurpriseTrigger onClick={() => setSurpriseOpen(true)} />
         {surpriseOpen ? (
           <SurpriseModal participantId={session.participant_id} onClose={() => setSurpriseOpen(false)} />
         ) : null}
