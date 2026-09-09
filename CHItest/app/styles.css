@@ -262,6 +262,36 @@ textarea:disabled {
   box-shadow: 4px 4px 0 #ffe600;
 }
 
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.confirm-card {
+  width: min(420px, calc(100vw - 32px));
+  background: #fff;
+  border: 2px solid #000;
+  padding: 20px 18px 16px;
+  box-shadow: 6px 6px 0 #000;
+}
+
+.confirm-card p {
+  margin: 0 0 16px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .brand {
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -356,6 +386,7 @@ textarea {
 .footerbar {
   position: sticky;
   bottom: 0;
+  z-index: 35;
   display: flex;
   justify-content: flex-end;
   gap: 8px;

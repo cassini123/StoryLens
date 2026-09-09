@@ -36,6 +36,7 @@ import { markExportReadiness } from '../shared/validation'
 import { pastedFromAuto } from '../shared/textCompare'
 import { downloadParticipantPacket } from '../shared/export'
 import { abandonSession, getActiveSession, getSession, loadStore, sessionsForParticipant, upsertSession } from '../shared/store'
+import { openRestartConfirm, restartLocalSession } from '../shared/restart'
 import { nowIso } from '../shared/time'
 import type {
   Demographics,
@@ -88,13 +89,13 @@ function maybeLogResume(session: Session): Session {
   return session
 }
 
-function confirmRestart(session: Session, setSession: (session: Session | null) => void, message: string): void {
-  if (!confirm(message)) return
-  abandonSession(session.participant_id)
-  setSession(null)
-  const short = /(?:\?|&)short=1\b/.test(window.location.hash)
-  window.location.hash = short ? '#/participant?short=1' : '#/participant'
-  window.location.reload()
+function confirmRestart(session: Session, message: string, cancelLabel: string, okLabel: string): void {
+  openRestartConfirm({
+    message,
+    cancelLabel,
+    okLabel,
+    onConfirm: () => restartLocalSession(session),
+  })
 }
 
 export function ParticipantApp() {
@@ -346,7 +347,7 @@ function ParticipantFlow({
           <p>{t.introCount}</p>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
-          <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
+          <Button onClick={() => confirmRestart(session, t.restartConfirm, t.cancel, t.confirmRestart)}>{t.startOver}</Button>
           <Button fill onClick={() => startTask(0)}>
             {t.continue}
           </Button>
@@ -362,7 +363,7 @@ function ParticipantFlow({
         onSessionChange={setSession}
         onOpenTask={jumpToTask}
         onChange={(subjective) => update((next) => { next.subjective = subjective })}
-        onRestart={() => confirmRestart(session, setSession, t.restartConfirm)}
+        onRestart={() => confirmRestart(session, t.restartConfirm, t.cancel, t.confirmRestart)}
         onSubmit={() =>
           update((next) => {
             next.completed_at = nowIso()
@@ -381,7 +382,7 @@ function ParticipantFlow({
         session={session}
         onSessionChange={setSession}
         onOpenTask={jumpToTask}
-        onRestart={() => confirmRestart(session, setSession, t.restartConfirm)}
+        onRestart={() => confirmRestart(session, t.restartConfirm, t.cancel, t.confirmRestart)}
         onChange={(selfAlignment, resultAlignment) =>
           update((next) => {
             const active = currentTask(next)
@@ -428,7 +429,7 @@ function ParticipantFlow({
           </div>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
-          <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
+          <Button onClick={() => confirmRestart(session, t.restartConfirm, t.cancel, t.confirmRestart)}>{t.startOver}</Button>
           <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
         </FooterBar>
         <SurpriseTrigger onClick={() => setSurpriseOpen(true)} />
@@ -866,7 +867,7 @@ function ParticipantFlow({
         />
       )}
       <FooterBar style={{ justifyContent: 'space-between' }}>
-        <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
+        <Button onClick={() => confirmRestart(session, t.restartConfirm, t.cancel, t.confirmRestart)}>{t.startOver}</Button>
         <div className="stack-row">
           {task.stage === 'T0' ? (
             <Button fill disabled={!canSatisfy} onClick={finishTask}>

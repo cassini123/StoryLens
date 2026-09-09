@@ -3,6 +3,7 @@ import { downloadParticipantPacket } from './export'
 import { LangSwitch, useI18n } from './i18n'
 import { logEvent } from './logging'
 import { sessionProgress } from './progress'
+import { openRestartConfirm, restartLocalSession } from './restart'
 import { upsertSession } from './store'
 import type { Session } from './types'
 
@@ -88,6 +89,17 @@ export function SessionChrome({
     window.location.hash = '#/'
   }
 
+  function restart() {
+    setMenuOpen(false)
+    if (!session) return
+    openRestartConfirm({
+      message: t.restartConfirm,
+      cancelLabel: t.cancel,
+      okLabel: t.confirmRestart,
+      onConfirm: () => restartLocalSession(session),
+    })
+  }
+
   async function exportSession() {
     setMenuOpen(false)
     const next = persistWithLog('manual_export')
@@ -136,6 +148,11 @@ export function SessionChrome({
                 <button type="button" role="menuitem" onClick={() => void exportSession()}>
                   {t.export}
                 </button>
+                {session ? (
+                  <button type="button" role="menuitem" onClick={restart}>
+                    {t.startOver}
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>
