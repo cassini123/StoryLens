@@ -431,10 +431,12 @@ textarea {
 .surprise-thanks {
   position: absolute;
   left: 50%;
-  top: 46%;
-  transform: translate(-50%, -50%);
+  top: 41%;
+  transform: translate(-50%, -50%) scale(0.5);
+  transform-origin: center center;
   margin: 0;
-  width: min(78%, 560px);
+  width: max-content;
+  max-width: 78%;
   padding: 14px 28px;
   border-radius: 999px;
   background: #111;
@@ -442,6 +444,7 @@ textarea {
   text-align: center;
   font-size: clamp(14px, 2.2vw, 20px);
   line-height: 1.35;
+  white-space: nowrap;
 }
 
 .surprise-download {
