@@ -13,6 +13,7 @@ import {
   withinTaskDelta,
 } from './metrics'
 import { loadStore } from './store'
+import { REQUIRED_EXPORT_FILES } from './exportManifest'
 import { markExportReadiness } from './validation'
 import type { ExperimentalGroup, IntentCoding, Session, Stage, TaskBlock, TaskRun, Timepoint } from './types'
 import { zipStore } from './zip'
@@ -109,6 +110,10 @@ export function participantRows(sessions: Session[]): Record<string, unknown>[] 
     task_sequence_version: session.task_sequence_version ?? '',
     short_session: session.short_session ? 1 : 0,
     export_ready: session.export_ready ? 1 : 0,
+    completion_status: session.completion_status ?? (session.completed_at ? 'complete' : 'incomplete'),
+    session_status: session.session_status ?? '',
+    last_completed_task_id: session.last_completed_task_id ?? '',
+    current_task_id: session.current_task_id ?? '',
     background: session.demographics.visual_experience,
     AI_familiarity: session.demographics.ai_familiarity,
     cinematography_experience: session.demographics.cinematography_experience,
@@ -136,12 +141,17 @@ export function taskRows(sessions: Session[], codings: IntentCoding[]): Record<s
         group_code: groupCode(task.experimental_group ?? session.experimental_group),
         experimental_group: task.experimental_group ?? session.experimental_group,
         image_id: task.image_id,
-        category: image.group,
+        category: task.category || image.group,
         group: image.group,
-        difficulty: image.difficulty,
-        primary_target: image.primary_target.join('|'),
-        secondary_target: image.secondary_target.join('|'),
-        target_modification_specification: JSON.stringify(image.target_modification_specification ?? image.target_modification ?? {}),
+        difficulty: task.difficulty || image.difficulty,
+        primary_target: (task.primary_target ?? []).join('|'),
+        secondary_target: (task.secondary_target ?? []).join('|'),
+        target_modification_specification:
+          task.target_modification_specification == null
+            ? ''
+            : JSON.stringify(task.target_modification_specification),
+        participant_instruction_version: task.participant_instruction_version ?? '',
+        participant_instruction: task.participant_instruction?.zh ?? '',
         ai_enabled: task.ai_enabled ? 1 : 0,
         sketch_enabled: task.sketch_enabled ? 1 : 0,
         auto_prompt_enabled: task.auto_prompt_enabled ? 1 : 0,
@@ -272,10 +282,14 @@ export function generationRows(sessions: Session[]): Record<string, unknown>[] {
       model: item.model,
       model_version: item.model_version,
       input_image_id: item.input_image_id,
+      previous_generation_id: item.previous_generation_id ?? '',
+      generation_input_chain_valid: item.generation_input_chain_valid ? 1 : 0,
       input_text: item.input_text,
       input_text_version_id: item.input_text_version_id,
       input_sketch_snapshot_id: item.input_sketch_snapshot_id,
       source_sketch_snapshot_id: item.source_sketch_snapshot_id,
+      auto_prompt_id: item.auto_prompt_id ?? '',
+      user_prompt_version_id: item.user_prompt_version_id ?? '',
       sketch_sent: item.sketch_sent,
       api_input: item.api_input,
       api_payload: JSON.stringify(item.api_payload ?? {}),
@@ -449,6 +463,8 @@ export function timelinePayload(session: Session) {
     session_id: session.session_id,
     session_start: session.started_at,
     session_end: session.completed_at,
+    completion_status: session.completion_status ?? (session.completed_at ? 'complete' : 'incomplete'),
+    session_status: session.session_status,
     assignment_pattern: session.assignment_pattern,
     group: groupCode(session.experimental_group),
     group_sequence: groupSequence(session.experimental_group),
@@ -468,14 +484,58 @@ export function timelinePayload(session: Session) {
   }
 }
 
+export function validationPayload(session: Session) {
+  const result = markExportReadiness(session)
+  return {
+    participant_id: session.participant_id,
+    session_id: session.session_id,
+    completion_status: result.completion_status,
+    export_ready: result.export_ready,
+    flags: result.flags,
+    validation_issues: result.issues,
+    issues: result.issues,
+  }
+}
+
+export function sessionRecoveryPayload(session: Session) {
+  const resume = session.event_log.filter((item) =>
+    ['session_resume', 'session_abandon', 'browser_reload', 'visibility_hidden', 'visibility_visible', 'page_exit'].includes(
+      item.event_type,
+    ),
+  )
+  const taskStarts = new Map<string, number>()
+  const taskEnds = new Map<string, number>()
+  for (const event of session.event_log) {
+    if (event.event_type === 'task_start') taskStarts.set(event.task_id, (taskStarts.get(event.task_id) ?? 0) + 1)
+    if (event.event_type === 'task_end') taskEnds.set(event.task_id, (taskEnds.get(event.task_id) ?? 0) + 1)
+  }
+  return {
+    participant_id: session.participant_id,
+    session_id: session.session_id,
+    session_status: session.session_status,
+    completion_status: session.completion_status,
+    last_completed_task_id: session.last_completed_task_id,
+    current_task_id: session.current_task_id,
+    current_stage: session.current_stage,
+    current_round: session.current_round,
+    current_generation_id: session.current_generation_id,
+    current_text_version_id: session.current_text_version_id,
+    current_sketch_snapshot_id: session.current_sketch_snapshot_id,
+    resume_events: resume,
+    duplicate_task_start: [...taskStarts.values()].some((count) => count > 1),
+    duplicate_task_end: [...taskEnds.values()].some((count) => count > 1),
+    duplicate_generation_ids: new Set(session.generations.map((item) => item.generation_id)).size !== session.generations.length,
+  }
+}
+
 export function assertExportable(sessions: Session[], requireComplete = true): void {
   const blocking: string[] = []
   for (const session of sessions) {
     const result = markExportReadiness(session)
-    if (requireComplete && !session.completed_at) {
-      blocking.push(`${session.participant_id}: session is not complete`)
+    if (requireComplete && result.completion_status !== 'complete') {
+      blocking.push(`${session.participant_id}: session is incomplete`)
     }
-    if (!result.ok) {
+    if (requireComplete && !result.export_ready) {
       blocking.push(
         `${session.participant_id}: ${result.issues.map((item) => `${item.code}${item.task_id ? `@${item.task_id}` : ''}`).join('; ')}`,
       )
@@ -516,11 +576,8 @@ export function buildExportPayload() {
     expert_ratings: expertRows(store.ratings),
     practice_control: practiceControlAnalysis(store.sessions, store.codings),
     timelines: store.sessions.map(timelinePayload),
-    validations: store.sessions.map((session) => ({
-      participant_id: session.participant_id,
-      ...markExportReadiness(session),
-      export_ready: session.export_ready,
-    })),
+    validations: store.sessions.map(validationPayload),
+    session_recovery: store.sessions.map(sessionRecoveryPayload),
   }
 }
 
@@ -583,10 +640,12 @@ export function downloadTimelinesJson(): void {
 }
 
 export function officialTableFiles(sessions = loadStore().sessions, ratings = loadStore().ratings, codings = loadStore().codings) {
-  return [
+  const eventLog = toCsv(eventLogRows(sessions))
+  const files = [
     { name: 'participants.csv', content: toCsv(participantRows(sessions)) },
     { name: 'tasks.csv', content: toCsv(taskRows(sessions, codings)) },
-    { name: 'events.csv', content: toCsv(eventLogRows(sessions)) },
+    { name: 'event_log.csv', content: eventLog },
+    { name: 'events.csv', content: eventLog },
     { name: 'text_versions.csv', content: toCsv(textVersionRows(sessions)) },
     { name: 'generations.csv', content: toCsv(generationRows(sessions)) },
     { name: 'sketch_interactions.csv', content: toCsv(interactionRows(sessions)) },
@@ -595,28 +654,30 @@ export function officialTableFiles(sessions = loadStore().sessions, ratings = lo
     { name: 'expert_ratings.csv', content: toCsv(expertRows(ratings)) },
     { name: 'self_alignment.csv', content: toCsv(selfAlignmentRows(sessions)) },
     { name: 'full_session_timeline.json', content: JSON.stringify(sessions.map(timelinePayload), null, 2) },
+    { name: 'validation.json', content: JSON.stringify(sessions.map(validationPayload), null, 2) },
+    { name: 'session_recovery.json', content: JSON.stringify(sessions.map(sessionRecoveryPayload), null, 2) },
   ]
+  const names = new Set(files.map((item) => item.name))
+  if (!REQUIRED_EXPORT_FILES.every((name) => names.has(name))) {
+    throw new Error('official export is missing required study files')
+  }
+  return files
 }
 
 export function downloadOfficialZip(): void {
   const store = loadStore()
-  const sessions = store.sessions.filter((item) => item.completed_at)
-  assertExportable(sessions)
   downloadBlob('chitest-official-export.zip', zipStore(officialTableFiles(store.sessions, store.ratings, store.codings)))
 }
 
 export function downloadFullJson(): void {
-  const sessions = loadStore().sessions.filter((item) => item.completed_at)
-  assertExportable(sessions)
   download('chitest-export.json', JSON.stringify(buildExportPayload(), null, 2), 'application/json')
 }
 
 export async function downloadParticipantPacket(session: Session): Promise<void> {
   const validation = markExportReadiness(session)
-  if (!validation.ok) {
-    const message = `Export is not complete for ${session.participant_id}:\n${validation.issues.map((item) => item.message).join('\n')}`
+  if (!validation.export_ready) {
+    const message = `Export is not ready for ${session.participant_id} (completion_status=${validation.completion_status}):\n${validation.issues.map((item) => item.message).join('\n')}`
     if (typeof window !== 'undefined') window.alert(message)
-    throw new Error(message)
   }
   const store = loadStore()
   const imageIds = session.generations.map((item) => item.generation_id)

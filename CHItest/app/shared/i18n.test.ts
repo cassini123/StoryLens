@@ -13,9 +13,9 @@ describe('participant prompts', () => {
 
   it('uses T0 as visual readout and T1+ as intended adjustment', () => {
     expect(COPY.zh.observeT0).toMatch(/读到的视觉信息/)
-    expect(COPY.zh.observeAdjust).toMatch(/希望 AI 生成的画面/)
+    expect(COPY.zh.observeAdjust).toMatch(/下一个镜头/)
     expect(COPY.en.observeT0.toLowerCase()).toMatch(/visual information/)
-    expect(COPY.en.observeAdjust.toLowerCase()).toMatch(/generate/)
+    expect(COPY.en.observeAdjust.toLowerCase()).toMatch(/next shot/)
   })
 
   it('does not ask people to reproduce the original picture', () => {

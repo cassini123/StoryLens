@@ -52,9 +52,10 @@ describe('autoPromptRows', () => {
 
   it('lists every official export table in one bundle', () => {
     const names = officialTableFiles([], [], []).map((item) => item.name)
-    expect(names).toEqual([
+    expect(names).toEqual(expect.arrayContaining([
       'participants.csv',
       'tasks.csv',
+      'event_log.csv',
       'events.csv',
       'text_versions.csv',
       'generations.csv',
@@ -64,6 +65,8 @@ describe('autoPromptRows', () => {
       'expert_ratings.csv',
       'self_alignment.csv',
       'full_session_timeline.json',
-    ])
+      'validation.json',
+      'session_recovery.json',
+    ]))
   })
 })

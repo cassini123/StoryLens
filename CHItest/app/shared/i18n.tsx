@@ -8,11 +8,11 @@ const zh = {
   observeT0:
     '请观察这张图，用你自己的语言描述你从这个画面中读到的视觉信息。你可以描述人物、空间、位置关系、构图、镜头、动作或氛围。没有标准答案，也不需要使用专业术语。',
   observeAdjust:
-    '请描述你希望 AI 生成的画面。生成结果出现后，请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。没有标准答案，也不需要使用专业术语。',
+    '这是当前的视觉状态，描述你认为下一个镜头里会发生的内容。生成结果出现后，请观察它与自己想表达的效果有什么差异，并再次修改你的描述，让下一次生成更接近你的想法。没有设定标准答案，自由发挥！（我们提供<=3的修改轮次）',
   observe:
-    '请描述你希望 AI 生成的画面。生成结果出现后，请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。没有标准答案，也不需要使用专业术语。',
+    '这是当前的视觉状态，描述你认为下一个镜头里会发生的内容。生成结果出现后，请观察它与自己想表达的效果有什么差异，并再次修改你的描述，让下一次生成更接近你的想法。没有设定标准答案，自由发挥！（我们提供<=3的修改轮次）',
   observeT3:
-    '请描述你希望 AI 生成的画面。生成结果出现后，请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。',
+    '这是当前的视觉状态，描述你认为下一个镜头里会发生的内容。生成结果出现后，请观察它与自己想表达的效果有什么差异，并再次修改你的描述，让下一次生成更接近你的想法。没有设定标准答案，自由发挥！（我们提供<=3的修改轮次）',
   refine:
     '请看生成结果。如果还想调整，请继续改你的描述。没有标准答案，也不需要使用专业术语。',
   refineT3: '请看生成结果。请观察它与自己想表达的效果有什么差异，并修改你的描述，让下一次生成更接近你的想法。',
@@ -47,7 +47,11 @@ const zh = {
   generated: 'AI 生成',
   aiInterpretation: 'AI 对你草图变化的文字描述',
   autoPromptHint: '这段话只根据草图生成，供你对照阅读。它不会直接拿去生成，也不会覆盖你自己写的描述。',
-  autoPromptEmpty: '改动草图后，这里会出现一段根据草图写出的描述。',
+  interpretSketch: '生成文字解释',
+  interpretSketchHint: '草图操作只会记录。只有点击这一按钮，才会根据当前草图生成一段文字解释。',
+  t2SatisfyHint: '请先改草图，点击「生成文字解释」，修改描述后再生成一次，才能进入下一题。',
+  modificationGoal: '本题指定的视觉修改',
+  autoPromptEmpty: '点击「生成文字解释」后，这里会出现根据当前草图写出的描述。',
   userPrompt: '你可以修改的生成描述',
   description: '你的描述',
   submit: '提交',
@@ -122,11 +126,11 @@ const en: Copy = {
   observeT0:
     'Look at this picture. In your own words, describe the visual information you read from the frame. You can mention people, space, positions, composition, the camera, action, or atmosphere. There is no single correct answer, and you do not need professional terms.',
   observeAdjust:
-    'Describe the picture you want the AI to generate. After the result appears, look at how it differs from what you wanted, and revise your description so the next generation is closer. There is no single correct answer, and you do not need professional terms.',
+    'This is the current visual state. Describe what you think happens in the next shot. After the result appears, look at how it differs from what you wanted to express, and revise your description again so the next generation is closer. There is no set correct answer — feel free to improvise! (You have up to 3 revision rounds.)',
   observe:
-    'Describe the picture you want the AI to generate. After the result appears, look at how it differs from what you wanted, and revise your description so the next generation is closer. There is no single correct answer, and you do not need professional terms.',
+    'This is the current visual state. Describe what you think happens in the next shot. After the result appears, look at how it differs from what you wanted to express, and revise your description again so the next generation is closer. There is no set correct answer — feel free to improvise! (You have up to 3 revision rounds.)',
   observeT3:
-    'Describe the picture you want the AI to generate. After the result appears, look at how it differs from what you wanted, and revise your description so the next generation is closer.',
+    'This is the current visual state. Describe what you think happens in the next shot. After the result appears, look at how it differs from what you wanted to express, and revise your description again so the next generation is closer. There is no set correct answer — feel free to improvise! (You have up to 3 revision rounds.)',
   refine:
     'Look at the generated result. If you want to adjust it, keep editing your description. There is no single correct answer, and you do not need professional terms.',
   refineT3:
@@ -162,7 +166,11 @@ const en: Copy = {
   generated: 'AI generated',
   aiInterpretation: 'AI wording of the changes in your sketch',
   autoPromptHint: 'This wording comes from the sketch only. It is for you to read. It is not sent to generation, and it will not overwrite your description.',
-  autoPromptEmpty: 'After you change the sketch, a description written from the sketch appears here.',
+  interpretSketch: 'Interpret Sketch',
+  interpretSketchHint: 'Sketch edits are logged only. Auto Prompt is created only when you click this button.',
+  t2SatisfyHint: 'Edit the sketch, click Interpret Sketch, revise the wording, then generate again before continuing.',
+  modificationGoal: 'Specified visual change for this picture',
+  autoPromptEmpty: 'After you click Interpret Sketch, a description written from the current sketch appears here.',
   userPrompt: 'Description you can edit for generation',
   description: 'Your description',
   submit: 'Submit',

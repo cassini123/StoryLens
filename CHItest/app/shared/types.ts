@@ -1,6 +1,15 @@
 export type Stage = 'T0' | 'T1' | 'T2' | 'T3'
 export type Timepoint = 'initial' | 'auto' | 'final'
-export type TextType = 'initial' | 'auto' | 'refined' | 'final'
+export type TextType =
+  | 'initial'
+  | 'auto'
+  | 'auto_interpretation'
+  | 'refined'
+  | 'user_revised'
+  | 'final'
+
+export const SYSTEM_TEXT_TYPES: TextType[] = ['auto', 'auto_interpretation']
+export const USER_TEXT_TYPES: TextType[] = ['initial', 'refined', 'user_revised', 'final']
 export type PrecisionDim = 'object' | 'spatial' | 'relation' | 'camera' | 'emotion' | 'constraint'
 export type Difficulty = 'easy' | 'medium' | 'hard'
 export type StimulusGroup = 'environment' | 'character_space' | 'camera' | 'composition'
@@ -21,7 +30,11 @@ export const PRECISION_DIMS: PrecisionDim[] = [
 export const STAGES: Stage[] = ['T0', 'T1', 'T2', 'T3']
 export const MAX_ROUNDS = 3
 
-export const TASK_SEQUENCE_VERSION = 'formal-between-v1'
+export const TASK_SEQUENCE_VERSION = 'formal-between-v2'
+export const PARTICIPANT_INSTRUCTION_VERSION = 'formal-aligned-v1'
+
+export type SessionStatus = 'in_progress' | 'completed' | 'abandoned' | 'resumed'
+export type CompletionStatus = 'complete' | 'incomplete'
 
 export const STAGE_SEQUENCE: Record<ExperimentalGroup, Stage[]> = {
   scaffold: ['T0', 'T1', 'T1', 'T2', 'T2', 'T3', 'T3'],
@@ -304,10 +317,14 @@ export interface GenerationRecord {
   model: string
   model_version: string
   input_image_id: string
+  previous_generation_id: string | null
+  generation_input_chain_valid: boolean
   input_text: string
   input_text_version_id: string
   input_sketch_snapshot_id: string
   source_sketch_snapshot_id: string
+  auto_prompt_id: string
+  user_prompt_version_id: string
   sketch_sent: boolean
   api_input: ApiInput
   api_payload: Record<string, unknown>
@@ -352,9 +369,29 @@ export interface ValidationIssue {
   message: string
 }
 
+export interface StudyValidationFlags {
+  sequence_correct: boolean
+  group_assignment_correct: boolean
+  stimulus_target_alignment: boolean
+  generation_input_chain_correct: boolean
+  t0_valid: boolean
+  t1_valid: boolean
+  t2_scaffold_loop_valid: boolean
+  auto_prompt_cycle_valid: boolean
+  sketch_api_separation_valid: boolean
+  t3_scaffold_removed: boolean
+  session_recovery_valid: boolean
+  timing_complete: boolean
+  required_exports_present: boolean
+}
+
 export interface ValidationResult {
   ok: boolean
+  export_ready: boolean
+  completion_status: CompletionStatus
+  flags: StudyValidationFlags
   issues: ValidationIssue[]
+  validation_issues: ValidationIssue[]
 }
 
 export interface TaskRun {
@@ -362,6 +399,13 @@ export interface TaskRun {
   session_id: string
   task_id: string
   image_id: string
+  category: StimulusGroup
+  difficulty: Difficulty
+  primary_target: PrecisionDim[] | null
+  secondary_target: PrecisionDim[] | null
+  target_modification_specification: Partial<Record<PrecisionDim, string>> | null
+  participant_instruction_version: string
+  participant_instruction: { zh: string; en: string }
   stage: Stage
   block: TaskBlock
   experimental_group: ExperimentalGroup
@@ -432,6 +476,15 @@ export interface Session {
   condition_order: Stage[]
   task_sequence_version: string
   short_session: boolean
+  session_status: SessionStatus
+  completion_status: CompletionStatus
+  last_completed_task_id: string | null
+  current_task_id: string | null
+  current_stage: Stage | null
+  current_round: number
+  current_generation_id: string | null
+  current_text_version_id: string | null
+  current_sketch_snapshot_id: string | null
   demographics: Demographics
   tasks: TaskRun[]
   event_log: TimelineEvent[]

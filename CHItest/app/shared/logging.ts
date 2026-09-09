@@ -1,4 +1,4 @@
-import { associatedGenerationRound, normalizeSketchActionType } from './protocol'
+import { associatedGenerationRound, isSystemTextType, normalizeSketchActionType } from './protocol'
 import { sceneToSvg } from './sketch/render'
 import { cloneScene } from './sketch/templates'
 import { nowIso } from './time'
@@ -63,7 +63,7 @@ export function addTextVersion(
   text: string,
   textType: TextType,
   previousId = '',
-  source: TextSource = textType === 'auto' ? 'system' : 'user',
+  source: TextSource = isSystemTextType(textType) ? 'system' : 'user',
 ): TextVersion {
   const task = currentTask(session)
   if (!task) throw new Error('No active task for text version')
@@ -220,7 +220,7 @@ export function userPromptPayload(session: Session, previous = ''): Record<strin
 export function closeTextEdit(session: Session): void {
   const previous = [...session.text_versions]
     .reverse()
-    .find((item) => item.task_id === currentTask(session)?.task_id && item.text_type !== 'auto')
+    .find((item) => item.task_id === currentTask(session)?.task_id && !isSystemTextType(item.text_type))
   const payload = userPromptPayload(session, previous?.text ?? '')
   if (session.runtime.user_prompt_started) {
     logEvent(session, 'user_prompt_edit_end', payload)
@@ -232,19 +232,39 @@ export function closeTextEdit(session: Session): void {
   }
 }
 
-export function ensureT2ProtocolSnapshots(session: Session): void {
+export function interpretSketch(
+  session: Session,
+  autoPromptText: string,
+): { snapshot: SketchSnapshot; version: TextVersion; record: AutoPromptRecord } | null {
   const task = currentTask(session)
   const scene = session.runtime.working_scene
-  if (!task || task.stage !== 'T2' || !scene) return
-  const kinds = new Set(
-    session.sketch_snapshots.filter((item) => item.task_id === task.task_id).map((item) => item.kind),
-  )
-  const svg = sceneToSvg(scene)
-  for (const kind of ['initial', 'pre_auto_prompt', 'post_user_revision'] as const) {
-    if (kinds.has(kind)) continue
-    const snap = addSketchSnapshot(session, scene, svg, kind)
-    logEvent(session, 'sketch_snapshot_created', { snapshot_id: snap.snapshot_id, kind, ensured: true })
-  }
+  if (!task || task.stage !== 'T2' || !task.auto_prompt_enabled || !scene) return null
+  closeAutoPromptView(session)
+  const snapshot = addSketchSnapshot(session, scene, sceneToSvg(scene), 'pre_auto_prompt')
+  logEvent(session, 'sketch_snapshot_created', {
+    snapshot_id: snapshot.snapshot_id,
+    kind: 'pre_auto_prompt',
+    interpret: true,
+  })
+  session.runtime.auto_prompt = autoPromptText
+  const previous = [...session.text_versions]
+    .reverse()
+    .find((item) => item.task_id === task.task_id && isSystemTextType(item.text_type))
+  const version = addTextVersion(session, autoPromptText, 'auto_interpretation', previous?.text_version_id || '')
+  const record = createAutoPromptRecord(session, autoPromptText, snapshot.snapshot_id, session.runtime.draft_text)
+  logEvent(session, 'interpret_sketch_click', {
+    auto_prompt_id: record.auto_prompt_id,
+    snapshot_id: snapshot.snapshot_id,
+    text_version_id: version.text_version_id,
+  })
+  logEvent(session, 'auto_prompt_generated', {
+    auto_prompt_id: record.auto_prompt_id,
+    text_version_id: version.text_version_id,
+    text_length: version.text_length,
+    source_sketch_snapshot_id: snapshot.snapshot_id,
+  })
+  openAutoPromptView(session, { auto_prompt_id: record.auto_prompt_id, text_version_id: version.text_version_id })
+  return { snapshot, version, record }
 }
 
 export function recordCopyEvent(
