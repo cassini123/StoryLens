@@ -19,7 +19,7 @@ const zh = {
   generating: '正在根据你的描述生成画面，请稍候。',
   viewImage: '这是根据你的描述生成的对照图，用来帮你继续调整，不是评分。',
   introduction:
-    '接下来你会看到几张静帧。每张图都是生成过程中的一个当前结果。请用自己的语言描述你看到的内容，或你希望如何调整。没有标准答案，也不需要使用专业术语。',
+    '这是当前的视觉状态，描述你认为下一个镜头里会发生的内容。生成结果出现后，请观察它与自己想表达的效果有什么差异，并再次修改你的描述，让下一次生成更接近你的想法。没有设定标准答案，自由发挥！（我们提供<=3的修改轮次）',
   introCount: '一共 7 张图。',
   setupTitle: '填写信息',
   setupLead: '开始一场新的实验。请不要重复使用已经做过的编号。',
@@ -97,7 +97,7 @@ const zh = {
   apiMissing: 'API not connected',
   homeLead: '这是一项关于人们如何向生成式图像模型表达画面意图的实验。',
   homeBody:
-    '每位被试完成 7 张图。请根据当前画面写下你希望如何调整。生成图只作对照，不是评分。',
+    '每位被试完成 7 张图。这是当前的视觉状态，请描述你认为下一个镜头里会发生的内容。生成图只作对照，不是评分。',
   apiChecking: 'Checking API…',
   apiReady: 'API connected',
   apiHint: 'API is not configured on this deployment.',
@@ -138,7 +138,7 @@ const en: Copy = {
   generating: 'Generating an image from your description. Please wait.',
   viewImage: 'This is a comparison image generated from your description. Use it to keep adjusting — it is not a score.',
   introduction:
-    'You will see a series of still images. Each one is a current result from a generation process. In your own words, describe what you see, or how you would like to adjust it. There is no single correct answer, and you do not need professional terms.',
+    'This is the current visual state. Describe what you think happens in the next shot. After the result appears, look at how it differs from what you wanted to express, and revise your description again so the next generation is closer. There is no set correct answer — feel free to improvise! (You have up to 3 revision rounds.)',
   introCount: 'You will complete 7 pictures.',
   setupTitle: 'Participant setup',
   setupLead: 'Start a new session. Do not reuse a participant ID that has already been used.',
@@ -216,7 +216,7 @@ const en: Copy = {
   apiMissing: 'API not connected',
   homeLead: 'A study of how people express intended changes to a generated image.',
   homeBody:
-    'Each participant completes 7 pictures. Describe how you want to adjust the current image. Generated images are for comparison, not scoring.',
+    'Each participant completes 7 pictures. This is the current visual state; describe what you think happens in the next shot. Generated images are for comparison, not scoring.',
   apiChecking: 'Checking API…',
   apiReady: 'API connected',
   apiHint: 'API is not configured on this deployment.',
