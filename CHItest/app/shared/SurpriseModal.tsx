@@ -16,7 +16,7 @@ export function SurpriseModal({
         <img className="surprise-bg" src={stimulusUrl(SURPRISE_ASSET)} alt="" />
         <p className="surprise-thanks">{surpriseThanks(participantId)}</p>
         <button className="btn btn-fill surprise-download" type="button" onClick={() => void downloadSurpriseAsset()}>
-          {t.downloadData}
+          {t.surpriseDownload}
         </button>
         <button className="btn surprise-close" type="button" onClick={onClose}>
           {t.close}
