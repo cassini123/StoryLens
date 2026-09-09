@@ -112,6 +112,9 @@ export function SessionChrome({
             </div>
           </div>
           <div className="settings-wrap" ref={menuRef}>
+            <button className="btn" type="button" onClick={() => (window.location.hash = '#/')}>
+              {t.home}
+            </button>
             <button className="btn settings-btn" type="button" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}>
               {t.settings}
             </button>

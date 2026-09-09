@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { experiment } from './shared/config'
 import { isResearcherAuthed, loginResearcher, logoutResearcher, researcherName } from './shared/auth'
+import { getActiveSession } from './shared/store'
+import { latestCompletedParticipantId } from './shared/surprise'
+import { SurpriseModal, SurpriseTrigger } from './shared/SurpriseModal'
 import { useI18n } from './shared/i18n'
 import { checkJimengHealth, type JimengHealth } from './shared/jimeng'
 import { Button, Field, Shell } from './shared/ui'
@@ -13,7 +16,10 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
   const [password, setPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [researcher, setResearcher] = useState(researcherName)
+  const [surpriseOpen, setSurpriseOpen] = useState(false)
   const showResearcher = startResearcher || researcherOpen
+  const unfinished = getActiveSession()
+  const surpriseId = latestCompletedParticipantId()
 
   useEffect(() => {
     void checkJimengHealth().then(setHealth)
@@ -33,14 +39,14 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
   }
 
   return (
-    <Shell title={experiment.study.title} subtitle={experiment.study.subtitle}>
+    <Shell title={experiment.study.title} subtitle={experiment.study.subtitle} showHome={false}>
       <main className="page">
         <p className="lead">{t.homeLead}</p>
         <p>{t.homeBody}</p>
         <p className={apiReady ? 'api-status ok' : 'api-status bad'}>{apiLabel}</p>
         <div className="stack">
           <Button fill onClick={() => (window.location.hash = '#/participant')}>
-            {t.participant}
+            {unfinished ? t.continueSession : t.participant}
           </Button>
           <Button
             onClick={() => {
@@ -106,6 +112,10 @@ export function Home({ startResearcher = false }: { startResearcher?: boolean })
           )
         ) : null}
       </main>
+      {surpriseId ? <SurpriseTrigger onClick={() => setSurpriseOpen(true)} /> : null}
+      {surpriseOpen && surpriseId ? (
+        <SurpriseModal participantId={surpriseId} onClose={() => setSurpriseOpen(false)} />
+      ) : null}
     </Shell>
   )
 }

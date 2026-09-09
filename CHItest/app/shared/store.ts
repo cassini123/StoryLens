@@ -61,6 +61,10 @@ export function getActiveSession(): Session | undefined {
   return undefined
 }
 
+export function clearActiveSession(): void {
+  localStorage.removeItem(ACTIVE_KEY)
+}
+
 export function upsertRating(rating: ExpertRating): StoreShape {
   const store = loadStore()
   const index = store.ratings.findIndex(

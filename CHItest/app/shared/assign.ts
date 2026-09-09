@@ -50,6 +50,10 @@ export function patternForParticipant(participantId: string): AssignmentPattern 
   return PATTERNS[(n - 1 + PATTERNS.length) % PATTERNS.length]
 }
 
+export function randomPattern(rand: () => number = Math.random): AssignmentPattern {
+  return PATTERNS[Math.floor(rand() * PATTERNS.length)] ?? 'A'
+}
+
 /** Random 1/2 assignment. 0 = control (four T1s), 1 = scaffold (T1 T1 T2 T2). */
 export function assignGroup(rand: () => number = Math.random): ExperimentalGroup {
   return rand() < 0.5 ? 'control' : 'scaffold'
@@ -97,10 +101,11 @@ function assignStages(picked: ImageDef[], rand: () => number, group: Experimenta
 export function assignImages(
   images: ImageDef[],
   participantId: string,
-  pattern: AssignmentPattern = patternForParticipant(participantId),
+  pattern: AssignmentPattern,
   group: ExperimentalGroup,
+  seed: number = (Math.random() * 0xffffffff) >>> 0,
 ): PlannedTask[] {
-  const rand = mulberry32(hashString(`${participantId}:${pattern}:${group}`))
+  const rand = mulberry32(seed ^ hashString(`${participantId}:${pattern}:${group}`))
   const used = new Set<string>()
   const counts = PATTERN_COUNTS[pattern]
   const picked = (Object.keys(counts) as StimulusGroup[]).flatMap((item) =>

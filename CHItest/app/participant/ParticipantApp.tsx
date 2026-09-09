@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getImage, stageHasSketch, stimulusUrl } from '../shared/config'
-import { downloadSurpriseAsset, SURPRISE_ASSET } from '../shared/surprise'
+import { SurpriseModal, SurpriseTrigger } from '../shared/SurpriseModal'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
 import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
 import {
@@ -29,7 +29,7 @@ import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
 import { cloneScene } from '../shared/sketch/templates'
 import { sceneToAutoPrompt } from '../shared/sketchToPrompt'
-import { assignGroup, buildTaskPlan, groupCode, isShortSession, nextParticipantId, patternForParticipant } from '../shared/schedule'
+import { assignGroup, buildTaskPlan, groupCode, isShortSession, nextParticipantId, randomPattern } from '../shared/schedule'
 import { createSessionBase, summarizeTask } from '../shared/sessionInit'
 import { markExportReadiness } from '../shared/validation'
 import { pastedFromAuto } from '../shared/textCompare'
@@ -178,17 +178,21 @@ export function ParticipantApp() {
               }
               const prior = getSession(id)
               if (prior && !prior.completed_at) {
-                setSession(prior)
-                return
+                if (confirm(t.resumeOrReroll)) {
+                  setSession(persist(prior))
+                  return
+                }
+                abandonSession(id)
               }
               const sessionId = `S${id.replace(/^P/i, '')}`
               const group = assignGroup()
-              const plan = buildTaskPlan(id, group)
+              const pattern = randomPattern()
+              const plan = buildTaskPlan(id, group, pattern)
               const created = createSessionBase({
                 participantId: id,
                 sessionId,
                 group,
-                pattern: patternForParticipant(id),
+                pattern,
                 plan,
                 demographics: demo,
                 shortSession: isShortSession(),
@@ -227,6 +231,7 @@ function ParticipantFlow({
   const { t, locale } = useI18n()
   const changeTimer = useRef<number | null>(null)
   const sketchTimer = useRef<number | null>(null)
+  const [surpriseOpen, setSurpriseOpen] = useState(false)
 
   function update(mutator: (next: Session) => void) {
     const next = structuredClone(session)
@@ -344,21 +349,16 @@ function ParticipantFlow({
             <Button fill onClick={() => void downloadParticipantPacket(session)}>
               {t.downloadData}
             </Button>
-            <button
-              type="button"
-              className="surprise-card"
-              onClick={() => void downloadSurpriseAsset()}
-            >
-              <img src={stimulusUrl(SURPRISE_ASSET)} alt={t.surprise} />
-              <span>{t.surprise}</span>
-              <small>{t.surpriseHint}</small>
-            </button>
           </div>
         </main>
         <FooterBar style={{ justifyContent: 'space-between' }}>
           <Button onClick={() => confirmRestart(session, setSession, t.restartConfirm)}>{t.startOver}</Button>
           <Button onClick={() => (window.location.hash = '#/')}>{t.home}</Button>
         </FooterBar>
+        <SurpriseTrigger onClick={() => setSurpriseOpen(true)} />
+        {surpriseOpen ? (
+          <SurpriseModal participantId={session.participant_id} onClose={() => setSurpriseOpen(false)} />
+        ) : null}
       </SessionChrome>
     )
   }

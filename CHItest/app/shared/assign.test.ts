@@ -5,6 +5,7 @@ import {
   groupCode,
   groupSequence,
   patternForParticipant,
+  randomPattern,
   PATTERNS,
   PATTERN_COUNTS,
   shortPlan,
@@ -23,7 +24,7 @@ describe('stratified 7-task assignment', () => {
   })
 
   it('gives scaffold participants T0×1 T1×2 T2×2 T3×2', () => {
-    const plan = assignImages(images, 'P001', patternForParticipant('P001'), 'scaffold')
+    const plan = assignImages(images, 'P001', 'A', 'scaffold', 1)
     expect(plan).toHaveLength(7)
     expect(new Set(plan.map((item) => item.image_id)).size).toBe(7)
     expect(plan.filter((item) => item.stage === 'T0')).toHaveLength(1)
@@ -42,14 +43,14 @@ describe('stratified 7-task assignment', () => {
   })
 
   it('keeps executed stages identical to stored condition_order', () => {
-    const scaffold = assignImages(images, 'P001', 'A', 'scaffold')
-    const control = assignImages(images, 'P002', 'B', 'control')
+    const scaffold = assignImages(images, 'P001', 'A', 'scaffold', 1)
+    const control = assignImages(images, 'P002', 'B', 'control', 1)
     expect(scaffold.map((item) => item.stage)).toEqual(['T0', 'T1', 'T1', 'T2', 'T2', 'T3', 'T3'])
     expect(control.map((item) => item.stage)).toEqual(['T0', 'T1', 'T1', 'T1', 'T1', 'T3', 'T3'])
   })
 
   it('gives control participants T0×1 T1×4 T3×2 and no T2', () => {
-    const plan = assignImages(images, 'P002', patternForParticipant('P002'), 'control')
+    const plan = assignImages(images, 'P002', 'B', 'control', 1)
     expect(plan).toHaveLength(7)
     expect(new Set(plan.map((item) => item.image_id)).size).toBe(7)
     expect(plan.filter((item) => item.stage === 'T0')).toHaveLength(1)
@@ -70,7 +71,7 @@ describe('stratified 7-task assignment', () => {
   it('matches the documented group counts', () => {
     for (const id of ['P001', 'P002', 'P003']) {
       const pattern = patternForParticipant(id)
-      const plan = assignImages(images, id, pattern, 'scaffold')
+      const plan = assignImages(images, id, pattern, 'scaffold', 1)
       const counts: Record<string, number> = {}
       for (const item of plan) {
         const group = images.find((image) => image.image_id === item.image_id)?.group as StimulusGroup
@@ -80,25 +81,33 @@ describe('stratified 7-task assignment', () => {
     }
   })
 
-  it('is deterministic for a participant id and group', () => {
-    expect(assignImages(images, 'P007', 'A', 'scaffold')).toEqual(assignImages(images, 'P007', 'A', 'scaffold'))
-    expect(assignImages(images, 'P008', 'B', 'control')).toEqual(assignImages(images, 'P008', 'B', 'control'))
+  it('is deterministic for the same seed and different across seeds', () => {
+    expect(assignImages(images, 'P007', 'A', 'scaffold', 11)).toEqual(assignImages(images, 'P007', 'A', 'scaffold', 11))
+    const a = assignImages(images, 'P007', 'A', 'scaffold', 11).map((item) => item.image_id)
+    const b = assignImages(images, 'P007', 'A', 'scaffold', 99).map((item) => item.image_id)
+    expect(a).not.toEqual(b)
+  })
+
+  it('picks a composition pattern at random', () => {
+    expect(randomPattern(() => 0)).toBe('A')
+    expect(randomPattern(() => 0.4)).toBe('B')
+    expect(randomPattern(() => 0.9)).toBe('C')
   })
 
   it('short plan keeps the group’s key stages', () => {
-    expect(shortPlan(assignImages(images, 'P001', 'A', 'scaffold')).map((item) => item.stage)).toEqual([
+    expect(shortPlan(assignImages(images, 'P001', 'A', 'scaffold', 1)).map((item) => item.stage)).toEqual([
       'T0',
       'T1',
       'T2',
       'T3',
     ])
-    expect(shortPlan(assignImages(images, 'P002', 'B', 'control')).map((item) => item.stage)).toEqual([
+    expect(shortPlan(assignImages(images, 'P002', 'B', 'control', 1)).map((item) => item.stage)).toEqual([
       'T0',
       'T1',
       'T1',
       'T3',
     ])
-    expect(shortPlan(assignImages(images, 'P002', 'B', 'control')).map((item) => item.block)).toEqual([
+    expect(shortPlan(assignImages(images, 'P002', 'B', 'control', 1)).map((item) => item.block)).toEqual([
       'baseline',
       'early',
       'middle',
