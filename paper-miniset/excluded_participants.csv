@@ -1,0 +1,6 @@
+participant_id,group,valid,reason
+P003,Scaffold,no,protocol: session marked complete but export_ready=false (timing_complete: required timing events are not closed)
+P017,Scaffold,no,protocol: session marked complete but export_ready=false (timing_complete: required timing events are not closed)
+P018,Scaffold,no,protocol: session marked complete but export_ready=false (timing_complete: required timing events are not closed)
+P019,Scaffold,no,protocol: incomplete tasks (T2_middle_A02); completion_status=complete; export_ready=0
+P020,Scaffold,no,"protocol: incomplete tasks (T2_middle_A05, T2_middle_E01); completion_status=complete; export_ready=0"

@@ -1,7 +1,6 @@
 participant_id,group,valid,reason
 P001,Scaffold,yes,complete; export_ready=true; all 7 tasks ended
 P002,Control,yes,complete; export_ready=true; all 7 tasks ended
-P003,Scaffold,no,protocol: session marked complete but export_ready=false (timing_complete: required timing events are not closed)
 P004,Scaffold,yes,export_ready=1; older packet without validation.json; all 7 tasks ended
 P005,Control,yes,complete; export_ready=true; all 7 tasks ended
 P006,Control,yes,complete; export_ready=true; all 7 tasks ended
@@ -15,7 +14,3 @@ P013,Scaffold,yes,complete; export_ready=true; all 7 tasks ended
 P014,Scaffold,yes,complete; export_ready=true; all 7 tasks ended
 P015,Control,yes,complete; export_ready=true; all 7 tasks ended
 P016,Scaffold,yes,complete; export_ready=true; all 7 tasks ended
-P017,Scaffold,no,protocol: session marked complete but export_ready=false (timing_complete: required timing events are not closed)
-P018,Scaffold,no,protocol: session marked complete but export_ready=false (timing_complete: required timing events are not closed)
-P019,Scaffold,no,protocol: incomplete tasks (T2_middle_A02); completion_status=complete; export_ready=0
-P020,Scaffold,no,"protocol: incomplete tasks (T2_middle_A05, T2_middle_E01); completion_status=complete; export_ready=0"
