@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { autoPromptRows, officialTableFiles, participantRows } from './export'
+import { autoPromptRows, expertRows, officialTableFiles, participantRows } from './export'
 import { makeSession, makeTask } from './testSession'
 
 describe('autoPromptRows', () => {
@@ -48,6 +48,39 @@ describe('autoPromptRows', () => {
     const rows = participantRows([control, scaffold])
     expect(rows[0]).toMatchObject({ group: 0, group_sequence: 'T1 T1 T1 T1' })
     expect(rows[1]).toMatchObject({ group: 1, group_sequence: 'T1 T1 T2 T2' })
+  })
+
+  it('exports next-shot expression ratings without stage labels', () => {
+    const rows = expertRows([
+      {
+        trial_id: 'T1_early_E01',
+        participant_id: 'P004',
+        task_id: 'T1_early_E01',
+        stage: 'T1',
+        expert_id: 'expert_01',
+        interpretability: 6,
+        spatial_specificity: 5,
+        temporal_action_specificity: 6,
+        executability: 6,
+        overall_precision: 6,
+        reconstructable: 1,
+        comment: 'Action is clear; camera side still open.',
+        submitted_at: '2026-09-10T00:00:00.000Z',
+      },
+    ])
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      participant_id: 'P004',
+      task_id: 'T1_early_E01',
+      expert_id: 'expert_01',
+      interpretability: 6,
+      spatial_specificity: 5,
+      temporal_action_specificity: 6,
+      executability: 6,
+      overall_precision: 6,
+      reconstructable: 1,
+    })
+    expect(rows[0]).not.toHaveProperty('stage')
   })
 
   it('lists every official export table in one bundle', () => {

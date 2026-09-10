@@ -1,0 +1,21 @@
+participant_id,group,valid,protocol_export_ready,protocol_issue,why_included
+P001,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P002,Control,yes,1,,export_ready and all 7 tasks ended
+P003,Scaffold,yes,0,timing_complete: required timing events are not closed,All 7 tasks ended and have final_text. export_ready failed only on logging timestamps not closed. Efficacy uses final text not timing completeness.
+P004,Scaffold,yes,1,older packet has no validation.json,export_ready=1 and all 7 tasks ended
+P005,Control,yes,1,,export_ready and all 7 tasks ended
+P006,Control,yes,1,,export_ready and all 7 tasks ended
+P007,Control,yes,1,,export_ready and all 7 tasks ended
+P008,Control,yes,1,,export_ready and all 7 tasks ended
+P009,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P010,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P011,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P012,Control,yes,1,,export_ready and all 7 tasks ended
+P013,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P014,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P015,Control,yes,1,,export_ready and all 7 tasks ended
+P016,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P017,Scaffold,yes,0,timing_complete: required timing events are not closed,All 7 tasks ended and have final_text. Same timing-log flag as P003.
+P018,Scaffold,yes,0,timing_complete: required timing events are not closed,All 7 tasks ended and have final_text. Same timing-log flag as P003.
+P019,Scaffold,yes,0,task_unfinished: T2_middle_A02 was skipped or not finished,Session marked complete. T2_middle_A02 has no ended_at but has final_text (included). Other 6 tasks ended.
+P020,Scaffold,yes,0,"task_unfinished: T2_middle_A05 and T2_middle_E01 not finished",Session marked complete. Both unfinished T2 tasks still have final_text (included). Other 5 tasks ended.

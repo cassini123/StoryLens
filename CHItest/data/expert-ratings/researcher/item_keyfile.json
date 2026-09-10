@@ -1,0 +1,1082 @@
+[
+  {
+    "item_id": "I001",
+    "participant_id": "P006",
+    "logged_participant_id": "唧唧1",
+    "task_id": "T1_early_C01",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C01"
+  },
+  {
+    "item_id": "I002",
+    "participant_id": "P013",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_D04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D04"
+  },
+  {
+    "item_id": "I003",
+    "participant_id": "P001",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_A04",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I004",
+    "participant_id": "P002",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I005",
+    "participant_id": "P017",
+    "logged_participant_id": "P5555",
+    "task_id": "T1_early_A03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "A03"
+  },
+  {
+    "item_id": "I006",
+    "participant_id": "P005",
+    "logged_participant_id": "Releac",
+    "task_id": "T1_middle_E03",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "E03"
+  },
+  {
+    "item_id": "I007",
+    "participant_id": "P001",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I008",
+    "participant_id": "P003",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_D02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I009",
+    "participant_id": "P009",
+    "logged_participant_id": "oclock",
+    "task_id": "T1_early_C02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I010",
+    "participant_id": "P003",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E05"
+  },
+  {
+    "item_id": "I011",
+    "participant_id": "P010",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_D01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I012",
+    "participant_id": "P003",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I013",
+    "participant_id": "P019",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I014",
+    "participant_id": "P016",
+    "logged_participant_id": "P088",
+    "task_id": "T3_transfer_C02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I015",
+    "participant_id": "P009",
+    "logged_participant_id": "oclock",
+    "task_id": "T3_transfer_E01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E01"
+  },
+  {
+    "item_id": "I016",
+    "participant_id": "P007",
+    "logged_participant_id": "P007",
+    "task_id": "T3_transfer_E05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E05"
+  },
+  {
+    "item_id": "I017",
+    "participant_id": "P001",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_E05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "E05"
+  },
+  {
+    "item_id": "I018",
+    "participant_id": "P002",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E03"
+  },
+  {
+    "item_id": "I019",
+    "participant_id": "P016",
+    "logged_participant_id": "P088",
+    "task_id": "T3_transfer_D06",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I020",
+    "participant_id": "P017",
+    "logged_participant_id": "P5555",
+    "task_id": "T1_early_E04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I021",
+    "participant_id": "P008",
+    "logged_participant_id": "mty",
+    "task_id": "T3_transfer_C04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I022",
+    "participant_id": "P013",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_C03",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I023",
+    "participant_id": "P007",
+    "logged_participant_id": "P007",
+    "task_id": "T1_early_D01",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I024",
+    "participant_id": "P020",
+    "logged_participant_id": "P002",
+    "task_id": "T2_middle_A05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I025",
+    "participant_id": "P014",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I026",
+    "participant_id": "P018",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D03",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I027",
+    "participant_id": "P005",
+    "logged_participant_id": "Releac",
+    "task_id": "T1_early_D03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I028",
+    "participant_id": "P018",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I029",
+    "participant_id": "P005",
+    "logged_participant_id": "Releac",
+    "task_id": "T3_transfer_C02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I030",
+    "participant_id": "P001",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C01"
+  },
+  {
+    "item_id": "I031",
+    "participant_id": "P001",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_D05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I032",
+    "participant_id": "P017",
+    "logged_participant_id": "P5555",
+    "task_id": "T3_transfer_C04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I033",
+    "participant_id": "P016",
+    "logged_participant_id": "P088",
+    "task_id": "T1_early_D02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I034",
+    "participant_id": "P015",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E05",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E05"
+  },
+  {
+    "item_id": "I035",
+    "participant_id": "P013",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_A05",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I036",
+    "participant_id": "P010",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_E01",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "E01"
+  },
+  {
+    "item_id": "I037",
+    "participant_id": "P015",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I038",
+    "participant_id": "P019",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I039",
+    "participant_id": "P012",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_A05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I040",
+    "participant_id": "P020",
+    "logged_participant_id": "P002",
+    "task_id": "T1_early_D02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I041",
+    "participant_id": "P016",
+    "logged_participant_id": "P088",
+    "task_id": "T2_middle_E03",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "E03"
+  },
+  {
+    "item_id": "I042",
+    "participant_id": "P010",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I043",
+    "participant_id": "P006",
+    "logged_participant_id": "唧唧1",
+    "task_id": "T3_transfer_D05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I044",
+    "participant_id": "P007",
+    "logged_participant_id": "P007",
+    "task_id": "T1_early_D02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I045",
+    "participant_id": "P009",
+    "logged_participant_id": "oclock",
+    "task_id": "T3_transfer_D06",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I046",
+    "participant_id": "P007",
+    "logged_participant_id": "P007",
+    "task_id": "T1_middle_A04",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I047",
+    "participant_id": "P012",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_D03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I048",
+    "participant_id": "P005",
+    "logged_participant_id": "Releac",
+    "task_id": "T1_early_E02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I049",
+    "participant_id": "P013",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E03"
+  },
+  {
+    "item_id": "I050",
+    "participant_id": "P017",
+    "logged_participant_id": "P5555",
+    "task_id": "T3_transfer_D06",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I051",
+    "participant_id": "P014",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E03"
+  },
+  {
+    "item_id": "I052",
+    "participant_id": "P016",
+    "logged_participant_id": "P088",
+    "task_id": "T2_middle_A04",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I053",
+    "participant_id": "P009",
+    "logged_participant_id": "oclock",
+    "task_id": "T2_middle_A05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I054",
+    "participant_id": "P011",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_A05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I055",
+    "participant_id": "P015",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_D05",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I056",
+    "participant_id": "P007",
+    "logged_participant_id": "P007",
+    "task_id": "T1_middle_E01",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "E01"
+  },
+  {
+    "item_id": "I057",
+    "participant_id": "P014",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D06",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I058",
+    "participant_id": "P008",
+    "logged_participant_id": "mty",
+    "task_id": "T1_early_D04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D04"
+  },
+  {
+    "item_id": "I059",
+    "participant_id": "P018",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_A02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "A02"
+  },
+  {
+    "item_id": "I060",
+    "participant_id": "P006",
+    "logged_participant_id": "唧唧1",
+    "task_id": "T1_early_C03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I061",
+    "participant_id": "P012",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_C04",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I062",
+    "participant_id": "P011",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I063",
+    "participant_id": "P020",
+    "logged_participant_id": "P002",
+    "task_id": "T3_transfer_C04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I064",
+    "participant_id": "P008",
+    "logged_participant_id": "mty",
+    "task_id": "T1_early_E04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I065",
+    "participant_id": "P002",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_C04",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I066",
+    "participant_id": "P010",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_A02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A02"
+  },
+  {
+    "item_id": "I067",
+    "participant_id": "P004",
+    "logged_participant_id": "P004",
+    "task_id": "T1_early_E01",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E01"
+  },
+  {
+    "item_id": "I068",
+    "participant_id": "P014",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I069",
+    "participant_id": "P015",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I070",
+    "participant_id": "P006",
+    "logged_participant_id": "唧唧1",
+    "task_id": "T1_middle_E01",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "E01"
+  },
+  {
+    "item_id": "I071",
+    "participant_id": "P009",
+    "logged_participant_id": "oclock",
+    "task_id": "T1_early_D01",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I072",
+    "participant_id": "P002",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E05",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E05"
+  },
+  {
+    "item_id": "I073",
+    "participant_id": "P018",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C01"
+  },
+  {
+    "item_id": "I074",
+    "participant_id": "P007",
+    "logged_participant_id": "P007",
+    "task_id": "T3_transfer_A05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I075",
+    "participant_id": "P017",
+    "logged_participant_id": "P5555",
+    "task_id": "T2_middle_C03",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I076",
+    "participant_id": "P010",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D06",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I077",
+    "participant_id": "P004",
+    "logged_participant_id": "P004",
+    "task_id": "T2_middle_D02",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I078",
+    "participant_id": "P019",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_D04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D04"
+  },
+  {
+    "item_id": "I079",
+    "participant_id": "P011",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_D01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I080",
+    "participant_id": "P014",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I081",
+    "participant_id": "P011",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I082",
+    "participant_id": "P012",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I083",
+    "participant_id": "P011",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D02",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I084",
+    "participant_id": "P005",
+    "logged_participant_id": "Releac",
+    "task_id": "T1_middle_A01",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A01"
+  },
+  {
+    "item_id": "I085",
+    "participant_id": "P010",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I086",
+    "participant_id": "P008",
+    "logged_participant_id": "mty",
+    "task_id": "T1_middle_E02",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I087",
+    "participant_id": "P005",
+    "logged_participant_id": "Releac",
+    "task_id": "T3_transfer_A05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I088",
+    "participant_id": "P003",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D01",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I089",
+    "participant_id": "P006",
+    "logged_participant_id": "唧唧1",
+    "task_id": "T3_transfer_D06",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I090",
+    "participant_id": "P017",
+    "logged_participant_id": "P5555",
+    "task_id": "T2_middle_D03",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I091",
+    "participant_id": "P004",
+    "logged_participant_id": "P004",
+    "task_id": "T1_early_C03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I092",
+    "participant_id": "P013",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I093",
+    "participant_id": "P019",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_A04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I094",
+    "participant_id": "P011",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_C04",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I095",
+    "participant_id": "P018",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_E02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I096",
+    "participant_id": "P012",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I097",
+    "participant_id": "P020",
+    "logged_participant_id": "P002",
+    "task_id": "T1_early_D03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I098",
+    "participant_id": "P012",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_D01",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I099",
+    "participant_id": "P014",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_D03",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I100",
+    "participant_id": "P015",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_D03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I101",
+    "participant_id": "P009",
+    "logged_participant_id": "oclock",
+    "task_id": "T2_middle_C04",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I102",
+    "participant_id": "P003",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I103",
+    "participant_id": "P019",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_A02",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A02"
+  },
+  {
+    "item_id": "I104",
+    "participant_id": "P004",
+    "logged_participant_id": "P004",
+    "task_id": "T3_transfer_A04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I105",
+    "participant_id": "P004",
+    "logged_participant_id": "P004",
+    "task_id": "T3_transfer_A01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A01"
+  },
+  {
+    "item_id": "I106",
+    "participant_id": "P002",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_A01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A01"
+  },
+  {
+    "item_id": "I107",
+    "participant_id": "P001",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_D03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I108",
+    "participant_id": "P018",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_A05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I109",
+    "participant_id": "P020",
+    "logged_participant_id": "P002",
+    "task_id": "T2_middle_E01",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "E01"
+  },
+  {
+    "item_id": "I110",
+    "participant_id": "P013",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_C04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I111",
+    "participant_id": "P008",
+    "logged_participant_id": "mty",
+    "task_id": "T1_middle_A05",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I112",
+    "participant_id": "P016",
+    "logged_participant_id": "P088",
+    "task_id": "T1_early_C04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I113",
+    "participant_id": "P008",
+    "logged_participant_id": "mty",
+    "task_id": "T3_transfer_C03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I114",
+    "participant_id": "P015",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_A01",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A01"
+  },
+  {
+    "item_id": "I115",
+    "participant_id": "P020",
+    "logged_participant_id": "P002",
+    "task_id": "T3_transfer_E02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I116",
+    "participant_id": "P004",
+    "logged_participant_id": "P004",
+    "task_id": "T2_middle_D05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I117",
+    "participant_id": "P002",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_D04",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "D04"
+  },
+  {
+    "item_id": "I118",
+    "participant_id": "P006",
+    "logged_participant_id": "唧唧1",
+    "task_id": "T1_middle_A02",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A02"
+  },
+  {
+    "item_id": "I119",
+    "participant_id": "P003",
+    "logged_participant_id": "P001",
+    "task_id": "T2_middle_C01",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "C01"
+  },
+  {
+    "item_id": "I120",
+    "participant_id": "P019",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C01"
+  }
+]

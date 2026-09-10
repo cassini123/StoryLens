@@ -523,11 +523,22 @@ export interface ExpertRating {
   task_id: string
   stage: Stage
   expert_id: string
-  initial: RubricScores
-  final: RubricScores
-  naturalness: number | null
+  interpretability: number | null
+  spatial_specificity: number | null
+  temporal_action_specificity: number | null
+  executability: number | null
+  overall_precision: number | null
+  /** 1 = Yes, 0 = No */
+  reconstructable: number | null
   comment: string
   submitted_at: string
+  /** @deprecated criterion-referenced dimension scores */
+  precision?: PrecisionScores
+  specificity?: number | null
+  /** Legacy in-browser ratings only. */
+  initial?: RubricScores
+  final?: RubricScores
+  naturalness?: number | null
 }
 
 export interface PrecisionScores {

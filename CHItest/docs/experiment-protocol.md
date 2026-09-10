@@ -55,14 +55,11 @@ Researcher target modification lives in `data/tasks/target_modifications.json` a
 
 ## Scoring
 
-Each active criterion is 0–3. Professional vocabulary is never enough for a 3. Plain language can receive 3 if it is executable.
+Four experts independently rate each **final next-shot expression** against the current still. There is **no unique correct answer**. They do not see T1/T2/T3, group, Sketch logs, Auto Prompt, earlier drafts, or generated images. T0 (description of the current still) is excluded.
 
-```text
-P_i = sum of active criteria
-P_norm = P_i / (3 × number_of_active_criteria)
-```
+Each item receives five 1–7 scores: Visual Intent Interpretability, Spatial/Relational Specificity, Temporal/Action Specificity, Executability/Reconstructability, Overall Expression Precision; plus Reconstructable (Yes=1 / No=0). Do not auto-penalize missing spatial detail when the shot is mainly action or event. Professional vocabulary is never required. Experts do not compute totals.
 
-Use **P_norm** as the main cross-task metric when active-target counts differ.
+Target-modification specifications remain researcher-only coding material and are **not** shown to these expression raters.
 
 ## Practice-control analysis
 

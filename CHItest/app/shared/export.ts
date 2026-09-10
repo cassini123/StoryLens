@@ -385,34 +385,18 @@ export function interactionRows(sessions: Session[]): Record<string, unknown>[] 
 }
 
 export function expertRows(ratings: ReturnType<typeof loadStore>['ratings']): Record<string, unknown>[] {
-  return ratings.flatMap((rating) => [
-    {
-      task_id: rating.task_id,
-      participant_id: rating.participant_id,
-      stage: rating.stage,
-      expert_id: rating.expert_id,
-      timepoint: 'initial',
-      precision: rating.initial.intent_precision,
-      interpretability: rating.initial.intent_interpretability,
-      spatial_specificity: rating.initial.spatial_specificity,
-      executability: rating.initial.executability,
-      naturalness: rating.naturalness,
-      comment: rating.comment,
-    },
-    {
-      task_id: rating.task_id,
-      participant_id: rating.participant_id,
-      stage: rating.stage,
-      expert_id: rating.expert_id,
-      timepoint: 'final',
-      precision: rating.final.intent_precision,
-      interpretability: rating.final.intent_interpretability,
-      spatial_specificity: rating.final.spatial_specificity,
-      executability: rating.final.executability,
-      naturalness: rating.naturalness,
-      comment: rating.comment,
-    },
-  ])
+  return ratings.map((rating) => ({
+    participant_id: rating.participant_id,
+    task_id: rating.task_id,
+    expert_id: rating.expert_id,
+    interpretability: rating.interpretability ?? rating.final?.intent_interpretability ?? '',
+    spatial_specificity: rating.spatial_specificity ?? rating.specificity ?? rating.final?.spatial_specificity ?? '',
+    temporal_action_specificity: rating.temporal_action_specificity ?? '',
+    executability: rating.executability ?? rating.final?.executability ?? '',
+    overall_precision: rating.overall_precision ?? '',
+    reconstructable: rating.reconstructable ?? '',
+    comment: rating.comment ?? '',
+  }))
 }
 
 export function snapshotPayload(sessions: Session[]) {
