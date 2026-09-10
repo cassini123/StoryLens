@@ -55,18 +55,11 @@ Researcher target modification lives in `data/tasks/target_modifications.json` a
 
 ## Scoring
 
-Intent Precision is **criterion-referenced** against the task’s Target Modification Specification. Four experts rate independently. They see the still, the specification, and the participant’s **final expression** only. They do not see T1/T2/T3, group, Sketch logs, or Auto Prompt. T0 is excluded from this primary analysis.
+Four experts independently rate each **final next-shot expression** against the current still. There is **no unique correct answer**. They do not see T1/T2/T3, group, Sketch logs, Auto Prompt, earlier drafts, or generated images. T0 (description of the current still) is excluded.
 
-Each **active target dimension** is 0–3 (absent / vague / explicit / precise-reconstructable). Professional vocabulary is never required for a 3. Plain language can receive 3 if the visual relation is executable.
+Each item receives five 1–7 scores: Visual Intent Interpretability, Spatial/Relational Specificity, Temporal/Action Specificity, Executability/Reconstructability, Overall Expression Precision; plus Reconstructable (Yes=1 / No=0). Do not auto-penalize missing spatial detail when the shot is mainly action or event. Professional vocabulary is never required. Experts do not compute totals.
 
-After dimensions, experts give three 1–7 secondary scores: Intent Interpretability, Spatial/Relational Specificity, Executability. Experts do not compute totals.
-
-```text
-P_i = sum of active dimension scores
-P_norm = P_i / (3 × number_of_active_criteria)
-```
-
-Use **P_norm** as the main cross-task metric when active-target counts differ. Aggregate across experts after collection; do not store means only.
+Target-modification specifications remain researcher-only coding material and are **not** shown to these expression raters.
 
 ## Practice-control analysis
 

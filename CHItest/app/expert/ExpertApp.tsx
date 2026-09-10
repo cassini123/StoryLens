@@ -1,21 +1,10 @@
 import { useMemo, useState } from 'react'
 import { experiment, getImage, stimulusUrl } from '../shared/config'
 import { textAt } from '../shared/export'
-import { emptyPrecision, precisionComplete } from '../shared/metrics'
 import { allCompletedTrials, getSession, ratingsForExpert, upsertRating } from '../shared/store'
 import { nowIso } from '../shared/time'
-import type { ExpertRating, PrecisionDim, PrecisionScores, TaskRun } from '../shared/types'
-import { PRECISION_DIMS } from '../shared/types'
-import { Button, FooterBar, Likert, Shell } from '../shared/ui'
-
-const DIM_HINT: Record<PrecisionDim, string> = {
-  object: 'Who/what is in the shot, and any occlusion or object-as-subject change?',
-  spatial: 'Where are they in space / distance / left-right / depth?',
-  relation: 'How do subjects relate (behind/beside, gaze, facing)?',
-  camera: 'Camera height, distance, or orientation relative to subjects?',
-  emotion: 'Attention, gaze, mood that the shot must show?',
-  constraint: 'Any staging limit the shot must obey?',
-}
+import type { ExpertRating, TaskRun } from '../shared/types'
+import { Button, FooterBar, Likert, Shell, YesNo } from '../shared/ui'
 
 function hashString(value: string): number {
   let h = 2166136261
@@ -34,8 +23,22 @@ function shuffleForExpert(trials: TaskRun[], expertId: string): TaskRun[] {
   })
 }
 
-function complete(precision: PrecisionScores, active: PrecisionDim[], interpretability: number | null, specificity: number | null, executability: number | null) {
-  return precisionComplete(precision, active) && interpretability != null && specificity != null && executability != null
+function ready(rating: {
+  interpretability: number | null
+  spatial_specificity: number | null
+  temporal_action_specificity: number | null
+  executability: number | null
+  overall_precision: number | null
+  reconstructable: boolean | null
+}) {
+  return (
+    rating.interpretability != null &&
+    rating.spatial_specificity != null &&
+    rating.temporal_action_specificity != null &&
+    rating.executability != null &&
+    rating.overall_precision != null &&
+    rating.reconstructable != null
+  )
 }
 
 export function ExpertApp() {
@@ -51,9 +54,10 @@ export function ExpertApp() {
       <Shell title="Expert evaluation" subtitle="Blind rating">
         <main className="page">
           <p className="lead">
-            Score the participant’s final wording against the target visual relations. Materials hide
-            condition, stage, sketch logs, Auto Prompt, and participant background. Do not score
-            image quality or professional terminology.
+            Score whether the final wording clearly, specifically, and executably conveys the next
+            shot the participant wants. There is no unique correct answer. Materials hide condition,
+            stage, Sketch, Auto Prompt, drafts, and generated images. Do not score creativity or
+            jargon.
           </p>
           <div className="stack">
             {experiment.experts.map((expert) => (
@@ -79,8 +83,8 @@ export function ExpertApp() {
     return (
       <Shell title="Expert evaluation" subtitle={expert?.label} meta={`${done.length} rated`}>
         <main className="page">
-          <p className="lead">No remaining modification tasks for {expert?.label}.</p>
-          <p>{done.length} independent ratings saved. T0 description trials are excluded from Intent Precision.</p>
+          <p className="lead">No remaining next-shot descriptions for {expert?.label}.</p>
+          <p>{done.length} independent ratings saved. T0 observation trials are excluded.</p>
         </main>
         <FooterBar>
           <Button onClick={() => setExpertId(null)}>Switch expert</Button>
@@ -124,74 +128,73 @@ function RatingScreen({
   const image = getImage(trial.image_id)
   const session = getSession(trial.participant_id)
   const finalText = session ? textAt(session, trial, 'final') : trial.final_text
-  const active = (image.target_dimensions.length ? image.target_dimensions : PRECISION_DIMS).filter(
-    (dim) => image.target_modification?.[dim],
-  )
-  const dims = active.length ? active : image.target_dimensions
-  const [precision, setPrecision] = useState<PrecisionScores>(emptyPrecision)
   const [interpretability, setInterpretability] = useState<number | null>(null)
-  const [specificity, setSpecificity] = useState<number | null>(null)
+  const [spatial, setSpatial] = useState<number | null>(null)
+  const [temporal, setTemporal] = useState<number | null>(null)
   const [executability, setExecutability] = useState<number | null>(null)
+  const [overall, setOverall] = useState<number | null>(null)
+  const [reconstructable, setReconstructable] = useState<boolean | null>(null)
   const [comment, setComment] = useState('')
-  const ready = complete(precision, dims, interpretability, specificity, executability)
+  const canSubmit = ready({
+    interpretability,
+    spatial_specificity: spatial,
+    temporal_action_specificity: temporal,
+    executability,
+    overall_precision: overall,
+    reconstructable,
+  })
 
   return (
     <Shell title="Expert evaluation" subtitle={expertLabel} meta={`${done} done · ${remaining} left`}>
       <main className="eval">
         <section className="materials">
-          <h2>Picture (current visual state)</h2>
+          <h2>Current visual state</h2>
           <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
           {image.current_visual_state ? <p>{image.current_visual_state}</p> : null}
-          <h2>Target modification specification</h2>
-          <p className="hint">
-            Score whether the final wording expresses each target relation. Do not decide what the
-            picture “should” become on your own, and do not score similarity to the still.
-          </p>
-          {image.target_modification ? (
-            <ul>
-              {Object.entries(image.target_modification).map(([key, value]) => (
-                <li key={key}>
-                  <strong>{key}:</strong> {value}
-                </li>
-              ))}
-            </ul>
-          ) : null}
           <h2>Participant final expression</h2>
+          <p className="hint">
+            Score the wording of the next shot they want. Do not judge whether it is a good idea, and
+            do not compare it to a hidden target.
+          </p>
           <pre className="intent-block">{finalText || '—'}</pre>
         </section>
         <section className="scores">
-          <h2>Intent Precision (0–3 each)</h2>
-          <p className="hint">
-            0 absent · 1 mentioned but vague · 2 relation explicit, missing reconstructable detail · 3
-            precise enough to rebuild. Score functional visual relations, not jargon.
-          </p>
-          {dims.map((dim) => (
-            <DimScale
-              key={dim}
-              label={dim}
-              hint={`${DIM_HINT[dim]} Target: ${image.target_modification?.[dim] ?? ''}`}
-              value={precision[dim]}
-              onChange={(n) => setPrecision({ ...precision, [dim]: n })}
-            />
-          ))}
-          <h2>Global ratings (1–7)</h2>
+          <h2>Ratings (1–7)</h2>
           <Likert
-            label="Intent Interpretability"
-            hint="From this text alone, how clearly do you understand the intended change?"
+            label="Visual Intent Interpretability"
+            hint="From this still and text, how clearly do you understand the intended next shot?"
             value={interpretability}
             onChange={setInterpretability}
           />
           <Likert
             label="Spatial / Relational Specificity"
-            hint="How clearly are people, objects, space, distance, direction, and camera specified?"
-            value={specificity}
-            onChange={setSpecificity}
+            hint="People, objects, position, distance, direction, composition. Do not auto-penalize action-only shots."
+            value={spatial}
+            onChange={setSpatial}
           />
           <Likert
-            label="Executability"
-            hint="Could an experienced visual creator carry out this modification from the text?"
+            label="Temporal / Action Specificity"
+            hint="What happens next: action, state change, sequence?"
+            value={temporal}
+            onChange={setTemporal}
+          />
+          <Likert
+            label="Executability / Reconstructability"
+            hint="Could an experienced visual creator build a matching next shot from this text?"
             value={executability}
             onChange={setExecutability}
+          />
+          <Likert
+            label="Overall Expression Precision"
+            hint="How precisely does the wording turn visual intent into clear, executable language?"
+            value={overall}
+            onChange={setOverall}
+          />
+          <YesNo
+            label="Reconstructable"
+            hint="Without asking the participant more questions, can a definite next-shot plan be formed?"
+            value={reconstructable}
+            onChange={setReconstructable}
           />
           <label className="field">
             <span>Optional comment (one line)</span>
@@ -203,7 +206,7 @@ function RatingScreen({
         <Button onClick={onSwitch}>Switch expert</Button>
         <Button
           fill
-          disabled={!ready}
+          disabled={!canSubmit}
           onClick={() => {
             const rating: ExpertRating = {
               trial_id: trial.task_id,
@@ -211,10 +214,12 @@ function RatingScreen({
               task_id: trial.task_id,
               stage: trial.stage,
               expert_id: expertId,
-              precision,
               interpretability,
-              specificity,
+              spatial_specificity: spatial,
+              temporal_action_specificity: temporal,
               executability,
+              overall_precision: overall,
+              reconstructable: reconstructable ? 1 : 0,
               comment,
               submitted_at: nowIso(),
             }
@@ -226,33 +231,5 @@ function RatingScreen({
         </Button>
       </FooterBar>
     </Shell>
-  )
-}
-
-function DimScale({
-  label,
-  hint,
-  value,
-  onChange,
-}: {
-  label: string
-  hint: string
-  value: number | null
-  onChange: (value: number) => void
-}) {
-  return (
-    <div className="likert">
-      <div className="likert-label">
-        <strong>{label}</strong>
-        <p>{hint}</p>
-      </div>
-      <div className="likert-scale" role="radiogroup" aria-label={label}>
-        {[0, 1, 2, 3].map((n) => (
-          <button key={n} type="button" className={value === n ? 'tick on' : 'tick'} onClick={() => onChange(n)}>
-            {n}
-          </button>
-        ))}
-      </div>
-    </div>
   )
 }

@@ -50,7 +50,7 @@ describe('autoPromptRows', () => {
     expect(rows[1]).toMatchObject({ group: 1, group_sequence: 'T1 T1 T2 T2' })
   })
 
-  it('exports final-only per-dimension expert ratings without stage labels', () => {
+  it('exports next-shot expression ratings without stage labels', () => {
     const rows = expertRows([
       {
         trial_id: 'T1_early_E01',
@@ -58,18 +58,13 @@ describe('autoPromptRows', () => {
         task_id: 'T1_early_E01',
         stage: 'T1',
         expert_id: 'expert_01',
-        precision: {
-          object: 2,
-          spatial: 3,
-          relation: null,
-          camera: null,
-          emotion: null,
-          constraint: null,
-        },
         interpretability: 6,
-        specificity: 5,
+        spatial_specificity: 5,
+        temporal_action_specificity: 6,
         executability: 6,
-        comment: 'Stage is nearer; camera not stated.',
+        overall_precision: 6,
+        reconstructable: 1,
+        comment: 'Action is clear; camera side still open.',
         submitted_at: '2026-09-10T00:00:00.000Z',
       },
     ])
@@ -78,12 +73,12 @@ describe('autoPromptRows', () => {
       participant_id: 'P004',
       task_id: 'T1_early_E01',
       expert_id: 'expert_01',
-      timepoint: 'final',
-      object: 2,
-      spatial: 3,
       interpretability: 6,
-      specificity: 5,
+      spatial_specificity: 5,
+      temporal_action_specificity: 6,
       executability: 6,
+      overall_precision: 6,
+      reconstructable: 1,
     })
     expect(rows[0]).not.toHaveProperty('stage')
   })

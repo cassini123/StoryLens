@@ -19,7 +19,7 @@ npm run dev
 | `#/` | 首页：Participant 直接进入；Researcher 需登录（Mickey / Cassini，密码 12345678） |
 | `#/participant` | 被试：手输编号，1/2 随机分组。导出 `group`：0 = 四个 T1，1 = T1 T1 T2 T2 |
 | `#/participant?short=1` | 干跑：scaffold 为 T0/T1/T2/T3，control 为 T0/T1/T1′/T3 |
-| `#/expert` | 四专家盲评（需 Researcher 登录）。只评修改题最终文字：目标维度 0–3，再评 Interpretability / Specificity / Executability（1–7）。界面不显示条件、阶段、Auto Prompt、Sketch；T0 不进入主分析 |
+| `#/expert` | 四专家盲评（需 Researcher 登录）。只评修改题最终文字：五个 1–7 分（可理解性、空间具体性、动作具体性、可执行性、总体精确度）+ Reconstructable（是/否）。界面不显示条件、阶段、Auto Prompt、Sketch、目标修改说明；T0 不进入 |
 | `#/coding` | 研究者按 active dimensions 编码（需登录） |
 | `#/export` | 全部正式表打一个 zip（需登录）。被试完成页也会打自己的包 |
 

@@ -1,60 +1,68 @@
 # SceneSketch Expert Rating Brief (blind)
 
-Evaluate whether the participant’s **final written expression** conveys the **target visual relations**. Score what they expressed, not jargon, sentence length, or generated-image quality.
+Evaluate whether the participant’s **final text** clearly, specifically, and executably conveys what they want the **next shot** to show.
 
-For every item you receive:
+There is **no unique correct answer**. Do not judge whether the idea is a “good shot.” Score only: **did they say it clearly?**
 
-1. Current-state picture (or its caption) — reference only.
-2. Target Modification Specification — criterion, not something to invent.
-3. Participant Final Expression — the only text you score.
+## Materials (only these)
 
-Do **not** use experimental condition, stage labels, sketch logs, auto-prompt text, or other experts’ scores.
+1. Current visual state (picture / caption)
+2. Participant final expression
 
-## Part 1 — Intent Precision (primary, 0–3 per target dimension)
+Do **not** use: experimental group, T1/T2/T3, Sketch logs, Auto Prompt, earlier drafts, generated images, other experts’ scores, or any target-modification specification.
 
-Score **each listed target dimension independently**.
+## Five 1–7 ratings
 
-| Score | Label | Meaning |
-| --- | --- | --- |
-| 0 | Absent | The relation is not expressed. |
-| 1 | Vague | Related content is mentioned, but the relation is incomplete or ambiguous (e.g. “put A behind” with no referent). |
-| 2 | Explicit | The relation is clearly stated, but key reconstructable detail is still missing. |
-| 3 | Precise / Reconstructable | An experienced reader can rebuild the intended change with little ambiguity. |
+### 1. Visual Intent Interpretability
+From the still and this text, how clearly do you understand what the next shot should present?
+1 = almost none · 4 = basically · 7 = very clear, a definite next-shot image forms
 
-Score the **functional visual relation**, not professional terms. “把镜头放低一点” can be 2 or 3 for *Lower camera height*. Short sentences are not penalized if the relation is clear.
+### 2. Spatial / Relational Specificity
+Does the text locate people, objects, position, distance, direction, front/back, composition?
+1 = almost no locatable information · 4 = basically clear · 7 = highly specific
+If the shot is mainly action, expression, or event, **do not auto-penalize missing spatial detail**.
 
-Inactive dimensions are omitted. Do not invent extra dimensions.
+### 3. Temporal / Action Specificity
+Does the text say what happens next (action, state change, sequence)?
+1 = almost no clear action/change · 4 = basically clear · 7 = action/change/order very clear
 
-## Part 2 — Global ratings (secondary, 1–7 each)
+### 4. Executability / Reconstructability
+Could an experienced director/storyboarder build a next shot roughly matching this description without more questions?
+1 = almost not · 4 = basically, but needs explanation · 7 = highly consistent reconstruction
 
-After all active dimensions for that item:
+### 5. Overall Expression Precision
+Overall, how precisely does the wording turn visual intent into clear, specific, executable language?
+1 = very imprecise · 4 = moderate · 7 = very precise
 
-1. **Interpretability** — From this text alone, how clearly do you understand the intended picture change? 1 = not at all, 4 = basically, 7 = very clearly.
-2. **Spatial / Relational Specificity** — How clearly are people, objects, space, distance, direction, camera specified? 1 = very vague, 4 = moderate, 7 = highly specific.
-3. **Executability** — Could an experienced visual creator carry out this modification from the text? 1 = almost not, 4 = partially, 7 = clearly executable. Score the instruction, not image quality.
+## Reconstructable (Yes/No)
 
-Optional one-line comment only if needed (e.g. ambiguous referent). No long essays. Do not compute totals.
+Without asking the participant anything more, can an experienced visual creator form a relatively definite next-shot plan?
+- **Yes = 1**
+- **No = 0**
+Focus: would you still need to ask “what do you actually mean?”
 
-## Output
+## Rules
+- Do not score creativity quality.
+- Do not require professional terms.
+- Do not penalize short sentences if they are clear.
+- Do not score generated-image quality.
+- Rate each item independently.
+- Do not guess experimental condition.
 
-Write three CSVs. Use `item_id` from the packet (do not invent IDs).
+## Output CSVs (UTF-8)
 
-`primary_rating.csv`:
+`ratings.csv`:
 
 ```text
-item_id,participant_id,dimension,score
+item_id,participant_id,interpretability,spatial_specificity,temporal_action_specificity,executability,overall_precision,reconstructable
 ```
 
-`global_rating.csv`:
+Scores 1–7 integers; reconstructable 1 or 0.
 
-```text
-item_id,participant_id,interpretability,specificity,executability
-```
-
-`comments.csv` (omit rows with no comment):
+`comments.csv` (only when needed):
 
 ```text
 item_id,participant_id,comment
 ```
 
-Rate every item. Independent rating only.
+One short sentence. Do not compute totals.

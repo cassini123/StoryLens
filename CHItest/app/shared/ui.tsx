@@ -113,10 +113,12 @@ export function Likert({
 
 export function YesNo({
   label,
+  hint,
   value,
   onChange,
 }: {
   label: string
+  hint?: string
   value: boolean | null
   onChange: (value: boolean) => void
 }) {
@@ -124,6 +126,7 @@ export function YesNo({
     <div className="likert">
       <div className="likert-label">
         <strong>{label}</strong>
+        {hint ? <p>{hint}</p> : null}
       </div>
       <div className="likert-scale">
         <button type="button" className={value === true ? 'tick on' : 'tick'} onClick={() => onChange(true)}>
