@@ -1,0 +1,1950 @@
+[
+  {
+    "item_id": "I001",
+    "participant_id": "P014",
+    "image_id": "E02",
+    "image_title": "轮渡甲板",
+    "image_path": "CHItest/data/tasks/images/environment/E02.svg",
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "男主角开始跳芭蕾"
+  },
+  {
+    "item_id": "I002",
+    "participant_id": "P006",
+    "image_id": "C01",
+    "image_title": "火车站窗边",
+    "image_path": "CHItest/data/tasks/images/character_space/C01.svg",
+    "current_visual_state": "窗边人物相对靠近，前后层次不够清楚。",
+    "target_modification": {
+      "spatial": "increase distance",
+      "relation": "move character A behind B",
+      "camera": "move to rear-side"
+    },
+    "dimensions": [
+      "spatial",
+      "relation",
+      "camera"
+    ],
+    "final_expression": "画面中的三个人开心的一起享用桌面上的食物, 其中最左边的男性在吃披萨饼中间紫色衣服的女性在吃方便面最右侧男性在吃烧烤串"
+  },
+  {
+    "item_id": "I003",
+    "participant_id": "P002",
+    "image_id": "C02",
+    "image_title": "咖啡馆对坐",
+    "image_path": "CHItest/data/tasks/images/character_space/C02.svg",
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "三个人扭打在一起"
+  },
+  {
+    "item_id": "I004",
+    "participant_id": "P003",
+    "image_id": "D02",
+    "image_title": "门后身影",
+    "image_path": "CHItest/data/tasks/images/composition/D02.svg",
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "右边的人和镜子里的人开始打架"
+  },
+  {
+    "item_id": "I005",
+    "participant_id": "P010",
+    "image_id": "A02",
+    "image_title": "博物馆展墙",
+    "image_path": "CHItest/data/tasks/images/camera/A02.svg",
+    "current_visual_state": "博物馆展墙前，摄影机大致正对墙面。",
+    "target_modification": {
+      "camera": "把摄影机移到侧后方，斜看展墙",
+      "spatial": "让人物离开墙面中心，站到更靠边的位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "主角在空无一人的街道上向前奔跑"
+  },
+  {
+    "item_id": "I006",
+    "participant_id": "P001",
+    "image_id": "E04",
+    "image_title": "公园长椅",
+    "image_path": "CHItest/data/tasks/images/environment/E04.svg",
+    "current_visual_state": "公园长椅上的人物与周围空地的关系较为贴近。",
+    "target_modification": {
+      "spatial": "拉开人物与长椅周围空间的距离，或把人放到椅子更一端",
+      "camera": "摄影机稍微侧移，从斜向观察长椅"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "坐姿状态的人物会拿出尖锐刀具暴力捅向躺在沙发上的人物，躺着的角色会挣扎一会，摔下沙发爬行一会，然后死亡。画面中会有大量血污。"
+  },
+  {
+    "item_id": "I007",
+    "participant_id": "P001",
+    "image_id": "A04",
+    "image_title": "地铁来车",
+    "image_path": "CHItest/data/tasks/images/camera/A04.svg",
+    "current_visual_state": "地铁来车，摄影机与车厢的距离和角度较为正面。",
+    "target_modification": {
+      "camera": "摄影机退远或更侧，从月台斜向看向来车",
+      "spatial": "调整人物相对车门的站位"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "两个人扭打在一起"
+  },
+  {
+    "item_id": "I008",
+    "participant_id": "P007",
+    "image_id": "D01",
+    "image_title": "柱后半隐",
+    "image_path": "CHItest/data/tasks/images/composition/D01.svg",
+    "current_visual_state": "人物被柱子半遮，遮挡程度和前后关系不够明确。",
+    "target_modification": {
+      "object": "加大或明确柱子对人物的遮挡",
+      "spatial": "让人物更明显地位于柱后，而不是与柱子并排"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "两个人亲亲"
+  },
+  {
+    "item_id": "I009",
+    "participant_id": "P019",
+    "image_id": "A02",
+    "image_title": "博物馆展墙",
+    "image_path": "CHItest/data/tasks/images/camera/A02.svg",
+    "current_visual_state": "博物馆展墙前，摄影机大致正对墙面。",
+    "target_modification": {
+      "camera": "把摄影机移到侧后方，斜看展墙",
+      "spatial": "让人物离开墙面中心，站到更靠边的位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "画面中出现的第二个人是一个美丽的波西米亚风的女子有着黑色的波浪长发，和图中穿风衣的男人拔枪相对。请维持原画面的原有色调和质感。"
+  },
+  {
+    "item_id": "I010",
+    "participant_id": "P008",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个人面朝大海大喊"
+  },
+  {
+    "item_id": "I011",
+    "participant_id": "P003",
+    "image_id": "E02",
+    "image_title": "轮渡甲板",
+    "image_path": "CHItest/data/tasks/images/environment/E02.svg",
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "镜头前这个人跟后面的人魔法对轰"
+  },
+  {
+    "item_id": "I012",
+    "participant_id": "P017",
+    "image_id": "A03",
+    "image_title": "俯视走廊",
+    "image_path": "CHItest/data/tasks/images/camera/A03.svg",
+    "current_visual_state": "走廊被俯视，人物在地面上显得较小。",
+    "target_modification": {
+      "camera": "降低机位，从接近视线高度或略低处看走廊",
+      "spatial": "让人物在走廊中更靠近镜头或更靠深处"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "我觉得他会被一颗子弹穿过头颅，这个子弹应该是正常的子弹，而且只有一颗，还是不够真实"
+  },
+  {
+    "item_id": "I013",
+    "participant_id": "P015",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "你应该是在原图的基础上继续连贯的生成，上一张图是海边的两个女孩，下一个视角切到金发女子的近景，她转过头继续看向画面外，表情严肃或有些警惕，随后镜头展示她正在注视的人或事物"
+  },
+  {
+    "item_id": "I014",
+    "participant_id": "P003",
+    "image_id": "E05",
+    "image_title": "前后景",
+    "image_path": "CHItest/data/tasks/images/environment/E05.svg",
+    "current_visual_state": "前景与后景层次存在，但前后距离不够清楚。",
+    "target_modification": {
+      "spatial": "加大前景与后景的距离，让前后层次更分开",
+      "camera": "摄影机位置更明确地从前侧或后侧观察纵深"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "天空中飞出一只异型"
+  },
+  {
+    "item_id": "I015",
+    "participant_id": "P017",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "将人物B移到人物A的右前方，并明显拉开他们之间的距离；摄影机在接近视线高度、偏左，保持适中距离，从侧后方观察；把尽头的门放在画面中部。"
+  },
+  {
+    "item_id": "I016",
+    "participant_id": "P001",
+    "image_id": "E05",
+    "image_title": "前后景",
+    "image_path": "CHItest/data/tasks/images/environment/E05.svg",
+    "current_visual_state": "前景与后景层次存在，但前后距离不够清楚。",
+    "target_modification": {
+      "spatial": "加大前景与后景的距离，让前后层次更分开",
+      "camera": "摄影机位置更明确地从前侧或后侧观察纵深"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "四个人围着一团篝火在聊天，最左边的男的抽烟，第二男的在摘有线耳机，第三个女生在大笑，第四个男的很冷漠的注视镜头。"
+  },
+  {
+    "item_id": "I017",
+    "participant_id": "P002",
+    "image_id": "E03",
+    "image_title": "书店门口",
+    "image_path": "CHItest/data/tasks/images/environment/E03.svg",
+    "current_visual_state": "书店门口，人物与店面入口的距离和朝向较为固定。",
+    "target_modification": {
+      "spatial": "调整人物相对门口的远近和左右位置",
+      "object": "让店面入口在构图中更清楚地位于人物前方或侧方"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "镜头变成完全俯拍视角"
+  },
+  {
+    "item_id": "I018",
+    "participant_id": "P020",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "着奢华服饰的男主和女主带走一群朋友走过来"
+  },
+  {
+    "item_id": "I019",
+    "participant_id": "P016",
+    "image_id": "D06",
+    "image_title": "玻璃内外",
+    "image_path": "CHItest/data/tasks/images/composition/D06.svg",
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "两男一女"
+  },
+  {
+    "item_id": "I020",
+    "participant_id": "P005",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "一个贵妇从侧面的房门中走出"
+  },
+  {
+    "item_id": "I021",
+    "participant_id": "P015",
+    "image_id": "D05",
+    "image_title": "餐桌三人",
+    "image_path": "CHItest/data/tasks/images/composition/D05.svg",
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "镜子中的两个男人相视戏谑一笑"
+  },
+  {
+    "item_id": "I022",
+    "participant_id": "P005",
+    "image_id": "E03",
+    "image_title": "书店门口",
+    "image_path": "CHItest/data/tasks/images/environment/E03.svg",
+    "current_visual_state": "书店门口，人物与店面入口的距离和朝向较为固定。",
+    "target_modification": {
+      "spatial": "调整人物相对门口的远近和左右位置",
+      "object": "让店面入口在构图中更清楚地位于人物前方或侧方"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "画面中的人全部走下台阶，台阶上空无一人"
+  },
+  {
+    "item_id": "I023",
+    "participant_id": "P011",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "保持整个画面的氛围和镜头视角，画面中的女生放下筷子看向男生的背影，画面中的男生起身向画面的右侧走去，去除掉画面中坐着的的男生"
+  },
+  {
+    "item_id": "I024",
+    "participant_id": "P002",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "面朝镜头的人把头转过去，面朝照片左边，露出侧脸，背对镜头的人不变"
+  },
+  {
+    "item_id": "I025",
+    "participant_id": "P018",
+    "image_id": "C01",
+    "image_title": "火车站窗边",
+    "image_path": "CHItest/data/tasks/images/character_space/C01.svg",
+    "current_visual_state": "窗边人物相对靠近，前后层次不够清楚。",
+    "target_modification": {
+      "spatial": "increase distance",
+      "relation": "move character A behind B",
+      "camera": "move to rear-side"
+    },
+    "dimensions": [
+      "spatial",
+      "relation",
+      "camera"
+    ],
+    "final_expression": "远景拍摄这三个人，他们三人坐在一个独栋的小屋前面，周边是一片农田的大棚，傍晚夕阳时刻，三个人坐在椅子上"
+  },
+  {
+    "item_id": "I026",
+    "participant_id": "P018",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "镜头俯拍桌上的二人，拍摄他们的头顶"
+  },
+  {
+    "item_id": "I027",
+    "participant_id": "P010",
+    "image_id": "D01",
+    "image_title": "柱后半隐",
+    "image_path": "CHItest/data/tasks/images/composition/D01.svg",
+    "current_visual_state": "人物被柱子半遮，遮挡程度和前后关系不够明确。",
+    "target_modification": {
+      "object": "加大或明确柱子对人物的遮挡",
+      "spatial": "让人物更明显地位于柱后，而不是与柱子并排"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "男生将头伸向车窗与女生亲吻告别"
+  },
+  {
+    "item_id": "I028",
+    "participant_id": "P014",
+    "image_id": "E03",
+    "image_title": "书店门口",
+    "image_path": "CHItest/data/tasks/images/environment/E03.svg",
+    "current_visual_state": "书店门口，人物与店面入口的距离和朝向较为固定。",
+    "target_modification": {
+      "spatial": "调整人物相对门口的远近和左右位置",
+      "object": "让店面入口在构图中更清楚地位于人物前方或侧方"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "所有人全部飞上天 都很惊恐 不要飞向我 往天上飞啊 大哥"
+  },
+  {
+    "item_id": "I029",
+    "participant_id": "P001",
+    "image_id": "D05",
+    "image_title": "餐桌三人",
+    "image_path": "CHItest/data/tasks/images/composition/D05.svg",
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "后面穿黑色西服的人举枪对着前面人的后脑勺"
+  },
+  {
+    "item_id": "I030",
+    "participant_id": "P009",
+    "image_id": "C02",
+    "image_title": "咖啡馆对坐",
+    "image_path": "CHItest/data/tasks/images/character_space/C02.svg",
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "女子表情微怒，眉头微皱，一只手抓住左侧男子下摆，与其拉扯；左侧男子与女子距离拉近；中间的男子左手拉男子右手拉女子试图劝架，身体倾向女子；背景中的男子闻声转头"
+  },
+  {
+    "item_id": "I031",
+    "participant_id": "P020",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "男主站起来，拿过来一杯饮料"
+  },
+  {
+    "item_id": "I032",
+    "participant_id": "P007",
+    "image_id": "E05",
+    "image_title": "前后景",
+    "image_path": "CHItest/data/tasks/images/environment/E05.svg",
+    "current_visual_state": "前景与后景层次存在，但前后距离不够清楚。",
+    "target_modification": {
+      "spatial": "加大前景与后景的距离，让前后层次更分开",
+      "camera": "摄影机位置更明确地从前侧或后侧观察纵深"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "一颗导弹降落炸掉小汽车，注意是导弹降落，不是发射导弹，而且如果已经爆炸了的话应该就看不到导弹了"
+  },
+  {
+    "item_id": "I033",
+    "participant_id": "P009",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "将男生移到女生右后方，并明显拉开他们之间的距离；让男生更靠近画面前方；让女生看向男生，摄影机在接近视线高度、大致正面，保持适中距离，朝向场景观察；把长椅放在画面中部。男生背对在吧台拿筷子"
+  },
+  {
+    "item_id": "I034",
+    "participant_id": "P016",
+    "image_id": "E03",
+    "image_title": "书店门口",
+    "image_path": "CHItest/data/tasks/images/environment/E03.svg",
+    "current_visual_state": "书店门口，人物与店面入口的距离和朝向较为固定。",
+    "target_modification": {
+      "spatial": "调整人物相对门口的远近和左右位置",
+      "object": "让店面入口在构图中更清楚地位于人物前方或侧方"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "整个画面都是台阶，上面稀稀疏疏的站着形色各异的人"
+  },
+  {
+    "item_id": "I035",
+    "participant_id": "P015",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "一位贵族出现在镜头，两名服务生向贵族鞠躬"
+  },
+  {
+    "item_id": "I036",
+    "participant_id": "P017",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "将人物B移到人物A的右后方，并明显拉开他们之间的距离；让人物A更靠近画面前方；人物A看向人物B；摄影机在较低的位置、偏左，保持适中距离，从侧后方观察；把院子放在画面左侧。"
+  },
+  {
+    "item_id": "I037",
+    "participant_id": "P020",
+    "image_id": "D02",
+    "image_title": "门后身影",
+    "image_path": "CHItest/data/tasks/images/composition/D02.svg",
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "吵架"
+  },
+  {
+    "item_id": "I038",
+    "participant_id": "P010",
+    "image_id": "E01",
+    "image_title": "空剧院",
+    "image_path": "CHItest/data/tasks/images/environment/E01.svg",
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "主角独自一人在空舞台上练习舞蹈"
+  },
+  {
+    "item_id": "I039",
+    "participant_id": "P018",
+    "image_id": "A02",
+    "image_title": "博物馆展墙",
+    "image_path": "CHItest/data/tasks/images/camera/A02.svg",
+    "current_visual_state": "博物馆展墙前，摄影机大致正对墙面。",
+    "target_modification": {
+      "camera": "把摄影机移到侧后方，斜看展墙",
+      "spatial": "让人物离开墙面中心，站到更靠边的位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "一个男人的面孔出现在镜头前，一道路灯的环境光线打在他的脸上，光线狭窄，只能看清一部分的眼神和五官，他的表情带着神秘且严肃，面部光线自然一些，色温与环境一致，不要生硬"
+  },
+  {
+    "item_id": "I040",
+    "participant_id": "P006",
+    "image_id": "D05",
+    "image_title": "餐桌三人",
+    "image_path": "CHItest/data/tasks/images/composition/D05.svg",
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "擦镜子的人保持擦镜子的动作不变，回头与身后的人交流镜子中呈现的是擦镜子的人的后脑勺"
+  },
+  {
+    "item_id": "I041",
+    "participant_id": "P007",
+    "image_id": "D02",
+    "image_title": "门后身影",
+    "image_path": "CHItest/data/tasks/images/composition/D02.svg",
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "镜子里的穿浴袍的人攻击镜子前这对男女，这对男女躲避子弹但失败了，双双倒地，镜子里只露出了男女的腿，但能证明他们已经中枪倒地，镜子前没有了两人的身影"
+  },
+  {
+    "item_id": "I042",
+    "participant_id": "P009",
+    "image_id": "D06",
+    "image_title": "玻璃内外",
+    "image_path": "CHItest/data/tasks/images/composition/D06.svg",
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "摄影机在接近视线高度、位于画面左侧，从左侧穿棕色皮衣女子的背后拍摄，采用过肩镜头，人物在画面两侧。一辆汽车停在众人面前，车灯微微开启，散发出柔和暖黄光，照亮了前景人物轮廓。前景展示棕色皮衣女子和黑色西装男子背影，车后不要有人物出现。"
+  },
+  {
+    "item_id": "I043",
+    "participant_id": "P007",
+    "image_id": "A04",
+    "image_title": "地铁来车",
+    "image_path": "CHItest/data/tasks/images/camera/A04.svg",
+    "current_visual_state": "地铁来车，摄影机与车厢的距离和角度较为正面。",
+    "target_modification": {
+      "camera": "摄影机退远或更侧，从月台斜向看向来车",
+      "spatial": "调整人物相对车门的站位"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "三个人同归于尽吧"
+  },
+  {
+    "item_id": "I044",
+    "participant_id": "P014",
+    "image_id": "D06",
+    "image_title": "玻璃内外",
+    "image_path": "CHItest/data/tasks/images/composition/D06.svg",
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "有一个帅哥冲进来和男主角亲嘴"
+  },
+  {
+    "item_id": "I045",
+    "participant_id": "P005",
+    "image_id": "E02",
+    "image_title": "轮渡甲板",
+    "image_path": "CHItest/data/tasks/images/environment/E02.svg",
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "男人转身向身后的两人走去"
+  },
+  {
+    "item_id": "I046",
+    "participant_id": "P013",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "人物B把头扭过来看向A，，人物A姿势不变，镜头聚焦到人物B"
+  },
+  {
+    "item_id": "I047",
+    "participant_id": "P018",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "女人身后的车内环境不要错乱穿模，女人的面部和原图保持一致，不要改变人物形象"
+  },
+  {
+    "item_id": "I048",
+    "participant_id": "P008",
+    "image_id": "E04",
+    "image_title": "公园长椅",
+    "image_path": "CHItest/data/tasks/images/environment/E04.svg",
+    "current_visual_state": "公园长椅上的人物与周围空地的关系较为贴近。",
+    "target_modification": {
+      "spatial": "拉开人物与长椅周围空间的距离，或把人放到椅子更一端",
+      "camera": "摄影机稍微侧移，从斜向观察长椅"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "沙发上的红衣男子起身，去后面的零售柜拿饮料"
+  },
+  {
+    "item_id": "I049",
+    "participant_id": "P011",
+    "image_id": "E04",
+    "image_title": "公园长椅",
+    "image_path": "CHItest/data/tasks/images/environment/E04.svg",
+    "current_visual_state": "公园长椅上的人物与周围空地的关系较为贴近。",
+    "target_modification": {
+      "spatial": "拉开人物与长椅周围空间的距离，或把人放到椅子更一端",
+      "camera": "摄影机稍微侧移，从斜向观察长椅"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "这个画面中，右边坐着单人沙发的人站起来走到画面的左边位置，准备去屋内后面的饮料机，接一杯可乐，中间的沙发躺着的那个人姿势保持原来的不变"
+  },
+  {
+    "item_id": "I050",
+    "participant_id": "P010",
+    "image_id": "E04",
+    "image_title": "公园长椅",
+    "image_path": "CHItest/data/tasks/images/environment/E04.svg",
+    "current_visual_state": "公园长椅上的人物与周围空地的关系较为贴近。",
+    "target_modification": {
+      "spatial": "拉开人物与长椅周围空间的距离，或把人放到椅子更一端",
+      "camera": "摄影机稍微侧移，从斜向观察长椅"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "画面中两个人在交谈，一些比较轻松随意的聊天"
+  },
+  {
+    "item_id": "I051",
+    "participant_id": "P015",
+    "image_id": "C02",
+    "image_title": "咖啡馆对坐",
+    "image_path": "CHItest/data/tasks/images/character_space/C02.svg",
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "三名年轻人坐上车出发"
+  },
+  {
+    "item_id": "I052",
+    "participant_id": "P007",
+    "image_id": "E01",
+    "image_title": "空剧院",
+    "image_path": "CHItest/data/tasks/images/environment/E01.svg",
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "穿好衣服原地睡觉"
+  },
+  {
+    "item_id": "I053",
+    "participant_id": "P013",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "会其乐融融地聊起日常生活发生的事情"
+  },
+  {
+    "item_id": "I054",
+    "participant_id": "P008",
+    "image_id": "D04",
+    "image_title": "画廊穿过",
+    "image_path": "CHItest/data/tasks/images/composition/D04.svg",
+    "current_visual_state": "画廊中有人穿过，前景遮挡物不够明确。",
+    "target_modification": {
+      "object": "用前景边框或展墙挡住部分人物",
+      "spatial": "拉开穿过画廊的人物与前景遮挡物的前后距离"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "男人抱起小狗举高高，女人抬头很高兴的看着男人和小狗"
+  },
+  {
+    "item_id": "I055",
+    "participant_id": "P013",
+    "image_id": "E03",
+    "image_title": "书店门口",
+    "image_path": "CHItest/data/tasks/images/environment/E03.svg",
+    "current_visual_state": "书店门口，人物与店面入口的距离和朝向较为固定。",
+    "target_modification": {
+      "spatial": "调整人物相对门口的远近和左右位置",
+      "object": "让店面入口在构图中更清楚地位于人物前方或侧方"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "镜头聚焦到一个关键角色上"
+  },
+  {
+    "item_id": "I056",
+    "participant_id": "P006",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "汽车的行驶时遇到了障碍物司机急刹车内的两个人物向前冲去一物头发都随着刹车的方向飞起"
+  },
+  {
+    "item_id": "I057",
+    "participant_id": "P018",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "长焦镜头拍摄，一个盛装出席的女人面对镜头从走廊最远处走出来，居中构图，低角度机位"
+  },
+  {
+    "item_id": "I058",
+    "participant_id": "P020",
+    "image_id": "E02",
+    "image_title": "轮渡甲板",
+    "image_path": "CHItest/data/tasks/images/environment/E02.svg",
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "走过来一个警察"
+  },
+  {
+    "item_id": "I059",
+    "participant_id": "P014",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个人开始亲嘴"
+  },
+  {
+    "item_id": "I060",
+    "participant_id": "P009",
+    "image_id": "E01",
+    "image_title": "空剧院",
+    "image_path": "CHItest/data/tasks/images/environment/E01.svg",
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "摄像机俯拍，从人物视线出发，人物倒影占画面大部分，人物只留下半身"
+  },
+  {
+    "item_id": "I061",
+    "participant_id": "P017",
+    "image_id": "D06",
+    "image_title": "玻璃内外",
+    "image_path": "CHItest/data/tasks/images/composition/D06.svg",
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "万众瞩目的大明星来了"
+  },
+  {
+    "item_id": "I062",
+    "participant_id": "P001",
+    "image_id": "C01",
+    "image_title": "火车站窗边",
+    "image_path": "CHItest/data/tasks/images/character_space/C01.svg",
+    "current_visual_state": "窗边人物相对靠近，前后层次不够清楚。",
+    "target_modification": {
+      "spatial": "increase distance",
+      "relation": "move character A behind B",
+      "camera": "move to rear-side"
+    },
+    "dimensions": [
+      "spatial",
+      "relation",
+      "camera"
+    ],
+    "final_expression": "有一只大鹈鹕飞到桌子上吃他们的食物，三个人都很恐慌逃跑，一个俯视的镜头"
+  },
+  {
+    "item_id": "I063",
+    "participant_id": "P005",
+    "image_id": "C02",
+    "image_title": "咖啡馆对坐",
+    "image_path": "CHItest/data/tasks/images/character_space/C02.svg",
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "男人和女人坐上汽车准备开车离开，另一位男士离开画面"
+  },
+  {
+    "item_id": "I064",
+    "participant_id": "P004",
+    "image_id": "E01",
+    "image_title": "空剧院",
+    "image_path": "CHItest/data/tasks/images/environment/E01.svg",
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "全黑的虚构室内环境，充满压抑感，远景镜头，只有一个人物全身出现在画面中心偏右的位置，水平中心线，下半图是人物的半身倒影，整体画面有点恐怖阴暗"
+  },
+  {
+    "item_id": "I065",
+    "participant_id": "P015",
+    "image_id": "E05",
+    "image_title": "前后景",
+    "image_path": "CHItest/data/tasks/images/environment/E05.svg",
+    "current_visual_state": "前景与后景层次存在，但前后距离不够清楚。",
+    "target_modification": {
+      "spatial": "加大前景与后景的距离，让前后层次更分开",
+      "camera": "摄影机位置更明确地从前侧或后侧观察纵深"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "怪盗基德出现，准备上车"
+  },
+  {
+    "item_id": "I066",
+    "participant_id": "P016",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个女人面面相觑"
+  },
+  {
+    "item_id": "I067",
+    "participant_id": "P006",
+    "image_id": "E01",
+    "image_title": "空剧院",
+    "image_path": "CHItest/data/tasks/images/environment/E01.svg",
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "整体画面变亮女杂技演员正在凳子上方做准备"
+  },
+  {
+    "item_id": "I068",
+    "participant_id": "P009",
+    "image_id": "D01",
+    "image_title": "柱后半隐",
+    "image_path": "CHItest/data/tasks/images/composition/D01.svg",
+    "current_visual_state": "人物被柱子半遮，遮挡程度和前后关系不够明确。",
+    "target_modification": {
+      "object": "加大或明确柱子对人物的遮挡",
+      "spatial": "让人物更明显地位于柱后，而不是与柱子并排"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "女子微笑，把手放在车窗边缘，眼神不舍，表情自然，目光有神，视线向下一点"
+  },
+  {
+    "item_id": "I069",
+    "participant_id": "P002",
+    "image_id": "E05",
+    "image_title": "前后景",
+    "image_path": "CHItest/data/tasks/images/environment/E05.svg",
+    "current_visual_state": "前景与后景层次存在，但前后距离不够清楚。",
+    "target_modification": {
+      "spatial": "加大前景与后景的距离，让前后层次更分开",
+      "camera": "摄影机位置更明确地从前侧或后侧观察纵深"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "一颗导弹砸在汽车上发生爆炸，不是火箭"
+  },
+  {
+    "item_id": "I070",
+    "participant_id": "P019",
+    "image_id": "A04",
+    "image_title": "地铁来车",
+    "image_path": "CHItest/data/tasks/images/camera/A04.svg",
+    "current_visual_state": "地铁来车，摄影机与车厢的距离和角度较为正面。",
+    "target_modification": {
+      "camera": "摄影机退远或更侧，从月台斜向看向来车",
+      "spatial": "调整人物相对车门的站位"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "灰色西装的男人冲向提着棕色桶的穿着白色背心的男人，他们两个打起来，而位于右侧后方的那个男生则逃跑向画面右侧的外面只露出一只脚"
+  },
+  {
+    "item_id": "I071",
+    "participant_id": "P007",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "男生抢面吃，女生保护面条"
+  },
+  {
+    "item_id": "I072",
+    "participant_id": "P016",
+    "image_id": "D02",
+    "image_title": "门后身影",
+    "image_path": "CHItest/data/tasks/images/composition/D02.svg",
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "黑白的画面，左女右男两个人面对镜头看向镜头后方，中间有个圆形的镜子，上面印着男人的后脑勺"
+  },
+  {
+    "item_id": "I073",
+    "participant_id": "P010",
+    "image_id": "D06",
+    "image_title": "玻璃内外",
+    "image_path": "CHItest/data/tasks/images/composition/D06.svg",
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "在繁华的街道十字路口，女生在前面生气过马路，向马路对面巨大的广告屏走去，男生在后面追她，两人之间有一段距离，男生靠近镜头和观众，女生则较远，两人保持直线关系"
+  },
+  {
+    "item_id": "I074",
+    "participant_id": "P004",
+    "image_id": "D02",
+    "image_title": "门后身影",
+    "image_path": "CHItest/data/tasks/images/composition/D02.svg",
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "画面中有两个人物，一左一右分别占据画面两边，中景，只露出人物的胸腔以上，中间是一面镜子，镜子中反射出第三个人物，两个左右两边主要的人物正在向右边看去"
+  },
+  {
+    "item_id": "I075",
+    "participant_id": "P019",
+    "image_id": "D05",
+    "image_title": "餐桌三人",
+    "image_path": "CHItest/data/tasks/images/composition/D05.svg",
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "总而言之就是我想表现的是在餐桌里四个人其乐融融的画面，他们都彼此之间有眼神交流，餐桌上面有丰盛的菜肴，画面是温馨的彩色，我需要的是四个外国人，然后画面偏中世纪的那种感觉菜品还有人物的穿着，还有整体的画面质感也是偏复古"
+  },
+  {
+    "item_id": "I076",
+    "participant_id": "P011",
+    "image_id": "D01",
+    "image_title": "柱后半隐",
+    "image_path": "CHItest/data/tasks/images/composition/D01.svg",
+    "current_visual_state": "人物被柱子半遮，遮挡程度和前后关系不够明确。",
+    "target_modification": {
+      "object": "加大或明确柱子对人物的遮挡",
+      "spatial": "让人物更明显地位于柱后，而不是与柱子并排"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "画面中的女生在画面的右侧，最后站在街边看向马路的尽头，男生开着蓝色的车子在街道尽头远去"
+  },
+  {
+    "item_id": "I077",
+    "participant_id": "P011",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "画面中的男生转头，眼睛看向女生的脸，准备和她讲话，女生听到声音准备回头回应男生"
+  },
+  {
+    "item_id": "I078",
+    "participant_id": "P013",
+    "image_id": "D04",
+    "image_title": "画廊穿过",
+    "image_path": "CHItest/data/tasks/images/composition/D04.svg",
+    "current_visual_state": "画廊中有人穿过，前景遮挡物不够明确。",
+    "target_modification": {
+      "object": "用前景边框或展墙挡住部分人物",
+      "spatial": "拉开穿过画廊的人物与前景遮挡物的前后距离"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "两个人物之间会进行交流"
+  },
+  {
+    "item_id": "I079",
+    "participant_id": "P011",
+    "image_id": "D02",
+    "image_title": "门后身影",
+    "image_path": "CHItest/data/tasks/images/composition/D02.svg",
+    "current_visual_state": "门后可见身影，门框遮挡不充分。",
+    "target_modification": {
+      "object": "用门框挡住更多身体，只露出部分轮廓",
+      "spatial": "把人物放到门后更深处"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "整个画面的背景是一个这个房间的墙，镜子在画面的左侧，镜子中能照到三个人，门在镜子的正对面，画面中是看不到门的，三个人站在房间的中间聊天，摄影机在较低的位置、大致正面，保持适中距离，从侧后方观察"
+  },
+  {
+    "item_id": "I080",
+    "participant_id": "P005",
+    "image_id": "A01",
+    "image_title": "楼梯仰拍",
+    "image_path": "CHItest/data/tasks/images/camera/A01.svg",
+    "current_visual_state": "楼梯场景，摄影机位置偏仰、距离较近。",
+    "target_modification": {
+      "camera": "降低或进一步降低机位，从更低的位置向上看楼梯",
+      "spatial": "调整人物在楼梯上的高低位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "女人向左走上台阶"
+  },
+  {
+    "item_id": "I081",
+    "participant_id": "P010",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个女孩产生了争执，其中一人起身离开了同伴，转身远离海边，同伴站在海边看着她，表情复杂。两人都正面对着镜头"
+  },
+  {
+    "item_id": "I082",
+    "participant_id": "P008",
+    "image_id": "E02",
+    "image_title": "轮渡甲板",
+    "image_path": "CHItest/data/tasks/images/environment/E02.svg",
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "黑衣男子会突然跑到镜头前吓人一跳"
+  },
+  {
+    "item_id": "I083",
+    "participant_id": "P005",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "男士右边的椅子又来了一位男士，坐在椅子上，背对着画面"
+  },
+  {
+    "item_id": "I084",
+    "participant_id": "P003",
+    "image_id": "D01",
+    "image_title": "柱后半隐",
+    "image_path": "CHItest/data/tasks/images/composition/D01.svg",
+    "current_visual_state": "人物被柱子半遮，遮挡程度和前后关系不够明确。",
+    "target_modification": {
+      "object": "加大或明确柱子对人物的遮挡",
+      "spatial": "让人物更明显地位于柱后，而不是与柱子并排"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "两人开始接吻"
+  },
+  {
+    "item_id": "I085",
+    "participant_id": "P006",
+    "image_id": "D06",
+    "image_title": "玻璃内外",
+    "image_path": "CHItest/data/tasks/images/composition/D06.svg",
+    "current_visual_state": "玻璃内外同时可见人物，内外层次不够清楚。",
+    "target_modification": {
+      "spatial": "明确谁在玻璃内、谁在玻璃外，并拉开内外距离",
+      "object": "让玻璃作为更清楚的前景遮挡/分层"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "前景的男女演员，一边笑着鼓掌一边交流。后景中的人群也鼓掌，但整体人物排布不变。"
+  },
+  {
+    "item_id": "I086",
+    "participant_id": "P017",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "金头发的女孩转过头去"
+  },
+  {
+    "item_id": "I087",
+    "participant_id": "P004",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "特写镜头，人物占据画面中较大部分，右下与左上的位置关系形成对立，情绪紧张矛盾，画面空间狭小闭塞，人物之间没有眼神交流都在沉默，仿佛下一秒就会迎来争吵。"
+  },
+  {
+    "item_id": "I088",
+    "participant_id": "P014",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "儿子娇羞可爱父亲风韵犹存"
+  },
+  {
+    "item_id": "I089",
+    "participant_id": "P019",
+    "image_id": "D04",
+    "image_title": "画廊穿过",
+    "image_path": "CHItest/data/tasks/images/composition/D04.svg",
+    "current_visual_state": "画廊中有人穿过，前景遮挡物不够明确。",
+    "target_modification": {
+      "object": "用前景边框或展墙挡住部分人物",
+      "spatial": "拉开穿过画廊的人物与前景遮挡物的前后距离"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "男人也做到了沙发上和女人和那只狗抱在了一起"
+  },
+  {
+    "item_id": "I090",
+    "participant_id": "P011",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "请你生成一张 近景，一男一女在一个邮轮的甲板上站着靠近栏杆，男生在女生的后面，低头看向大海，女生看向镜头眼睛闭着"
+  },
+  {
+    "item_id": "I091",
+    "participant_id": "P018",
+    "image_id": "E02",
+    "image_title": "轮渡甲板",
+    "image_path": "CHItest/data/tasks/images/environment/E02.svg",
+    "current_visual_state": "人物靠在轮渡甲板栏杆一侧，空间沿甲板横向展开。",
+    "target_modification": {
+      "spatial": "把人物沿栏杆移到更靠边或更靠中间的位置",
+      "camera": "摄影机改到更侧向的位置观察甲板"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "从背面拍摄这个黑衣男人，全景，有一个衣衫褴褛的人朝向他走来"
+  },
+  {
+    "item_id": "I092",
+    "participant_id": "P013",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "下一秒看起来两个人会有一些争执"
+  },
+  {
+    "item_id": "I093",
+    "participant_id": "P019",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "一颗子弹郑重前方女司机的眉心女司机张着嘴倒在的驾驶座上，而是他的血飞溅到了后面的男人的脸上那个男人露出了惊恐的表情"
+  },
+  {
+    "item_id": "I094",
+    "participant_id": "P013",
+    "image_id": "D05",
+    "image_title": "餐桌三人",
+    "image_path": "CHItest/data/tasks/images/composition/D05.svg",
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "人物A需要露出外貌"
+  },
+  {
+    "item_id": "I095",
+    "participant_id": "P015",
+    "image_id": "A01",
+    "image_title": "楼梯仰拍",
+    "image_path": "CHItest/data/tasks/images/camera/A01.svg",
+    "current_visual_state": "楼梯场景，摄影机位置偏仰、距离较近。",
+    "target_modification": {
+      "camera": "降低或进一步降低机位，从更低的位置向上看楼梯",
+      "spatial": "调整人物在楼梯上的高低位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "妈妈在笼舍为两只小狗换食物，两只小狗在脚边摇尾巴"
+  },
+  {
+    "item_id": "I096",
+    "participant_id": "P016",
+    "image_id": "C02",
+    "image_title": "咖啡馆对坐",
+    "image_path": "CHItest/data/tasks/images/character_space/C02.svg",
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个男人一个女人，一男一女对峙着另一个男人"
+  },
+  {
+    "item_id": "I097",
+    "participant_id": "P009",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个人站在甲板上，看向远方的大海，只留下背影，镜头拉远，让两个女孩靠近画面前方；摄影机在较低的位置、偏左，靠近场景，从侧后方观察；把海鸥放在画面左侧，并在远处增加几只飞行的海鸥。"
+  },
+  {
+    "item_id": "I098",
+    "participant_id": "P003",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个人开始吵架"
+  },
+  {
+    "item_id": "I099",
+    "participant_id": "P019",
+    "image_id": "C01",
+    "image_title": "火车站窗边",
+    "image_path": "CHItest/data/tasks/images/character_space/C01.svg",
+    "current_visual_state": "窗边人物相对靠近，前后层次不够清楚。",
+    "target_modification": {
+      "spatial": "increase distance",
+      "relation": "move character A behind B",
+      "camera": "move to rear-side"
+    },
+    "dimensions": [
+      "spatial",
+      "relation",
+      "camera"
+    ],
+    "final_expression": "左边的男人和图中间的女人开怀大笑起来，偶最右边的男生则把目光移向了中间的那个女生"
+  },
+  {
+    "item_id": "I100",
+    "participant_id": "P004",
+    "image_id": "A04",
+    "image_title": "地铁来车",
+    "image_path": "CHItest/data/tasks/images/camera/A04.svg",
+    "current_visual_state": "地铁来车，摄影机与车厢的距离和角度较为正面。",
+    "target_modification": {
+      "camera": "摄影机退远或更侧，从月台斜向看向来车",
+      "spatial": "调整人物相对车门的站位"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "一个第一人称透过地下室窗口向外看的视角，整体一个窗框镜头，被窗户的栏杆切分成很多块面，画面中有三个画面人物在互相泼水，穿着简陋，两个在画面右边，与左边的人物相对面的站着"
+  },
+  {
+    "item_id": "I101",
+    "participant_id": "P004",
+    "image_id": "A01",
+    "image_title": "楼梯仰拍",
+    "image_path": "CHItest/data/tasks/images/camera/A01.svg",
+    "current_visual_state": "楼梯场景，摄影机位置偏仰、距离较近。",
+    "target_modification": {
+      "camera": "降低或进一步降低机位，从更低的位置向上看楼梯",
+      "spatial": "调整人物在楼梯上的高低位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "空旷的室内别墅中，男主身后跟着一只狗狗在走动。远景的景别，主要表达环境空间，人物很小的出现在画面中心靠右的部分，整个画面中心点左边全是客厅空镜，一个楼梯，楼梯前还有一盆植物"
+  },
+  {
+    "item_id": "I102",
+    "participant_id": "P002",
+    "image_id": "A01",
+    "image_title": "楼梯仰拍",
+    "image_path": "CHItest/data/tasks/images/camera/A01.svg",
+    "current_visual_state": "楼梯场景，摄影机位置偏仰、距离较近。",
+    "target_modification": {
+      "camera": "降低或进一步降低机位，从更低的位置向上看楼梯",
+      "spatial": "调整人物在楼梯上的高低位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "人物消失，狗向镜头方向跑过来"
+  },
+  {
+    "item_id": "I103",
+    "participant_id": "P001",
+    "image_id": "D03",
+    "image_title": "走廊走向",
+    "image_path": "CHItest/data/tasks/images/composition/D03.svg",
+    "current_visual_state": "走廊中人物走向镜头或深处，构图较居中。",
+    "target_modification": {
+      "spatial": "让人物沿走廊更靠一侧或更靠深处",
+      "camera": "摄影机略偏，从走廊一侧看向深处"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "有一位盛装打扮的少女，穿白色的的巴洛克风格连衣裙，头戴皇冠。在走廊上奔跑，并且枪杀了右边换右边画面男人"
+  },
+  {
+    "item_id": "I104",
+    "participant_id": "P020",
+    "image_id": "E01",
+    "image_title": "空剧院",
+    "image_path": "CHItest/data/tasks/images/environment/E01.svg",
+    "current_visual_state": "过道深处可见空舞台，人物离舞台较远。",
+    "target_modification": {
+      "spatial": "缩短人物与空舞台之间的距离，让舞台在画面中更近",
+      "object": "让空舞台成为更明确的主体，而不是远处的背景块"
+    },
+    "dimensions": [
+      "spatial",
+      "object"
+    ],
+    "final_expression": "穿衣服，手拿咖啡，另一只手拿手机"
+  },
+  {
+    "item_id": "I105",
+    "participant_id": "P014",
+    "image_id": "C02",
+    "image_title": "咖啡馆对坐",
+    "image_path": "CHItest/data/tasks/images/character_space/C02.svg",
+    "current_visual_state": "咖啡馆两人相对而坐，间距和朝向比较对称。",
+    "target_modification": {
+      "spatial": "拉开两人之间的桌距，或让其中一人更靠后",
+      "relation": "改变面对面关系，让其中一人侧对或看向另一侧"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "两个面对的人 下一年开始吵架 第三个人呆滞地看着"
+  },
+  {
+    "item_id": "I106",
+    "participant_id": "P008",
+    "image_id": "A05",
+    "image_title": "长椅分神",
+    "image_path": "CHItest/data/tasks/images/camera/A05.svg",
+    "current_visual_state": "长椅上人物分神，摄影机大致正对座位。",
+    "target_modification": {
+      "camera": "摄影机移到侧后方，从斜向观察长椅",
+      "relation": "让人物的朝向与视线离开镜头，看向另一侧"
+    },
+    "dimensions": [
+      "camera",
+      "relation"
+    ],
+    "final_expression": "小女孩生气的走了"
+  },
+  {
+    "item_id": "I107",
+    "participant_id": "P017",
+    "image_id": "E04",
+    "image_title": "公园长椅",
+    "image_path": "CHItest/data/tasks/images/environment/E04.svg",
+    "current_visual_state": "公园长椅上的人物与周围空地的关系较为贴近。",
+    "target_modification": {
+      "spatial": "拉开人物与长椅周围空间的距离，或把人放到椅子更一端",
+      "camera": "摄影机稍微侧移，从斜向观察长椅"
+    },
+    "dimensions": [
+      "spatial",
+      "camera"
+    ],
+    "final_expression": "我觉得下一刻，女人会摔门而去，男人会坐起来试图挽留"
+  },
+  {
+    "item_id": "I108",
+    "participant_id": "P008",
+    "image_id": "C03",
+    "image_title": "庭院对望",
+    "image_path": "CHItest/data/tasks/images/character_space/C03.svg",
+    "current_visual_state": "庭院中两人隔空对望，距离和朝向已经成立。",
+    "target_modification": {
+      "spatial": "增加两人之间的庭院距离",
+      "relation": "让其中一人转到另一人的斜后方，不再正面对望"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "后座的男人回过头来低头抹泪"
+  },
+  {
+    "item_id": "I109",
+    "participant_id": "P016",
+    "image_id": "A04",
+    "image_title": "地铁来车",
+    "image_path": "CHItest/data/tasks/images/camera/A04.svg",
+    "current_visual_state": "地铁来车，摄影机与车厢的距离和角度较为正面。",
+    "target_modification": {
+      "camera": "摄影机退远或更侧，从月台斜向看向来车",
+      "spatial": "调整人物相对车门的站位"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "两个人在互相泼水，波及到了不远的第三人"
+  },
+  {
+    "item_id": "I110",
+    "participant_id": "P004",
+    "image_id": "D05",
+    "image_title": "餐桌三人",
+    "image_path": "CHItest/data/tasks/images/composition/D05.svg",
+    "current_visual_state": "餐桌三人围坐，间距和前后层次比较平均。",
+    "target_modification": {
+      "spatial": "拉开其中一人与另外两人的距离",
+      "relation": "让一人坐到另外两人斜后方，不再围成正三角形"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "画面中只有两个人物，主要道具是镜子"
+  },
+  {
+    "item_id": "I111",
+    "participant_id": "P002",
+    "image_id": "D04",
+    "image_title": "画廊穿过",
+    "image_path": "CHItest/data/tasks/images/composition/D04.svg",
+    "current_visual_state": "画廊中有人穿过，前景遮挡物不够明确。",
+    "target_modification": {
+      "object": "用前景边框或展墙挡住部分人物",
+      "spatial": "拉开穿过画廊的人物与前景遮挡物的前后距离"
+    },
+    "dimensions": [
+      "object",
+      "spatial"
+    ],
+    "final_expression": "狗站在了桌子上，男人向后仰，看着狗，女人也看着狗，其他不变"
+  },
+  {
+    "item_id": "I112",
+    "participant_id": "P006",
+    "image_id": "A02",
+    "image_title": "博物馆展墙",
+    "image_path": "CHItest/data/tasks/images/camera/A02.svg",
+    "current_visual_state": "博物馆展墙前，摄影机大致正对墙面。",
+    "target_modification": {
+      "camera": "把摄影机移到侧后方，斜看展墙",
+      "spatial": "让人物离开墙面中心，站到更靠边的位置"
+    },
+    "dimensions": [
+      "camera",
+      "spatial"
+    ],
+    "final_expression": "画面整体环境变亮右侧的阳光从画面上撒下一个男人背向镜头穿行在人群涌动的集市中"
+  },
+  {
+    "item_id": "I113",
+    "participant_id": "P003",
+    "image_id": "C01",
+    "image_title": "火车站窗边",
+    "image_path": "CHItest/data/tasks/images/character_space/C01.svg",
+    "current_visual_state": "窗边人物相对靠近，前后层次不够清楚。",
+    "target_modification": {
+      "spatial": "increase distance",
+      "relation": "move character A behind B",
+      "camera": "move to rear-side"
+    },
+    "dimensions": [
+      "spatial",
+      "relation",
+      "camera"
+    ],
+    "final_expression": "女人开始追逐镜头前的男人"
+  },
+  {
+    "item_id": "I114",
+    "participant_id": "P020",
+    "image_id": "C04",
+    "image_title": "街角三人",
+    "image_path": "CHItest/data/tasks/images/character_space/C04.svg",
+    "current_visual_state": "街角三人横向排开，间距比较均匀。",
+    "target_modification": {
+      "spatial": "拉开右侧人物与另外两人的距离",
+      "relation": "将右侧人物移到另外两人的斜后方"
+    },
+    "dimensions": [
+      "spatial",
+      "relation"
+    ],
+    "final_expression": "一艘船从海面驶过"
+  }
+]

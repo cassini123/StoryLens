@@ -1,40 +1,59 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { experiment, getImage, stimulusUrl } from '../shared/config'
 import { textAt } from '../shared/export'
+import { emptyPrecision, precisionComplete } from '../shared/metrics'
 import { allCompletedTrials, getSession, ratingsForExpert, upsertRating } from '../shared/store'
 import { nowIso } from '../shared/time'
-import type { ExpertRating, RubricScores, TaskRun } from '../shared/types'
+import type { ExpertRating, PrecisionDim, PrecisionScores, TaskRun } from '../shared/types'
+import { PRECISION_DIMS } from '../shared/types'
 import { Button, FooterBar, Likert, Shell } from '../shared/ui'
 
-const emptyScores = (): RubricScores => ({
-  intent_precision: null,
-  intent_interpretability: null,
-  spatial_specificity: null,
-  executability: null,
-})
+const DIM_HINT: Record<PrecisionDim, string> = {
+  object: 'Who/what is in the shot, and any occlusion or object-as-subject change?',
+  spatial: 'Where are they in space / distance / left-right / depth?',
+  relation: 'How do subjects relate (behind/beside, gaze, facing)?',
+  camera: 'Camera height, distance, or orientation relative to subjects?',
+  emotion: 'Attention, gaze, mood that the shot must show?',
+  constraint: 'Any staging limit the shot must obey?',
+}
 
-function complete(scores: RubricScores): boolean {
-  return (
-    scores.intent_precision != null &&
-    scores.intent_interpretability != null &&
-    scores.spatial_specificity != null &&
-    scores.executability != null
-  )
+function hashString(value: string): number {
+  let h = 2166136261
+  for (let i = 0; i < value.length; i += 1) {
+    h ^= value.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+function shuffleForExpert(trials: TaskRun[], expertId: string): TaskRun[] {
+  return [...trials].sort((a, b) => {
+    const ha = hashString(`${expertId}:${a.task_id}`)
+    const hb = hashString(`${expertId}:${b.task_id}`)
+    return ha === hb ? a.task_id.localeCompare(b.task_id) : ha - hb
+  })
+}
+
+function complete(precision: PrecisionScores, active: PrecisionDim[], interpretability: number | null, specificity: number | null, executability: number | null) {
+  return precisionComplete(precision, active) && interpretability != null && specificity != null && executability != null
 }
 
 export function ExpertApp() {
   const [expertId, setExpertId] = useState<string | null>(null)
   const [, setVersion] = useState(0)
-  const trials = allCompletedTrials()
+  const trials = useMemo(
+    () => allCompletedTrials().filter((trial) => trial.stage !== 'T0'),
+    [],
+  )
 
   if (!expertId) {
     return (
       <Shell title="Expert evaluation" subtitle="Blind rating">
         <main className="page">
           <p className="lead">
-            Select your evaluator ID. Score whether the description expresses the task’s intended
-            modification. Do not score similarity to the still. Materials hide participant ID,
-            condition, logs, round count, and background.
+            Score the participant’s final wording against the target visual relations. Materials hide
+            condition, stage, sketch logs, Auto Prompt, and participant background. Do not score
+            image quality or professional terminology.
           </p>
           <div className="stack">
             {experiment.experts.map((expert) => (
@@ -50,15 +69,18 @@ export function ExpertApp() {
 
   const expert = experiment.experts.find((item) => item.expert_id === expertId)
   const done = ratingsForExpert(expertId)
-  const remaining = trials.filter((trial) => !done.some((item) => item.trial_id === trial.task_id))
+  const remaining = shuffleForExpert(
+    trials.filter((trial) => !done.some((item) => item.trial_id === trial.task_id)),
+    expertId,
+  )
   const current = remaining[0]
 
   if (!current) {
     return (
       <Shell title="Expert evaluation" subtitle={expert?.label} meta={`${done.length} rated`}>
         <main className="page">
-          <p className="lead">No remaining tasks for {expert?.label}.</p>
-          <p>{done.length} independent ratings saved.</p>
+          <p className="lead">No remaining modification tasks for {expert?.label}.</p>
+          <p>{done.length} independent ratings saved. T0 description trials are excluded from Intent Precision.</p>
         </main>
         <FooterBar>
           <Button onClick={() => setExpertId(null)}>Switch expert</Button>
@@ -101,14 +123,17 @@ function RatingScreen({
 }) {
   const image = getImage(trial.image_id)
   const session = getSession(trial.participant_id)
-  const initialText = session ? textAt(session, trial, 'initial') : ''
-  const finalText = session ? textAt(session, trial, 'final') : ''
-  const single = trial.stage === 'T0' || initialText === finalText
-  const [initial, setInitial] = useState<RubricScores>(emptyScores)
-  const [final, setFinal] = useState<RubricScores>(emptyScores)
-  const [naturalness, setNaturalness] = useState<number | null>(null)
+  const finalText = session ? textAt(session, trial, 'final') : trial.final_text
+  const active = (image.target_dimensions.length ? image.target_dimensions : PRECISION_DIMS).filter(
+    (dim) => image.target_modification?.[dim],
+  )
+  const dims = active.length ? active : image.target_dimensions
+  const [precision, setPrecision] = useState<PrecisionScores>(emptyPrecision)
+  const [interpretability, setInterpretability] = useState<number | null>(null)
+  const [specificity, setSpecificity] = useState<number | null>(null)
+  const [executability, setExecutability] = useState<number | null>(null)
   const [comment, setComment] = useState('')
-  const ready = single ? complete(final) : complete(initial) && complete(final)
+  const ready = complete(precision, dims, interpretability, specificity, executability)
 
   return (
     <Shell title="Expert evaluation" subtitle={expertLabel} meta={`${done} done · ${remaining} left`}>
@@ -116,12 +141,12 @@ function RatingScreen({
         <section className="materials">
           <h2>Picture (current visual state)</h2>
           <img className="stimulus-small" src={stimulusUrl(image.image_path)} alt="" />
-          <h2>Target modification</h2>
-          <p className="hint">
-            Judge whether the participant’s wording accurately expresses this intended change — not
-            whether the description recreates the still.
-          </p>
           {image.current_visual_state ? <p>{image.current_visual_state}</p> : null}
+          <h2>Target modification specification</h2>
+          <p className="hint">
+            Score whether the final wording expresses each target relation. Do not decide what the
+            picture “should” become on your own, and do not score similarity to the still.
+          </p>
           {image.target_modification ? (
             <ul>
               {Object.entries(image.target_modification).map(([key, value]) => (
@@ -131,38 +156,46 @@ function RatingScreen({
               ))}
             </ul>
           ) : null}
-          {single ? (
-            <>
-              <h2>Description</h2>
-              <pre className="intent-block">{finalText || '—'}</pre>
-            </>
-          ) : (
-            <>
-              <h2>Description A</h2>
-              <pre className="intent-block">{initialText || '—'}</pre>
-              <h2>Description B</h2>
-              <pre className="intent-block">{finalText || '—'}</pre>
-            </>
-          )}
+          <h2>Participant final expression</h2>
+          <pre className="intent-block">{finalText || '—'}</pre>
         </section>
         <section className="scores">
-          {single ? null : (
-            <>
-              <h2>Description A</h2>
-              <Rubric value={initial} onChange={setInitial} />
-            </>
-          )}
-          <h2>{single ? 'Description' : 'Description B'}</h2>
-          <Rubric value={final} onChange={setFinal} />
+          <h2>Intent Precision (0–3 each)</h2>
+          <p className="hint">
+            0 absent · 1 mentioned but vague · 2 relation explicit, missing reconstructable detail · 3
+            precise enough to rebuild. Score functional visual relations, not jargon.
+          </p>
+          {dims.map((dim) => (
+            <DimScale
+              key={dim}
+              label={dim}
+              hint={`${DIM_HINT[dim]} Target: ${image.target_modification?.[dim] ?? ''}`}
+              value={precision[dim]}
+              onChange={(n) => setPrecision({ ...precision, [dim]: n })}
+            />
+          ))}
+          <h2>Global ratings (1–7)</h2>
           <Likert
-            label="Naturalness"
-            hint="Does the description remain a natural expression of the participant's own intent rather than a formulaic prompt? Auxiliary metric."
-            value={naturalness}
-            onChange={setNaturalness}
+            label="Intent Interpretability"
+            hint="From this text alone, how clearly do you understand the intended change?"
+            value={interpretability}
+            onChange={setInterpretability}
+          />
+          <Likert
+            label="Spatial / Relational Specificity"
+            hint="How clearly are people, objects, space, distance, direction, and camera specified?"
+            value={specificity}
+            onChange={setSpecificity}
+          />
+          <Likert
+            label="Executability"
+            hint="Could an experienced visual creator carry out this modification from the text?"
+            value={executability}
+            onChange={setExecutability}
           />
           <label className="field">
-            <span>Comment</span>
-            <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={4} />
+            <span>Optional comment (one line)</span>
+            <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2} />
           </label>
         </section>
       </main>
@@ -178,9 +211,10 @@ function RatingScreen({
               task_id: trial.task_id,
               stage: trial.stage,
               expert_id: expertId,
-              initial: single ? final : initial,
-              final,
-              naturalness,
+              precision,
+              interpretability,
+              specificity,
+              executability,
               comment,
               submitted_at: nowIso(),
             }
@@ -195,39 +229,30 @@ function RatingScreen({
   )
 }
 
-function Rubric({
+function DimScale({
+  label,
+  hint,
   value,
   onChange,
 }: {
-  value: RubricScores
-  onChange: (value: RubricScores) => void
+  label: string
+  hint: string
+  value: number | null
+  onChange: (value: number) => void
 }) {
   return (
-    <>
-      <Likert
-        label="Intent Precision"
-        hint="How precisely does the description communicate the intended modification for this task?"
-        value={value.intent_precision}
-        onChange={(n) => onChange({ ...value, intent_precision: n })}
-      />
-      <Likert
-        label="Interpretability"
-        hint="How reliably could someone reconstruct the intended modification from this description?"
-        value={value.intent_interpretability}
-        onChange={(n) => onChange({ ...value, intent_interpretability: n })}
-      />
-      <Likert
-        label="Spatial / Relational Specificity"
-        hint="How clearly are spatial and relational aspects communicated?"
-        value={value.spatial_specificity}
-        onChange={(n) => onChange({ ...value, spatial_specificity: n })}
-      />
-      <Likert
-        label="Executability"
-        hint="How actionable is the description for carrying out the intended modification?"
-        value={value.executability}
-        onChange={(n) => onChange({ ...value, executability: n })}
-      />
-    </>
+    <div className="likert">
+      <div className="likert-label">
+        <strong>{label}</strong>
+        <p>{hint}</p>
+      </div>
+      <div className="likert-scale" role="radiogroup" aria-label={label}>
+        {[0, 1, 2, 3].map((n) => (
+          <button key={n} type="button" className={value === n ? 'tick on' : 'tick'} onClick={() => onChange(n)}>
+            {n}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }

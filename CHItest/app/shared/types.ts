@@ -523,11 +523,17 @@ export interface ExpertRating {
   task_id: string
   stage: Stage
   expert_id: string
-  initial: RubricScores
-  final: RubricScores
-  naturalness: number | null
+  /** Per-dimension Intent Precision 0–3; inactive dims stay null. */
+  precision: PrecisionScores
+  interpretability: number | null
+  specificity: number | null
+  executability: number | null
   comment: string
   submitted_at: string
+  /** Legacy in-browser ratings only. */
+  initial?: RubricScores
+  final?: RubricScores
+  naturalness?: number | null
 }
 
 export interface PrecisionScores {

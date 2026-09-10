@@ -384,35 +384,54 @@ export function interactionRows(sessions: Session[]): Record<string, unknown>[] 
   )
 }
 
+function ratingPrecision(rating: ReturnType<typeof loadStore>['ratings'][number]) {
+  return (
+    rating.precision ?? {
+      object: null,
+      spatial: null,
+      relation: null,
+      camera: null,
+      emotion: null,
+      constraint: null,
+    }
+  )
+}
+
 export function expertRows(ratings: ReturnType<typeof loadStore>['ratings']): Record<string, unknown>[] {
-  return ratings.flatMap((rating) => [
-    {
-      task_id: rating.task_id,
+  return ratings.map((rating) => {
+    const precision = ratingPrecision(rating)
+    return {
       participant_id: rating.participant_id,
-      stage: rating.stage,
-      expert_id: rating.expert_id,
-      timepoint: 'initial',
-      precision: rating.initial.intent_precision,
-      interpretability: rating.initial.intent_interpretability,
-      spatial_specificity: rating.initial.spatial_specificity,
-      executability: rating.initial.executability,
-      naturalness: rating.naturalness,
-      comment: rating.comment,
-    },
-    {
       task_id: rating.task_id,
-      participant_id: rating.participant_id,
-      stage: rating.stage,
       expert_id: rating.expert_id,
       timepoint: 'final',
-      precision: rating.final.intent_precision,
-      interpretability: rating.final.intent_interpretability,
-      spatial_specificity: rating.final.spatial_specificity,
-      executability: rating.final.executability,
-      naturalness: rating.naturalness,
-      comment: rating.comment,
-    },
-  ])
+      object: precision.object ?? '',
+      spatial: precision.spatial ?? '',
+      relation: precision.relation ?? '',
+      camera: precision.camera ?? '',
+      emotion: precision.emotion ?? '',
+      constraint: precision.constraint ?? '',
+      interpretability: rating.interpretability ?? rating.final?.intent_interpretability ?? '',
+      specificity: rating.specificity ?? rating.final?.spatial_specificity ?? '',
+      executability: rating.executability ?? rating.final?.executability ?? '',
+      comment: rating.comment ?? '',
+    }
+  })
+}
+
+export function expertDimensionRows(ratings: ReturnType<typeof loadStore>['ratings']): Record<string, unknown>[] {
+  return ratings.flatMap((rating) => {
+    const precision = ratingPrecision(rating)
+    return (Object.entries(precision) as [string, number | null][])
+      .filter(([, score]) => score != null)
+      .map(([dimension, score]) => ({
+        participant_id: rating.participant_id,
+        task_id: rating.task_id,
+        expert_id: rating.expert_id,
+        dimension,
+        score,
+      }))
+  })
 }
 
 export function snapshotPayload(sessions: Session[]) {
@@ -652,6 +671,7 @@ export function officialTableFiles(sessions = loadStore().sessions, ratings = lo
     { name: 'sketch_snapshots.json', content: JSON.stringify(snapshotPayload(sessions), null, 2) },
     { name: 'auto_prompts.csv', content: toCsv(autoPromptRows(sessions)) },
     { name: 'expert_ratings.csv', content: toCsv(expertRows(ratings)) },
+    { name: 'expert_dimension_scores.csv', content: toCsv(expertDimensionRows(ratings)) },
     { name: 'self_alignment.csv', content: toCsv(selfAlignmentRows(sessions)) },
     { name: 'full_session_timeline.json', content: JSON.stringify(sessions.map(timelinePayload), null, 2) },
     { name: 'validation.json', content: JSON.stringify(sessions.map(validationPayload), null, 2) },

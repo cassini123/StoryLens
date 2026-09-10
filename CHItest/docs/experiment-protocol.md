@@ -55,14 +55,18 @@ Researcher target modification lives in `data/tasks/target_modifications.json` a
 
 ## Scoring
 
-Each active criterion is 0–3. Professional vocabulary is never enough for a 3. Plain language can receive 3 if it is executable.
+Intent Precision is **criterion-referenced** against the task’s Target Modification Specification. Four experts rate independently. They see the still, the specification, and the participant’s **final expression** only. They do not see T1/T2/T3, group, Sketch logs, or Auto Prompt. T0 is excluded from this primary analysis.
+
+Each **active target dimension** is 0–3 (absent / vague / explicit / precise-reconstructable). Professional vocabulary is never required for a 3. Plain language can receive 3 if the visual relation is executable.
+
+After dimensions, experts give three 1–7 secondary scores: Intent Interpretability, Spatial/Relational Specificity, Executability. Experts do not compute totals.
 
 ```text
-P_i = sum of active criteria
+P_i = sum of active dimension scores
 P_norm = P_i / (3 × number_of_active_criteria)
 ```
 
-Use **P_norm** as the main cross-task metric when active-target counts differ.
+Use **P_norm** as the main cross-task metric when active-target counts differ. Aggregate across experts after collection; do not store means only.
 
 ## Practice-control analysis
 
