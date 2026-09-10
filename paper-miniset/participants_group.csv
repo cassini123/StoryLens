@@ -1,6 +1,7 @@
 participant_id,group
 P001,Scaffold
 P002,Control
+P003,Scaffold
 P004,Scaffold
 P005,Control
 P006,Control
@@ -14,3 +15,7 @@ P013,Scaffold
 P014,Scaffold
 P015,Control
 P016,Scaffold
+P017,Scaffold
+P018,Scaffold
+P019,Scaffold
+P020,Scaffold
