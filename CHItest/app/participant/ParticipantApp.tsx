@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getImage, stageHasSketch, stimulusUrl } from '../shared/config'
 import { SurpriseModal, SurpriseTrigger } from '../shared/SurpriseModal'
 import { getGeneratedImage, saveGeneratedImage } from '../shared/imageStore'
-import { checkJimengHealth, generateImageFromIntent, type JimengHealth } from '../shared/jimeng'
+import { checkJimengHealth, generateImageFromIntent, JIMENG_OVERALL_TIMEOUT_MS, type JimengHealth } from '../shared/jimeng'
 import {
   addGeneration,
   addSketchAction,
@@ -24,7 +24,13 @@ import {
 import { composeConditioning } from '../shared/media'
 import { lastSuccessfulGeneration, resolveConditioningImage } from '../shared/generationChain'
 import { publicJimengError } from '../shared/retry'
-import { canAttemptGeneration, canAttemptInterpret, canSatisfyTask, t2NeedsGenerationAfterInterpret } from '../shared/protocol'
+import {
+  canAttemptGeneration,
+  canAttemptInterpret,
+  canSatisfyTask,
+  recoverStuckGeneration,
+  t2NeedsGenerationAfterInterpret,
+} from '../shared/protocol'
 import { generateSketch } from '../shared/sketch/generate'
 import { SceneEditor } from '../shared/sketch/SceneEditor'
 import { sceneToSvg } from '../shared/sketch/render'
@@ -67,7 +73,11 @@ const emptyDemo: Demographics = {
 }
 
 function persist(session: Session): Session {
-  upsertSession(session)
+  try {
+    upsertSession(session)
+  } catch {
+    /* Safari private mode / quota: keep the in-memory session usable. */
+  }
   return session
 }
 
@@ -256,7 +266,34 @@ function ParticipantFlow({
   const changeTimer = useRef<number | null>(null)
   const sessionRef = useRef(session)
   sessionRef.current = session
+  const genTokenRef = useRef(0)
+  const genAbortRef = useRef<AbortController | null>(null)
+  const generateStartedAt = useRef(0)
+  const watchdogRef = useRef<number | null>(null)
   const [surpriseOpen, setSurpriseOpen] = useState(false)
+
+  function clearGenerateWatch() {
+    if (watchdogRef.current != null) {
+      window.clearInterval(watchdogRef.current)
+      watchdogRef.current = null
+    }
+  }
+
+  function bumpGenerateToken() {
+    genTokenRef.current += 1
+    genAbortRef.current?.abort()
+    genAbortRef.current = null
+    clearGenerateWatch()
+  }
+
+  function abandonInFlightGenerate(reason: 'cancel' | 'timeout') {
+    bumpGenerateToken()
+    const next = structuredClone(sessionRef.current)
+    if (!recoverStuckGeneration(next)) return
+    logEvent(next, 'generation_recovery', { via: reason, duplicate_generation_prevented: true })
+    next.runtime.generate_error = reason === 'cancel' ? t.generateCancelled : t.generateStuck
+    setSession(persist(next))
+  }
 
   function update(mutator: (next: Session) => void) {
     const next = structuredClone(session)
@@ -287,9 +324,8 @@ function ParticipantFlow({
     const next = structuredClone(sessionRef.current)
     const active = currentTask(next)
     let recovered = false
-    if (next.runtime.step === 'generating') {
-      next.runtime.step = next.runtime.last_output_image_id ? 'review' : 'describe'
-      logEvent(next, 'generation_recovery', { duplicate_generation_prevented: true })
+    if (recoverStuckGeneration(next)) {
+      logEvent(next, 'generation_recovery', { via: 'reload', duplicate_generation_prevented: true })
       recovered = true
     }
     if (active) {
@@ -318,10 +354,22 @@ function ParticipantFlow({
       const next = structuredClone(sessionRef.current)
       if (document.visibilityState === 'hidden') {
         logEvent(next, 'visibility_hidden')
-      } else {
-        logEvent(next, 'visibility_visible')
+        persist(next)
+        return
+      }
+      logEvent(next, 'visibility_visible')
+      if (
+        next.runtime.step === 'generating' &&
+        generateStartedAt.current > 0 &&
+        Date.now() - generateStartedAt.current >= JIMENG_OVERALL_TIMEOUT_MS
+      ) {
+        recoverStuckGeneration(next)
+        logEvent(next, 'generation_recovery', { via: 'timeout', duplicate_generation_prevented: true })
+        next.runtime.generate_error = t.generateStuck
+        bumpGenerateToken()
       }
       persist(next)
+      setSession(next)
     }
     document.addEventListener('visibilitychange', onVisibility)
     return () => {
@@ -495,8 +543,12 @@ function ParticipantFlow({
   }
 
   function jumpToTask(index: number) {
+    if (sessionRef.current.runtime.step === 'generating') bumpGenerateToken()
     update((next) => {
-      if (next.runtime.step === 'generating') return
+      if (next.runtime.step === 'generating') {
+        recoverStuckGeneration(next)
+        logEvent(next, 'generation_recovery', { via: 'task_navigate', duplicate_generation_prevented: true })
+      }
       if (index < 0 || index >= next.tasks.length) return
       if (index === next.runtime.task_index && next.runtime.step !== 'intro' && next.runtime.step !== 'questionnaire' && next.runtime.step !== 'complete' && next.runtime.step !== 'self_report') {
         return
@@ -601,6 +653,7 @@ function ParticipantFlow({
   }
 
   function finishTask() {
+    if (session.runtime.step === 'generating') return
     update((next) => {
       const active = currentTask(next)
       if (!active) return
@@ -621,9 +674,14 @@ function ParticipantFlow({
   async function runGenerate() {
     const text = session.runtime.draft_text.trim()
     if (!text) return
+    if (genAbortRef.current || session.runtime.step === 'generating') return
     const live = structuredClone(session)
     const active = currentTask(live)
-    if (!active || !active.ai_enabled) return
+    if (!active || !active.ai_enabled || !canAttemptGeneration(live, active)) return
+    const token = genTokenRef.current + 1
+    genTokenRef.current = token
+    const abort = new AbortController()
+    genAbortRef.current = abort
     const nextRound = Math.min(MAX_ROUNDS, live.runtime.round + 1)
     closeResultView(live)
     closeSketchEdit(live)
@@ -652,102 +710,140 @@ function ParticipantFlow({
     live.runtime.step = 'generating'
     live.runtime.generate_error = ''
     const started = nowIso()
-    const chain = await resolveConditioningImage(live, active, nextRound)
-    const apiPayload = {
-      api_input: 'image+text' as const,
-      sketch_sent: false,
-      prompt: text,
-      input_image_id: chain.input_image_id,
-      previous_generation_id: chain.previous_generation_id,
-      input_text: text,
-      image_count: 1,
-      model: 'jimeng_t2i_v40',
-      model_version: 'jimeng_t2i_v40',
-    }
-    logEvent(live, 'generation_start', { ...apiPayload, sketch_included: false })
+    generateStartedAt.current = Date.now()
     persist(live)
     setSession(live)
+    clearGenerateWatch()
+    watchdogRef.current = window.setInterval(() => {
+      if (token !== genTokenRef.current) {
+        clearGenerateWatch()
+        return
+      }
+      if (Date.now() - generateStartedAt.current >= JIMENG_OVERALL_TIMEOUT_MS) {
+        abandonInFlightGenerate('timeout')
+      }
+    }, 2000)
 
-    let images: string[] = []
+    const stillCurrent = () => token === genTokenRef.current && !abort.signal.aborted
+
     try {
-      const composed = await composeConditioning(chain.url, null)
-      images = [composed]
-    } catch (error) {
-      logEvent(live, 'error', { where: 'compose', message: String(error) })
-    }
-    const result = await generateImageFromIntent(text, undefined, images)
-    const ended = nowIso()
-    const success = result.meta.status === 'done'
-    const generation = addGeneration(live, {
-      task_id: active.task_id,
-      stage: active.stage,
-      round: live.runtime.round,
-      timestamp_start: started,
-      timestamp_end: ended,
-      latency_ms: Math.max(0, Date.parse(ended) - Date.parse(started)),
-      model: result.meta.engine,
-      model_version: 'jimeng_t2i_v40',
-      input_image_id: chain.input_image_id,
-      previous_generation_id: chain.previous_generation_id,
-      generation_input_chain_valid: chain.generation_input_chain_valid,
-      input_text: text,
-      input_text_version_id: version?.text_version_id || active.final_text_version_id,
-      input_sketch_snapshot_id: '',
-      source_sketch_snapshot_id:
-        researchSnap?.snapshot_id ||
-        [...live.auto_prompts].reverse().find((item) => item.task_id === active.task_id)?.source_sketch_snapshot_id ||
-        '',
-      auto_prompt_id: pendingAuto ? live.runtime.auto_prompt_id : '',
-      user_prompt_version_id: version?.text_version_id || '',
-      sketch_sent: false,
-      api_input: 'image+text',
-      api_payload: { ...apiPayload, image_count: images.length, jimeng_task_id: result.meta.jimeng_task_id },
-      output_image_id: '',
-      success,
-      error: result.meta.error,
-      meta: result.meta,
-    })
-    if (success) {
-      generation.output_image_id = generation.generation_id
-      await saveGeneratedImage(generation.generation_id, result.data_url)
-      live.runtime.last_output_image_id = generation.generation_id
-      live.runtime.generate_error = ''
-      live.runtime.step = 'review'
-      live.runtime.user_prompt_started = false
-      live.runtime.text_started = false
-      active.rounds.push({
+      const chain = await resolveConditioningImage(live, active, nextRound)
+      if (!stillCurrent()) return
+      const apiPayload = {
+        api_input: 'image+text' as const,
+        sketch_sent: false,
+        prompt: text,
+        input_image_id: chain.input_image_id,
+        previous_generation_id: chain.previous_generation_id,
+        input_text: text,
+        image_count: 1,
+        model: 'jimeng_t2i_v40',
+        model_version: 'jimeng_t2i_v40',
+      }
+      logEvent(live, 'generation_start', { ...apiPayload, sketch_included: false })
+      persist(live)
+
+      let images: string[] = []
+      try {
+        images = [await composeConditioning(chain.url, null)]
+      } catch (error) {
+        logEvent(live, 'error', { where: 'compose', message: String(error) })
+        if (!stillCurrent()) return
+        recoverStuckGeneration(live)
+        live.runtime.generate_error = t.generateBusy
+        persist(live)
+        setSession(structuredClone(live))
+        return
+      }
+      if (!stillCurrent()) return
+      const result = await generateImageFromIntent(text, undefined, images, { signal: abort.signal })
+      if (!stillCurrent()) return
+      const ended = nowIso()
+      const success = result.meta.status === 'done'
+      const generation = addGeneration(live, {
+        task_id: active.task_id,
+        stage: active.stage,
         round: live.runtime.round,
-        text_version_id: active.final_text_version_id,
-        generation_id: generation.generation_id,
-        sketch_snapshot_before_id: researchSnap?.snapshot_id || '',
-        sketch_snapshot_after_id: researchSnap?.snapshot_id || '',
-        started_at: started,
-        ended_at: ended,
+        timestamp_start: started,
+        timestamp_end: ended,
+        latency_ms: Math.max(0, Date.parse(ended) - Date.parse(started)),
+        model: result.meta.engine,
+        model_version: 'jimeng_t2i_v40',
+        input_image_id: chain.input_image_id,
+        previous_generation_id: chain.previous_generation_id,
+        generation_input_chain_valid: chain.generation_input_chain_valid,
+        input_text: text,
+        input_text_version_id: version?.text_version_id || active.final_text_version_id,
+        input_sketch_snapshot_id: '',
+        source_sketch_snapshot_id:
+          researchSnap?.snapshot_id ||
+          [...live.auto_prompts].reverse().find((item) => item.task_id === active.task_id)?.source_sketch_snapshot_id ||
+          '',
+        auto_prompt_id: pendingAuto ? live.runtime.auto_prompt_id : '',
+        user_prompt_version_id: version?.text_version_id || '',
+        sketch_sent: false,
+        api_input: 'image+text',
+        api_payload: { ...apiPayload, image_count: images.length, jimeng_task_id: result.meta.jimeng_task_id },
+        output_image_id: '',
+        success,
+        error: result.meta.error,
+        meta: result.meta,
       })
-      openResultView(live)
-    } else {
-      live.runtime.round = Math.max(0, nextRound - 1)
-      active.round = live.runtime.round
-      live.runtime.generate_error =
-        publicJimengError(result.meta.error || '') === 'busy' ? t.generateBusy : t.generateFailed
-      live.runtime.step = live.runtime.last_output_image_id ? 'review' : 'describe'
+      if (success) {
+        generation.output_image_id = generation.generation_id
+        await saveGeneratedImage(generation.generation_id, result.data_url)
+        if (!stillCurrent()) return
+        live.runtime.last_output_image_id = generation.generation_id
+        live.runtime.generate_error = ''
+        live.runtime.step = 'review'
+        live.runtime.user_prompt_started = false
+        live.runtime.text_started = false
+        active.rounds.push({
+          round: live.runtime.round,
+          text_version_id: active.final_text_version_id,
+          generation_id: generation.generation_id,
+          sketch_snapshot_before_id: researchSnap?.snapshot_id || '',
+          sketch_snapshot_after_id: researchSnap?.snapshot_id || '',
+          started_at: started,
+          ended_at: ended,
+        })
+        openResultView(live)
+      } else {
+        live.runtime.round = Math.max(0, nextRound - 1)
+        active.round = live.runtime.round
+        live.runtime.generate_error =
+          publicJimengError(result.meta.error || '') === 'busy' ? t.generateBusy : t.generateFailed
+        live.runtime.step = live.runtime.last_output_image_id ? 'review' : 'describe'
+      }
+      logEvent(live, 'generation_end', {
+        generation_id: generation.generation_id,
+        success,
+        latency_ms: generation.latency_ms,
+        sketch_sent: false,
+        api_input: 'image+text',
+        input_image_id: chain.input_image_id,
+        previous_generation_id: chain.previous_generation_id,
+      })
+      logEvent(live, success ? 'generation_success' : 'generation_failure', {
+        error: result.meta.error,
+        round: nextRound,
+      })
+      logEvent(live, 'round_end', { round: nextRound, success })
+      persist(live)
+      setSession(structuredClone(live))
+    } catch (error) {
+      if (!stillCurrent()) return
+      logEvent(live, 'error', { where: 'generate', message: String(error) })
+      recoverStuckGeneration(live)
+      live.runtime.generate_error = t.generateBusy
+      persist(live)
+      setSession(structuredClone(live))
+    } finally {
+      if (token === genTokenRef.current) {
+        genAbortRef.current = null
+        clearGenerateWatch()
+      }
     }
-    logEvent(live, 'generation_end', {
-      generation_id: generation.generation_id,
-      success,
-      latency_ms: generation.latency_ms,
-      sketch_sent: false,
-      api_input: 'image+text',
-      input_image_id: chain.input_image_id,
-      previous_generation_id: chain.previous_generation_id,
-    })
-    logEvent(live, success ? 'generation_success' : 'generation_failure', {
-      error: result.meta.error,
-      round: nextRound,
-    })
-    logEvent(live, 'round_end', { round: nextRound, success })
-    persist(live)
-    setSession(structuredClone(live))
   }
 
   function onTextChange(value: string) {
@@ -821,13 +917,8 @@ function ParticipantFlow({
       extra={generating ? t.generating : session.participant_id}
       onSessionChange={setSession}
       onOpenTask={jumpToTask}
-      taskNavDisabled={generating}
     >
-      {generating ? (
-        <main className="page">
-          <p className="lead">{t.generating}</p>
-        </main>
-      ) : (
+      <div className="workspace-wrap">
         <TaskWorkspace
           image={image}
           stage={task.stage}
@@ -865,25 +956,36 @@ function ParticipantFlow({
             })
           }
         />
-      )}
+        {generating ? (
+          <div className="generating-mask" role="status">
+            <p className="lead">{t.generating}</p>
+            <p className="hint">{t.generatingHint}</p>
+          </div>
+        ) : null}
+      </div>
       <FooterBar style={{ justifyContent: 'space-between' }}>
         <Button onClick={() => confirmRestart(session, t.restartConfirm, t.cancel, t.confirmRestart)}>{t.startOver}</Button>
         <div className="stack-row">
-          {task.stage === 'T0' ? (
+          {generating ? (
+            <Button fill onClick={() => abandonInFlightGenerate('cancel')}>
+              {t.cancelWait}
+            </Button>
+          ) : null}
+          {!generating && task.stage === 'T0' ? (
             <Button fill disabled={!canSatisfy} onClick={finishTask}>
               {t.submit}
             </Button>
           ) : null}
-          {task.stage !== 'T0' && canGenerate ? (
+          {!generating && task.stage !== 'T0' && canGenerate ? (
             <Button fill disabled={session.runtime.draft_text.trim().length === 0} onClick={() => void runGenerate()}>
               {t.generate}
               {session.runtime.round > 0 ? ` (${session.runtime.round}/${MAX_ROUNDS})` : ''}
             </Button>
           ) : null}
-          {task.stage !== 'T0' && canSatisfy ? (
+          {!generating && task.stage !== 'T0' && canSatisfy ? (
             <Button onClick={finishTask}>{t.satisfied}</Button>
           ) : null}
-          {task.stage === 'T2' && !canSatisfy ? <p className="hint">{t.t2SatisfyHint}</p> : null}
+          {!generating && task.stage === 'T2' && !canSatisfy ? <p className="hint">{t.t2SatisfyHint}</p> : null}
         </div>
       </FooterBar>
     </SessionChrome>
@@ -1012,9 +1114,13 @@ function GeneratedImage({ trialId }: { trialId: string }) {
   useEffect(() => {
     let cancelled = false
     setSrc(undefined)
-    void getGeneratedImage(trialId).then((value) => {
-      if (!cancelled) setSrc(value)
-    })
+    void getGeneratedImage(trialId)
+      .then((value) => {
+        if (!cancelled) setSrc(value)
+      })
+      .catch(() => {
+        if (!cancelled) setSrc(null)
+      })
     return () => {
       cancelled = true
     }
