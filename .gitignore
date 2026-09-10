@@ -7,3 +7,4 @@ node_modules
 .env
 .env.*
 !.env.example
+chitest-expert-ratings-and-20-participants.zip
