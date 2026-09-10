@@ -5,6 +5,7 @@ import {
   canAttemptGeneration,
   canAttemptInterpret,
   canSatisfyTask,
+  recoverStuckGeneration,
   conditionOrderFor,
   normalizeSketchActionType,
   stageCapabilities,
@@ -74,6 +75,36 @@ describe('formal protocol helpers', () => {
     expect(canAttemptGeneration(session, task)).toBe(true)
     expect(canAttemptInterpret(session, task)).toBe(true)
     expect(canSatisfyTask(session, task, 'hello')).toBe(false)
+  })
+
+  it('rolls back an unrecorded hung generate so the participant can retry', () => {
+    const task = makeTask({ stage: 'T1', task_id: 't1a', image_id: 'E01' })
+    const session = makeSession({ tasks: [task] })
+    session.runtime.round = 1
+    session.runtime.step = 'generating'
+    task.round = 1
+    expect(recoverStuckGeneration(session)).toBe(true)
+    expect(session.runtime.step).toBe('describe')
+    expect(session.runtime.round).toBe(0)
+    expect(task.round).toBe(0)
+    expect(canAttemptGeneration(session, task)).toBe(true)
+  })
+
+  it('keeps a previous image when recovering a hung later round', () => {
+    const task = makeTask({ stage: 'T1', task_id: 't1a', image_id: 'E01' })
+    const session = makeSession({
+      tasks: [task],
+      generations: [makeGeneration({ generation_id: 'g1', task_id: 't1a', round: 1 })],
+    })
+    session.runtime.round = 2
+    session.runtime.step = 'generating'
+    session.runtime.last_output_image_id = 'g1'
+    task.round = 2
+    expect(recoverStuckGeneration(session)).toBe(true)
+    expect(session.runtime.step).toBe('review')
+    expect(session.runtime.round).toBe(1)
+    expect(session.runtime.last_output_image_id).toBe('g1')
+    expect(canAttemptGeneration(session, task)).toBe(true)
   })
 
   it('keeps Interpret Sketch available on T2 even before the first round', () => {

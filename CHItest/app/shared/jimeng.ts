@@ -5,8 +5,11 @@ import {
   isRetryableJimengCode,
   isRetryableMessage,
 } from './retry'
+import { fetchWithTimeout, sleep } from './timeout'
 
 const API_PATHS = ['/api/jimeng/', '/api/jimeng']
+export const JIMENG_FETCH_TIMEOUT_MS = 25_000
+export const JIMENG_OVERALL_TIMEOUT_MS = 90_000
 
 export type JimengHealth = {
   status?: string
@@ -22,10 +25,9 @@ export type JimengClientOptions = {
   pollLimit?: number
   retryDelayMs?: number
   maxRetries?: number
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  fetchTimeoutMs?: number
+  overallTimeoutMs?: number
+  signal?: AbortSignal
 }
 
 function placeholder(prompt: string, reason: string): { data_url: string; meta: GeneratedImageMeta } {
@@ -68,10 +70,10 @@ function payloadRetryable(json: Record<string, unknown>, status: number): boolea
 
 async function waitRetry(attempt: number, options: JimengClientOptions): Promise<void> {
   if (typeof options.retryDelayMs === 'number') {
-    if (options.retryDelayMs > 0) await sleep(options.retryDelayMs)
+    if (options.retryDelayMs > 0) await sleep(options.retryDelayMs, options.signal)
     return
   }
-  await sleep(backoffMs(attempt))
+  await sleep(backoffMs(attempt), options.signal)
 }
 
 async function postJimeng(
@@ -88,12 +90,18 @@ async function postJimeng(
     let retryThisAttempt = false
     for (const path of API_PATHS) {
       try {
-        const res = await fetch(path, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          redirect: 'follow',
-        })
+        if (options.signal?.aborted) throw new Error('Jimeng request timed out')
+        const res = await fetchWithTimeout(
+          path,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            redirect: 'follow',
+            signal: options.signal,
+          },
+          options.fetchTimeoutMs ?? JIMENG_FETCH_TIMEOUT_MS,
+        )
         const json = await readJson(res)
         if (res.ok) return { ok: true, status: res.status, json }
         if (payloadRetryable(json, res.status) && attempt < maxRetries - 1) {
@@ -153,6 +161,15 @@ export async function generateImageFromIntent(
 ): Promise<{ data_url: string; meta: GeneratedImageMeta }> {
   const pollDelay = options.pollDelayMs ?? 3000
   const pollLimit = options.pollLimit ?? 50
+  const overallMs = options.overallTimeoutMs ?? JIMENG_OVERALL_TIMEOUT_MS
+  const overall = new AbortController()
+  const onParentAbort = () => overall.abort()
+  if (options.signal) {
+    if (options.signal.aborted) overall.abort()
+    else options.signal.addEventListener('abort', onParentAbort)
+  }
+  const overallTimer = overallMs > 0 ? setTimeout(() => overall.abort(), overallMs) : undefined
+  const requestOptions: JimengClientOptions = { ...options, signal: overall.signal }
   onStatus?.('submitting')
   try {
     const submit = await postJimeng(
@@ -163,7 +180,7 @@ export async function generateImageFromIntent(
         height: 936,
         images,
       },
-      options,
+      requestOptions,
     )
     const submitted = submit.json
     if (!submit.ok || submitted.error) {
@@ -176,12 +193,12 @@ export async function generateImageFromIntent(
     for (let i = 0; i < pollLimit; i += 1) {
       onStatus?.(`polling ${i + 1}`)
       const jitter = pollDelay === 0 ? 0 : Math.floor(Math.random() * 1200)
-      await sleep(pollDelay + jitter)
+      await sleep(pollDelay + jitter, overall.signal)
       let poll: { ok: boolean; status: number; json: Record<string, unknown> }
       try {
-        poll = await postJimeng({ action: 'poll', task_id: taskId }, options)
+        poll = await postJimeng({ action: 'poll', task_id: taskId }, requestOptions)
       } catch (error) {
-        if (i === pollLimit - 1) {
+        if (overall.signal.aborted || i === pollLimit - 1) {
           return placeholder(prompt, error instanceof Error ? error.message : String(error))
         }
         continue
@@ -207,5 +224,8 @@ export async function generateImageFromIntent(
     return placeholder(prompt, 'Generation timed out')
   } catch (error) {
     return placeholder(prompt, error instanceof Error ? error.message : String(error))
+  } finally {
+    if (overallTimer) clearTimeout(overallTimer)
+    options.signal?.removeEventListener('abort', onParentAbort)
   }
 }

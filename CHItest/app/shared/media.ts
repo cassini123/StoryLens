@@ -18,12 +18,24 @@ export async function fetchAsDataUrl(url: string): Promise<string> {
   return blobToDataUrl(await res.blob())
 }
 
-function loadImage(src: string): Promise<HTMLImageElement> {
+function loadImage(src: string, timeoutMs = 12_000): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image()
+    const timer = window.setTimeout(() => {
+      image.onload = null
+      image.onerror = null
+      image.src = ''
+      reject(new Error('Image load timed out'))
+    }, timeoutMs)
     image.crossOrigin = 'anonymous'
-    image.onload = () => resolve(image)
-    image.onerror = () => reject(new Error('Image failed to load'))
+    image.onload = () => {
+      window.clearTimeout(timer)
+      resolve(image)
+    }
+    image.onerror = () => {
+      window.clearTimeout(timer)
+      reject(new Error('Image failed to load'))
+    }
     image.src = src
   })
 }

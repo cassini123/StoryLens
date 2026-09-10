@@ -142,6 +142,26 @@ export function canAttemptGeneration(session: Session, task: TaskRun): boolean {
   return !canSatisfyTask(session, task, session.runtime.draft_text)
 }
 
+/** Leave a hung generate step without consuming a revision round. */
+export function recoverStuckGeneration(session: Session): boolean {
+  if (session.runtime.step !== 'generating') return false
+  const active = session.tasks[session.runtime.task_index]
+  const round = session.runtime.round
+  const recordedThisRound = Boolean(
+    active && session.generations.some((item) => item.task_id === active.task_id && item.round === round),
+  )
+  if (active && round > 0 && !recordedThisRound) {
+    session.runtime.round = Math.max(0, round - 1)
+    active.round = session.runtime.round
+  }
+  const lastOk =
+    active &&
+    [...session.generations].reverse().find((item) => item.task_id === active.task_id && item.success)
+  session.runtime.last_output_image_id = lastOk?.output_image_id || lastOk?.generation_id || ''
+  session.runtime.step = session.runtime.last_output_image_id ? 'review' : 'describe'
+  return true
+}
+
 export function canAttemptInterpret(session: Session, task: TaskRun): boolean {
   if (task.stage !== 'T2') return false
   if (!task.auto_prompt_enabled) return false

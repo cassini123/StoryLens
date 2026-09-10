@@ -71,4 +71,21 @@ describe('generateImageFromIntent concurrency retries', () => {
     expect(result.meta.error).toMatch(/Missing prompt/)
     expect(fetch).toHaveBeenCalledTimes(1)
   })
+
+  it('returns a retryable timeout when fetch never settles', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => {})),
+    )
+    const result = await generateImageFromIntent('a cat', undefined, [], {
+      pollDelayMs: 0,
+      retryDelayMs: 0,
+      maxRetries: 1,
+      pollLimit: 1,
+      fetchTimeoutMs: 25,
+      overallTimeoutMs: 80,
+    })
+    expect(result.meta.status).toBe('placeholder')
+    expect(result.meta.error).toMatch(/timed out/i)
+  })
 })

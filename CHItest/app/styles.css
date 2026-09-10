@@ -401,6 +401,26 @@ textarea {
   min-height: calc(100vh - 168px);
 }
 
+.workspace-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.generating-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.88);
+}
+
 .workspace-t0 {
   grid-template-columns: 1fr 1.2fr;
 }
