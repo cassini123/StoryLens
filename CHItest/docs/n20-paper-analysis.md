@@ -1,6 +1,7 @@
 # N=20 按论文协议的数据分析
 
-数据：`CHItest/data/participants/` 中的 20 个 zip（P001–P020）。P012 是 2 字节空文件，没有会话。  
+数据：`CHItest/data/participants/` 中的 20 个 zip（P001–P020）。  
+P012 曾被 GitHub 改名弄成 2 字节空文件；真实包是先上传的 `P021-packet.zip`（控制组完整场），已还原为 P012。  
 分析单位：zip 标签 `P001`…`P020`，**不以填写的 participant_id 去重**。  
 本文只报告汇总与过程检查，不含原文 prompt、截图或可识别昵称。
 
@@ -39,11 +40,11 @@ Transfer = Scaffold T3 − Control T3
 | 检查 | 结果 |
 | --- | --- |
 | zip 数 | 20 |
-| 可解析会话 | **19**。P012 为空包 |
-| `started_at` 唯一 | 19/19，无整包复制 |
-| 填写 ID 碰撞 | **10 包都填了 `P001`**。开始时间、刺激 pattern、组别均不同，**不是同一人同一场** |
-| Sketch 进入 API | **0/19**。全部 `sketch_sent=false`，`api_input=image+text`，`input_sketch_snapshot_id` 空 |
-| 7 题都有 `ended_at` | 17/19。P019 缺第 2 道 T2；P020 两道 T2 都未结束 |
+| 可解析会话 | **20** |
+| `started_at` 唯一 | 20/20，无整包复制 |
+| 填写 ID 碰撞 | **11 包都填了 `P001`**。开始时间、刺激 pattern、组别均不同，**不是同一人同一场** |
+| Sketch 进入 API | **0/20**。全部 `sketch_sent=false`，`api_input=image+text`，`input_sketch_snapshot_id` 空 |
+| 7 题都有 `ended_at` | 18/20。P019 缺第 2 道 T2；P020 两道 T2 都未结束 |
 | `expert_ratings.csv` / `P_norm` | **全部空**。主指标无法算 |
 
 论文表请用 zip 标签。填写 ID 只作实验室对照。
@@ -65,7 +66,7 @@ Transfer = Scaffold T3 − Control T3
 | P009 | scaffold | v2 | 是 | **是** | 4 次并发；T2 墙钟异常长 |
 | P010 | scaffold | v2 | 是 | **是** | |
 | P011 | scaffold | v2 | 是 | **是** | 3 次并发；T2 墙钟异常长 |
-| P012 | — | — | — | 否 | 空 zip |
+| P012 | control | v2 | 是 | **是** | 原误标为空；从 P021 还原 |
 | P013 | scaffold | v2 | 是 | **是** | |
 | P014 | scaffold | v2 | 是 | **是** | |
 | P015 | control | v2 | 是 | **是** | |
@@ -75,11 +76,12 @@ Transfer = Scaffold T3 − Control T3
 | P019 | scaffold | v2 | 否 | 否 | 第 2 道 T2 未结束（6/7） |
 | P020 | scaffold | v2 | 否 | 否 | 两道 T2 未结束（5/7），但两道 T3 已做完 |
 
-**正式效力 n=13：scaffold 7（P001, P009–P011, P013, P014, P016）/ control 6（P002, P005–P008, P015）。**
+**正式效力 n=14：scaffold 7 / control 7。**  
+脚手架：P001, P009–P011, P013, P014, P016。控制：P002, P005–P008, P012, P015。
 
-敏感度（7 题都结束）：n=17，scaffold 11 / control 6。
+敏感度（7 题都结束）：n=18，scaffold 11 / control 7。
 
-相对 N=11：正式样本从 9（S4/C5）扩到 13（S7/C6）。对照组只多了 P015；脚手架组多了 P013、P014、P016。P017–P020 都不能进正式效力。
+相对 N=11 正式 n=9（S4/C5）：新进正式的是 P012–P016。P017–P020 仍不能进正式效力。
 
 已结束的 T2（脚手架组）都同时有草图操作、Auto Prompt、成功生成，T2 loop 形态成立。P020 两道 T2 都没点完，loop 无法评。Control 无 T2，符合设计。
 
@@ -95,7 +97,7 @@ Transfer = Scaffold T3 − Control T3
 
 ---
 
-## 4. 次级指标上的论文对照（正式 n=13）
+## 4. 次级指标上的论文对照（正式 n=14）
 
 每人先对 early / middle / transfer 两道题取均值，再算组间。  
 n 仍小，bootstrap 区间只作描述，不作推断。
@@ -105,32 +107,32 @@ n 仍小，bootstrap 区间只作描述，不作推断。
 | | early | middle | transfer | 个人 Δ(middle−early) |
 | --- | --- | --- | --- | --- |
 | Scaffold (n=7) | 5.07 | 4.93 | 4.79 | 0.0, 1.5, 0.0, −0.5, 0.0, −0.5, −1.5 |
-| Control (n=6) | 4.92 | 5.58 | 4.92 | 2.0, 2.5, 0.0, −2.0, 1.5, 0.0 |
+| Control (n=7) | 5.14 | 5.64 | 4.86 | 2.0, 2.5, 0.0, −2.0, 1.5, −0.5, 0.0 |
 
 ```text
-Primary  = −0.14 − 0.67 = −0.81
-Transfer = 4.79 − 4.92 = −0.13
+Primary  = −0.14 − 0.50 = −0.64
+Transfer = 4.79 − 4.86 = −0.07
 ```
 
-Hedges g（个人 Δ）约 −0.58；bootstrap 约 −2.10 … 0.50，覆盖 0。
+Hedges g（个人 Δ）约 −0.47；bootstrap 约 −1.86 … 0.64，覆盖 0。
 
 含义与 N=11 相同：middle 相对 early，**对照组自评涨得更多**。这与「脚手架提高表达精度」的方向相反，但：
 
 - 量尺有天花板
 - 自评 ≠ 专家 P_norm
 - 控制组 middle 是更多 T1 练习，脚手架 middle 是更重的 T2
-- n=7 vs 6，区间覆盖 0
+- n=7 vs 7，区间覆盖 0
 
-敏感度 n=17 时 Primary 仍约 −0.76，Transfer ≈ 0。
+敏感度 n=18 时 Primary 仍约 −0.59，Transfer ≈ 0。
 
 ### 4.2 Result-alignment（1–7，「生成图像不像我想的」）
 
 ```text
-Primary  = 0.36 − 0.67 = −0.31
-Transfer = 5.36 − 4.83 = +0.52
+Primary  = 0.36 − 0.57 = −0.21
+Transfer = 5.36 − 4.93 = +0.43
 ```
 
-Primary 仍略负。Transfer 这次脚手架 T3 自评略高（5.36 vs 4.83），bootstrap 覆盖 0（约 −1.7 … 1.1）。同样不能当精度证据。
+Primary 仍略负。Transfer 脚手架 T3 自评略高（5.36 vs 4.93），bootstrap 覆盖 0。同样不能当精度证据。
 
 ### 4.3 时间（交互成本）
 
@@ -149,11 +151,11 @@ Primary 仍略负。Transfer 这次脚手架 T3 自评略高（5.36 vs 4.83）�
 | 墙钟（秒，mean / median） | early | middle | transfer |
 | --- | --- | --- | --- |
 | Scaffold | 306 / 212 | 566 / 451 | 427 / 220 |
-| Control | 284 / 263 | 130 / 115 | 249 / 205 |
+| Control | 258 / 258 | 122 / 85 | 234 / 186 |
 
 ```text
-Primary（去 30min 异常）≈ +413 s（脚手架 middle 更贵）
-Transfer ≈ +178 s
+Primary（去 30min 异常）≈ +395 s（脚手架 middle 更贵）
+Transfer ≈ +193 s
 ```
 
 这符合协议把时间当成本，不能写成「学得更好」。T2 含画草图，middle 更长是设计预期。
@@ -167,7 +169,7 @@ Transfer ≈ +178 s
 **能写**
 
 - 操作检查通过：Sketch 从未进 API；v2 场次顺序正确；已结束的 T2 都走完 Sketch → Interpret → 生成。
-- 正式效力样本 n=13（S7/C6），敏感度 n=17。
+- 正式效力样本 n=14（S7/C7），敏感度 n=18。
 - 时间：脚手架 middle 交互更贵。
 - 自评：不能支持「脚手架提高表达精度」；方向甚至相反，且 CI 覆盖 0。
 
@@ -178,6 +180,6 @@ Transfer ≈ +178 s
 
 **下一步（比再收 20 人更急）**
 
-1. 专家按 0–3 标准给正式 n=13（至少）打 `P_norm`。没有它就没有主分析。
-2. P012 重新导出。P019 / P020 若还在同一浏览器，可让他们做完未结束的 T2 再导出；否则记为不完整，不要塞进效力样本。
-3. 填写 ID 不要默认 `P001`。组间收集目前偏脚手架（13 vs 6 包），正式样本已接近平衡（7 vs 6），后面优先补控制组完整场。
+1. 专家按 0–3 标准给正式 n=14（至少）打 `P_norm`。没有它就没有主分析。
+2. P019 / P020 若还在同一浏览器，可让他们做完未结束的 T2 再导出；否则记为不完整，不要塞进效力样本。不要点「重新开始」。
+3. 填写 ID 不要默认 `P001`。已收集包仍偏脚手架（13 vs 7），正式样本已平衡（7 vs 7）。

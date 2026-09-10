@@ -10,6 +10,7 @@ P008,mty,0,control,C,formal-between-v2,True,True,True,7,7,8,1,1,0,True,False,202
 P009,oclock,1,scaffold,B,formal-between-v2,True,True,True,7,13,17,4,4,0,True,False,2026-09-09T08:11:00.923Z,concurrent_fail=4
 P010,P001,1,scaffold,C,formal-between-v2,True,True,True,7,11,11,0,0,0,True,False,2026-09-09T10:41:43.887Z,
 P011,P001,1,scaffold,B,formal-between-v2,True,True,True,7,16,19,3,3,0,True,False,2026-09-09T08:11:07.826Z,concurrent_fail=3
+P012,P001,0,control,B,formal-between-v2,True,True,True,7,11,11,0,0,0,True,False,2026-09-10T14:03:30.452Z,
 P013,P001,1,scaffold,C,formal-between-v2,True,True,True,7,9,9,0,0,0,True,False,2026-09-10T02:15:12.091Z,
 P014,P001,1,scaffold,C,formal-between-v2,True,True,True,7,8,8,0,0,0,True,False,2026-09-10T06:13:25.608Z,
 P015,P001,0,control,B,formal-between-v2,True,True,True,7,7,7,0,0,0,True,False,2026-09-10T07:32:02.731Z,
