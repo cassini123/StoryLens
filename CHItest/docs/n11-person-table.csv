@@ -1,0 +1,12 @@
+packet,group,pattern,seq_ver,export_ready,formal_efficacy,complete7,self_early,self_middle,self_transfer,self_delta,result_early,result_middle,result_transfer,result_delta,wall_early_s,wall_middle_s,wall_transfer_s,copy_t2,gen_ok,gen_fail,concurrent_fail,t2_loop_ok,notes
+P001,scaffold,C,formal-between-v2,true,true,true,4.0,4.0,3.0,0.0,5.0,5.0,3.5,0.0,541.7,1510.6,307.3,0.00,12,3,3,true,concurrent_fail=3
+P002,control,C,formal-between-v2,true,true,true,4.5,6.5,6.0,2.0,4.5,6.5,6.0,2.0,258.5,4939.8,186.3,,7,4,2,true,concurrent_fail=2;text_risk=2;wallclock_outlier
+P003,scaffold,C,formal-between-v2,false,false,true,6.0,7.0,5.0,1.0,6.0,7.0,5.0,1.0,186.2,272.6,131.2,0.50,8,0,0,true,flags:timing_complete
+P004,scaffold,B,formal-between-v1,true,false,true,6.5,4.5,6.0,-2.0,6.5,5.5,6.5,-1.0,923.4,363.5,430.4,0.00,6,0,0,true,missing_validation;protocol_v1;t0_has_targets
+P005,control,A,formal-between-v2,true,true,true,4.5,7.0,7.0,2.5,4.5,7.0,6.5,2.5,267.1,53.0,56.7,,9,0,0,true,
+P006,control,C,formal-between-v2,true,true,true,5.5,5.5,4.0,0.0,5.5,5.5,4.0,0.0,96.4,65.7,224.2,,9,0,0,true,
+P007,control,A,formal-between-v2,true,true,true,6.0,4.0,6.0,-2.0,6.0,4.0,6.0,-2.0,8479.2,1129.7,389.4,,10,1,1,true,concurrent_fail=1;wallclock_outlier
+P008,control,C,formal-between-v2,true,true,true,4.5,6.0,2.5,1.5,4.5,6.0,2.5,1.5,425.7,255.4,163.1,,7,1,1,true,concurrent_fail=1
+P009,scaffold,B,formal-between-v2,true,true,true,4.5,6.0,6.0,1.5,3.5,6.0,5.5,2.5,736.4,3512.9,1663.0,0.30,13,4,4,true,concurrent_fail=4;wallclock_outlier
+P010,scaffold,C,formal-between-v2,true,true,true,5.0,5.0,7.0,0.0,4.5,4.5,7.0,0.0,212.0,450.9,102.3,0.00,11,0,0,true,
+P011,scaffold,B,formal-between-v2,true,true,true,5.0,4.5,5.0,-0.5,4.5,5.0,4.5,0.5,240.1,3878.5,220.4,0.16,16,3,3,true,concurrent_fail=3;wallclock_outlier
