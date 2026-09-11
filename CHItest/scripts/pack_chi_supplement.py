@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path("/workspace")
 CHITEST = ROOT / "CHItest"
 OUT_DIR = Path("/opt/cursor/artifacts/chi-supplement-build")
-ZIP_NAME = "CHI2027-SceneSketch-Supplementary.zip"
+ZIP_NAME = "CHI2027-Anonymous-Supplementary.zip"
 ZIP_PATH = Path("/opt/cursor/artifacts") / ZIP_NAME
 REPO_ZIP = CHITEST / "supplement" / ZIP_NAME
 
@@ -46,6 +46,14 @@ NAME_REPLACEMENTS = [
     ("Independent of StoryLens product features.", ""),
     ("Independent of the production application product features.", ""),
     ("StoryLens", ""),
+    ("storylens", ""),
+    ("storyboard-skill", "study-host"),
+    ("jimeng_t2i_v40", "t2i-v40"),
+    ("jimeng_task_id", "generation_task_id"),
+    ("jimeng", "t2i"),
+    ("CHItest", "study"),
+    ("chitest", "study"),
+    ("github.com", "example.edu"),
 ]
 
 # Typed nicknames that are not zip labels. Remapped per-packet to the zip id.
@@ -101,6 +109,11 @@ PII_SCAN = [
     "StoryLens",
     "storylens",
     "the production application",
+    "CHItest",
+    "chitest",
+    "jimeng",
+    "github.com",
+    "cassini",
 ]
 
 
@@ -212,7 +225,7 @@ def copy_tree(src: Path, dest: Path) -> None:
 
 def extract_packets(dest: Path) -> list[dict]:
     src_dir = CHITEST / "data" / "participants"
-    out_dir = dest / "data" / "participants"
+    out_dir = dest / "participants"
     out_dir.mkdir(parents=True, exist_ok=True)
     index: list[dict] = []
     for zip_path in sorted(src_dir.glob("P*.zip")):
@@ -458,10 +471,10 @@ Internal codes T0–T3 are never shown to participants.
 
 ## E. Where responses live
 
-- Setup / demographics: `ratings/demographics.csv` and `data/participants/PXXX/participants.csv`
+- Setup / demographics: `ratings/demographics.csv` and `participants/PXXX/participants.csv`
 - Per-task Likert: `ratings/self_alignment.csv`
 - Expert rubric: `ratings/expert_ratings.csv` (empty in this deployment)
-- Prompts: `data/participants/PXXX/text_versions.csv` (identifiers rewritten to zip labels)
+- Prompts: `participants/PXXX/text_versions.csv` (identifiers rewritten to zip labels)
 
 The end-of-session Likert (perceived control / usefulness / effort / confidence) was shown in the client but was not written into the official export tables.
 """,
@@ -472,7 +485,7 @@ The end-of-session Likert (perceived control / usefulness / effort / confidence)
 def compile_ratings(out_dir: Path, index: list[dict]) -> None:
     ratings_dir = out_dir / "ratings"
     ratings_dir.mkdir(parents=True, exist_ok=True)
-    packets = out_dir / "data" / "participants"
+    packets = out_dir / "participants"
     align_rows: list[dict] = []
     demo_rows: list[dict] = []
     expert_rows: list[dict] = []
@@ -546,46 +559,122 @@ def write_csv(path: Path, rows: list[dict]) -> None:
     path.write_text(out.getvalue(), encoding="utf-8")
 
 
+def copy_image_library(dest: Path) -> None:
+    lib = dest / "image-library"
+    src = CHITEST / "data" / "tasks" / "images"
+    n_png = n_svg = 0
+    for path in sorted(src.rglob("*")):
+        if not path.is_file():
+            continue
+        ext = path.suffix.lower()
+        if ext not in {".png", ".svg"}:
+            continue
+        rel = path.relative_to(src)
+        copy_binary(path, lib / rel)
+        if ext == ".png":
+            n_png += 1
+        else:
+            n_svg += 1
+    pub = CHITEST / "public" / "data" / "tasks" / "images"
+    if pub.exists():
+        for path in sorted(pub.rglob("*.png")):
+            rel = path.relative_to(pub)
+            out = lib / rel
+            if not out.exists():
+                copy_binary(path, out)
+                n_png += 1
+    for name in ("stimuli.json", "tasks.json", "target_modifications.json"):
+        src_json = CHITEST / "data" / "tasks" / name
+        if src_json.exists():
+            copy_text_file(src_json, lib / "metadata" / name)
+    (lib / "CATALOG.md").write_text(
+        f"""# Image library
+
+Still frames shown to participants as the current visual state.
+Researcher target-modification notes are in `metadata/target_modifications.json`
+and were **never shown** to participants.
+
+Packed files: {n_png} PNG, {n_svg} SVG.
+
+| group | folder | ids |
+| --- | --- | --- |
+| environment | `environment/` | E01–E05 |
+| character / space | `character_space/` | C01–C04 |
+| camera | `camera/` | A01–A15 (A01–A05 used in the study; A06–A15 extra pool) |
+| composition | `composition/` | D01–D06 |
+
+Study stills used in the 7-task sessions are E01–E05, C01–C04, A01–A05, D01–D06.
+
+| ID | scene |
+| --- | --- |
+| E01 | empty theatre |
+| E02 | ferry deck |
+| E03 | bookstore entrance |
+| E04 | park bench |
+| E05 | foreground / background |
+| C01 | train-station window |
+| C02 | cafe facing pair |
+| C03 | courtyard facing pair |
+| C04 | street corner, three people |
+| A01 | stair low angle |
+| A02 | museum wall |
+| A03 | corridor from above |
+| A04 | subway approaching |
+| A05 | bench, distracted |
+| D01 | half-hidden behind a column |
+| D02 | figure behind a door |
+| D03 | corridor direction |
+| D04 | gallery crossing |
+| D05 | dining table, three people |
+| D06 | inside / outside glass |
+""",
+        encoding="utf-8",
+    )
+
+
 def write_readme(dest: Path, index: list[dict], size_mb: float | None = None) -> None:
     n_s = sum(1 for r in index if r.get("group") == "scaffold")
     n_c = sum(1 for r in index if r.get("group") == "control")
     dest.write_text(
         f"""# Supplementary materials
 
-Anonymous supplementary package for the CHI 2027 paper
-**SceneSketch: A Temporary Visual Scaffold for Precise Natural-Language Image Editing**.
+Anonymous supplementary package for a CHI 2027 paper on a temporary visual
+scaffold for precise natural-language image editing.
 
-This archive contains only the **study** materials: experiment design,
-stimuli, questionnaires, participant logs, and rating tables.
-It does not contain any other product source code, author names,
-institution names, live URLs, or credentials.
+This archive is **self-contained**. It does not include product source code,
+repository URLs, live study URLs, author or institution names, or credentials.
 
 ## Contents
 
 ```
 README.md
-questionnaires.md              participant-facing items (zh + en)
 experiment-design/
-  experiment-protocol.md       between-subjects protocol and inclusion
-  experiment.json              study config (expert roster anonymized)
-data/
-  stimuli/                     20-image study pool (PNG + JSON)
-  participants/                one folder per session (P001–P026)
-    INDEX.csv                  group and completeness flags
-    PXXX/                      official CSV + validation JSON
+  experiment-protocol.md
+  experiment.json
+  questionnaires.md
+image-library/
+  CATALOG.md
+  environment/ C01–style stills as PNG + SVG
+  character_space/
+  camera/
+  composition/
+  metadata/                 stimuli and target-modification JSON
+participants/
+  INDEX.csv
+  P001/ … P026/             official session tables (no embedded images)
 ratings/
-  self_alignment.csv           all per-task 1–7 ratings
-  demographics.csv             experience items
-  expert_ratings.csv           expert rubric (empty in this deployment)
+  self_alignment.csv        per-task 1–7 ratings
+  demographics.csv
+  expert_ratings.csv        expert rubric (empty in this deployment)
 ```
 
 ## Participants
 
 {len(index)} collected sessions ({n_s} scaffold, {n_c} control), including
-incomplete / failed-validation sessions. Formal inclusion is defined in
+incomplete / failed-validation sessions. Inclusion rules are in
 `experiment-design/experiment-protocol.md`.
 
-Each `data/participants/PXXX/` folder keeps the official tables:
+Official tables in each `participants/PXXX/` folder:
 
 - `participants.csv`, `tasks.csv`, `event_log.csv` / `events.csv`
 - `text_versions.csv`, `generations.csv`
@@ -593,30 +682,26 @@ Each `data/participants/PXXX/` folder keeps the official tables:
 - `self_alignment.csv`, `expert_ratings.csv`
 - `full_session_timeline.json`, `validation.json`, `session_recovery.json`
 
-Raw `*-session.json` files with embedded images are omitted so the ZIP
-stays under 300 MB.
+Raw session JSON with embedded generated images is omitted (would exceed
+the 300 MB limit). The **stimulus image library** is included in full.
 
 ## Ratings
 
-Primary participant ratings are per-task `self_alignment` and
-`result_alignment` (1–7). See `ratings/self_alignment.csv` and
-`questionnaires.md`.
-
-Expert `P_norm` / `expert_ratings.csv` were **not collected** in this
-deployment (header only). End-of-session Likert items were shown in the
-client but were not written into the official export tables.
+Per-task `self_alignment` and `result_alignment` (1–7) are in
+`ratings/self_alignment.csv`. Expert `P_norm` was not collected
+(`ratings/expert_ratings.csv` is header-only).
 
 ## Anonymization
 
-- IDs are zip labels `P001`…`P026`.
-- Typed nicknames were rewritten to the zip label.
-- Author, researcher, and expert names were removed.
-- No live deployment URLs or API keys are included.
+- Session IDs are labels `P001`…`P026`.
+- Typed nicknames were rewritten to those labels.
+- Author, researcher, expert, product, and repository identifiers were removed.
+- Do not host this archive on a public repository that also contains
+  identifiable projects.
 
 ## Ethics
 
-For confidential CHI paper review only. Do not redistribute participant
-logs. Stimuli are study materials, not a public dataset release.
+For confidential paper review only. Do not redistribute participant logs.
 """,
         encoding="utf-8",
     )
@@ -675,7 +760,7 @@ def write_zip(src: Path, dest: Path) -> None:
             zf.write(readme, arcname="README.md")
         for path in src.rglob("*"):
             if path.is_file():
-                zf.write(path, arcname=str(Path("CHI2027-SceneSketch-Supplementary") / path.relative_to(src)))
+                zf.write(path, arcname=str(Path("CHI2027-Anonymous-Supplementary") / path.relative_to(src)))
 
 
 def main() -> None:
@@ -683,10 +768,7 @@ def main() -> None:
         shutil.rmtree(OUT_DIR)
     OUT_DIR.mkdir(parents=True)
 
-    # Study stimuli only (PNG shown to participants + JSON/SVG sources).
-    copy_tree(CHITEST / "public" / "data" / "tasks", OUT_DIR / "data" / "stimuli")
-    copy_tree(CHITEST / "data" / "tasks", OUT_DIR / "data" / "stimuli")
-
+    copy_image_library(OUT_DIR)
     index = extract_packets(OUT_DIR)
     compile_ratings(OUT_DIR, index)
 
@@ -696,8 +778,7 @@ def main() -> None:
     cfg = CHITEST / "config" / "experiment.json"
     if cfg.exists():
         copy_text_file(cfg, OUT_DIR / "experiment-design" / "experiment.json")
-
-    write_questionnaires(OUT_DIR / "questionnaires.md")
+    write_questionnaires(OUT_DIR / "experiment-design" / "questionnaires.md")
     write_readme(OUT_DIR / "README.md", index)
 
     hits = scan_pii(OUT_DIR)
@@ -714,10 +795,9 @@ def main() -> None:
         f"sha256: {digest}\n"
         f"packets: {len(index)}\n"
     )
-    REPO_ZIP.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(ZIP_PATH, REPO_ZIP)
-    (ZIP_PATH.parent / "CHI2027-SceneSketch-Supplementary.MANIFEST.txt").write_text(manifest, encoding="utf-8")
-    (REPO_ZIP.parent / "MANIFEST.txt").write_text(manifest, encoding="utf-8")
+    (ZIP_PATH.parent / "CHI2027-Anonymous-Supplementary.MANIFEST.txt").write_text(manifest, encoding="utf-8")
+    (CHITEST / "supplement").mkdir(parents=True, exist_ok=True)
+    (CHITEST / "supplement" / "MANIFEST.txt").write_text(manifest, encoding="utf-8")
 
     print(manifest)
     if size_mb >= 300:

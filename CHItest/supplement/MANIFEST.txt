@@ -1,5 +1,5 @@
-file: CHI2027-SceneSketch-Supplementary.zip
-bytes: 5831065
-megabytes: 5.56
-sha256: 28d7bb42b9447834ef5b06f2c3bff6fd47a3f4819a3dda55001fb63a71198a6f
+file: CHI2027-Anonymous-Supplementary.zip
+bytes: 5822964
+megabytes: 5.55
+sha256: 05ff246ec2a074ed56de2a3c11f592f5dab2167671f3e9459e4b22b36bff5546
 packets: 26
