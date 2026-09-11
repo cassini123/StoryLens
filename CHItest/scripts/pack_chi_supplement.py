@@ -639,7 +639,12 @@ def write_zip(src: Path, dest: Path) -> None:
     if dest.exists():
         dest.unlink()
     dest.parent.mkdir(parents=True, exist_ok=True)
+    readme = src / "README.md"
     with zipfile.ZipFile(dest, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=8) as zf:
+        # CHI looks for README.md; keep a copy at the archive root as well as
+        # inside the packaged folder.
+        if readme.exists():
+            zf.write(readme, arcname="README.md")
         for path in src.rglob("*"):
             if path.is_file():
                 zf.write(path, arcname=str(Path("CHI2027-SceneSketch-Supplementary") / path.relative_to(src)))

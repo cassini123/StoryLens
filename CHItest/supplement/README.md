@@ -4,7 +4,7 @@ Upload **`CHI2027-SceneSketch-Supplementary.zip`** with the anonymous paper.
 The ZIP is **13.63 MB** (limit 300 MB). SHA-256:
 
 ```
-40a9239a4a91cfa1c907a32fdf9fcabfae78c16fe714dfc2fb8ce56f53113196
+8747a80c014668b9581e115e4affa088f95a1aded1b2f0abe3be45a6bf8c7536
 ```
 
 The archive root contains `README.md` as required by CHI. Rebuild after data changes:
