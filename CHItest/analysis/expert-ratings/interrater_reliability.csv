@@ -1,0 +1,12 @@
+outcome,metric,value,targets,raters
+interpretability,"ICC(2,1)",0.8837,150,4
+interpretability,"ICC(2,4)",0.9681,150,4
+spatial_specificity,"ICC(2,1)",0.9204,150,4
+spatial_specificity,"ICC(2,4)",0.9788,150,4
+temporal_action_specificity,"ICC(2,1)",0.8962,150,4
+temporal_action_specificity,"ICC(2,4)",0.9719,150,4
+executability,"ICC(2,1)",0.8518,150,4
+executability,"ICC(2,4)",0.9583,150,4
+overall_precision,"ICC(2,1)",0.8612,150,4
+overall_precision,"ICC(2,4)",0.9613,150,4
+reconstructable,Fleiss_kappa,0.8089,150,4

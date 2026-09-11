@@ -4,7 +4,7 @@ All **P001–P025** are in the analysis files (`valid=yes`). Original protocol f
 
 | File | Rows |
 | --- | --- |
-| `expert_ratings.csv` | 20 × 6 × 4 = **480** (P001–P020 only; P021–P025 not yet rated) |
+| `expert_ratings.csv` | 25 × 6 × 4 = **600** |
 | `final_texts.csv` | **150** T1/T2/T3 final texts |
 | `participants_group.csv` | 25 (Scaffold 15, Control 10) |
 | `participants_valid.csv` | 25, all `valid=yes` |
@@ -26,4 +26,6 @@ Source `validation.json` inside the participant zips is **unchanged**. Only this
 
 ## Blind-rating status
 
-`expert_ratings.csv` covers P001–P020 (batch 1, I001–I120). P021–P025 finals are packaged for rating in `../expert-ratings/blinded/items-batch2.json` (I121–I150) with keyfile entries already appended; run `join_expert_ratings.py` again after the four experts return `ratings.csv` for the new items.
+`expert_ratings.csv` covers P001–P025 (batches I001–I150), with four
+independent records per participant-task. The participant-level analysis is in
+`../../analysis/expert-ratings/`.
