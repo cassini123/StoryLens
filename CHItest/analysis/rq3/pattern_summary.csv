@@ -1,0 +1,11 @@
+code_type,code,task_count,task_percent,participant_count,overall_precision_mean,overall_precision_sd,overall_precision_median
+primary_pattern,direct_adoption,0,0.0,0,,,
+primary_pattern,selective_revision,2,10.0,2,6.250,0.707,6.250
+primary_pattern,substantive_rewriting,12,60.0,7,4.958,1.718,5.000
+primary_pattern,corrective_rewriting,6,30.0,4,5.833,1.671,6.375
+primary_pattern,unclassifiable,0,0.0,0,,,
+secondary_code,adds_detail,20,100.0,10,5.350,1.651,5.875
+secondary_code,removes_detail,20,100.0,10,5.350,1.651,5.875
+secondary_code,changes_relation_or_action,18,90.0,10,5.736,1.205,6.000
+secondary_code,camera_language_retained,3,15.0,2,6.000,0.750,6.000
+secondary_code,minimal_sketch_trace,5,25.0,4,5.800,0.671,5.750
