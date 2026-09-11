@@ -1,0 +1,25 @@
+outcome,contrast,estimate,ci95_low,ci95_high,test,statistic,df,p_value,effect_size
+interpretability,Scaffold: middle - early,0.175,-0.438,0.788,paired_t,0.612,14,0.550467,dz=0.158
+interpretability,Control: middle - early,-0.087,-0.943,0.768,paired_t,-0.231,9,0.822233,dz=-0.073
+interpretability,difference-in-differences,0.262,-0.732,1.257,welch_t,0.554,18.37,0.586570,g=0.222
+interpretability,transfer: Scaffold - Control,-0.438,-1.259,0.384,welch_t,-1.120,17.53,0.277661,g=-0.371
+spatial_specificity,Scaffold: middle - early,0.450,-0.379,1.279,paired_t,1.164,14,0.263978,dz=0.300
+spatial_specificity,Control: middle - early,-0.113,-1.076,0.851,paired_t,-0.264,9,0.797625,dz=-0.084
+spatial_specificity,difference-in-differences,0.562,-0.634,1.759,welch_t,0.978,20.85,0.339380,g=0.378
+spatial_specificity,transfer: Scaffold - Control,-0.533,-1.620,0.554,welch_t,-1.015,22.89,0.320624,g=-0.364
+temporal_action_specificity,Scaffold: middle - early,-0.458,-1.273,0.357,paired_t,-1.206,14,0.247821,dz=-0.311
+temporal_action_specificity,Control: middle - early,-0.263,-0.941,0.416,paired_t,-0.875,9,0.404537,dz=-0.277
+temporal_action_specificity,difference-in-differences,-0.196,-1.198,0.806,welch_t,-0.404,23.00,0.689672,g=-0.146
+temporal_action_specificity,transfer: Scaffold - Control,-0.137,-1.212,0.937,welch_t,-0.266,21.25,0.792861,g=-0.102
+executability,Scaffold: middle - early,0.225,-0.458,0.908,paired_t,0.707,14,0.491354,dz=0.182
+executability,Control: middle - early,-0.062,-1.049,0.924,paired_t,-0.143,9,0.889251,dz=-0.045
+executability,difference-in-differences,0.287,-0.848,1.423,welch_t,0.532,17.88,0.601082,g=0.215
+executability,transfer: Scaffold - Control,-0.571,-1.389,0.247,welch_t,-1.467,17.97,0.159744,g=-0.488
+overall_precision,Scaffold: middle - early,0.225,-0.394,0.844,paired_t,0.779,14,0.448786,dz=0.201
+overall_precision,Control: middle - early,-0.087,-0.998,0.823,paired_t,-0.217,9,0.832835,dz=-0.069
+overall_precision,difference-in-differences,0.312,-0.730,1.355,welch_t,0.631,17.64,0.536351,g=0.256
+overall_precision,transfer: Scaffold - Control,-0.508,-1.312,0.295,welch_t,-1.325,18.81,0.201025,g=-0.445
+reconstructable,Scaffold: middle - early,0.050,-0.095,0.195,paired_t,0.739,14,0.472381,dz=0.191
+reconstructable,Control: middle - early,-0.050,-0.266,0.166,paired_t,-0.524,9,0.612788,dz=-0.166
+reconstructable,difference-in-differences,0.100,-0.146,0.346,welch_t,0.855,17.50,0.404126,g=0.347
+reconstructable,transfer: Scaffold - Control,-0.154,-0.320,0.012,welch_t,-1.981,14.73,0.066625,g=-0.639

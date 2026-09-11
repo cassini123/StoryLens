@@ -1078,5 +1078,275 @@
     "stage": "T3",
     "block": "transfer",
     "image_id": "C01"
+  },
+  {
+    "item_id": "I121",
+    "participant_id": "P021",
+    "logged_participant_id": "P021",
+    "task_id": "T1_early_A04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I122",
+    "participant_id": "P024",
+    "logged_participant_id": "P024",
+    "task_id": "T1_early_C03",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I123",
+    "participant_id": "P022",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_D06",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I124",
+    "participant_id": "P024",
+    "logged_participant_id": "P024",
+    "task_id": "T3_transfer_A03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A03"
+  },
+  {
+    "item_id": "I125",
+    "participant_id": "P025",
+    "logged_participant_id": "P022",
+    "task_id": "T3_transfer_A05",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I126",
+    "participant_id": "P021",
+    "logged_participant_id": "P021",
+    "task_id": "T3_transfer_D03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D03"
+  },
+  {
+    "item_id": "I127",
+    "participant_id": "P022",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_A01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A01"
+  },
+  {
+    "item_id": "I128",
+    "participant_id": "P024",
+    "logged_participant_id": "P024",
+    "task_id": "T2_middle_A05",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A05"
+  },
+  {
+    "item_id": "I129",
+    "participant_id": "P025",
+    "logged_participant_id": "P022",
+    "task_id": "T1_middle_E05",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "E05"
+  },
+  {
+    "item_id": "I130",
+    "participant_id": "P025",
+    "logged_participant_id": "P022",
+    "task_id": "T3_transfer_D04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D04"
+  },
+  {
+    "item_id": "I131",
+    "participant_id": "P024",
+    "logged_participant_id": "P024",
+    "task_id": "T1_early_D02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D02"
+  },
+  {
+    "item_id": "I132",
+    "participant_id": "P024",
+    "logged_participant_id": "P024",
+    "task_id": "T3_transfer_D01",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "D01"
+  },
+  {
+    "item_id": "I133",
+    "participant_id": "P023",
+    "logged_participant_id": "P023",
+    "task_id": "T3_transfer_C03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C03"
+  },
+  {
+    "item_id": "I134",
+    "participant_id": "P021",
+    "logged_participant_id": "P021",
+    "task_id": "T1_middle_D04",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "D04"
+  },
+  {
+    "item_id": "I135",
+    "participant_id": "P025",
+    "logged_participant_id": "P022",
+    "task_id": "T1_early_C01",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C01"
+  },
+  {
+    "item_id": "I136",
+    "participant_id": "P025",
+    "logged_participant_id": "P022",
+    "task_id": "T1_early_E04",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I137",
+    "participant_id": "P021",
+    "logged_participant_id": "P021",
+    "task_id": "T1_early_C02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I138",
+    "participant_id": "P025",
+    "logged_participant_id": "P022",
+    "task_id": "T1_middle_A03",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A03"
+  },
+  {
+    "item_id": "I139",
+    "participant_id": "P023",
+    "logged_participant_id": "P023",
+    "task_id": "T2_middle_C02",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "C02"
+  },
+  {
+    "item_id": "I140",
+    "participant_id": "P022",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_C01",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "C01"
+  },
+  {
+    "item_id": "I141",
+    "participant_id": "P021",
+    "logged_participant_id": "P021",
+    "task_id": "T3_transfer_A03",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "A03"
+  },
+  {
+    "item_id": "I142",
+    "participant_id": "P023",
+    "logged_participant_id": "P023",
+    "task_id": "T2_middle_A04",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I143",
+    "participant_id": "P021",
+    "logged_participant_id": "P021",
+    "task_id": "T1_middle_E03",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "E03"
+  },
+  {
+    "item_id": "I144",
+    "participant_id": "P022",
+    "logged_participant_id": "P001",
+    "task_id": "T1_early_E02",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "E02"
+  },
+  {
+    "item_id": "I145",
+    "participant_id": "P022",
+    "logged_participant_id": "P001",
+    "task_id": "T1_middle_A04",
+    "stage": "T1",
+    "block": "middle",
+    "image_id": "A04"
+  },
+  {
+    "item_id": "I146",
+    "participant_id": "P023",
+    "logged_participant_id": "P023",
+    "task_id": "T1_early_D05",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D05"
+  },
+  {
+    "item_id": "I147",
+    "participant_id": "P022",
+    "logged_participant_id": "P001",
+    "task_id": "T3_transfer_C04",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "C04"
+  },
+  {
+    "item_id": "I148",
+    "participant_id": "P024",
+    "logged_participant_id": "P024",
+    "task_id": "T2_middle_E04",
+    "stage": "T2",
+    "block": "middle",
+    "image_id": "E04"
+  },
+  {
+    "item_id": "I149",
+    "participant_id": "P023",
+    "logged_participant_id": "P023",
+    "task_id": "T1_early_D06",
+    "stage": "T1",
+    "block": "early",
+    "image_id": "D06"
+  },
+  {
+    "item_id": "I150",
+    "participant_id": "P023",
+    "logged_participant_id": "P023",
+    "task_id": "T3_transfer_E02",
+    "stage": "T3",
+    "block": "transfer",
+    "image_id": "E02"
   }
 ]

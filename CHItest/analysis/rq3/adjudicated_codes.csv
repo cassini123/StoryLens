@@ -1,0 +1,21 @@
+participant_id,task_id,primary_pattern,adds_detail,removes_detail,changes_relation_or_action,camera_language_retained,minimal_sketch_trace,adjudication_note
+P001,T2_middle_E05,substantive_rewriting,1,1,1,0,0,Replaces generic character relations with a four-person campfire event.
+P001,T2_middle_A04,substantive_rewriting,1,1,1,0,0,Replaces positional and train composition language with a fight action.
+P004,T2_middle_D05,corrective_rewriting,1,1,1,0,0,Changes the Auto Prompt's three-person/table interpretation to two people and a mirror.
+P004,T2_middle_D02,corrective_rewriting,1,1,1,0,0,Reframes the third person as a mirror reflection rather than a directly present person.
+P009,T2_middle_C04,selective_revision,1,1,1,1,0,Retains the camera configuration while replacing object placeholders with scene-specific content.
+P009,T2_middle_A05,corrective_rewriting,1,1,1,1,0,Reverses the male character's location and changes the gaze relation.
+P010,T2_middle_D06,substantive_rewriting,1,1,1,0,0,Replaces abstract positional relations with a street-crossing and pursuit event.
+P010,T2_middle_E01,selective_revision,1,1,1,0,1,Retains the lone subject and empty stage while adding dance practice.
+P011,T2_middle_C04,substantive_rewriting,1,1,1,0,0,Reorganizes generic relations into a specific two-person ship-deck scene.
+P011,T2_middle_D02,substantive_rewriting,1,1,1,1,0,Rewrites the mirror door and conversation scene while retaining the camera sentence.
+P013,T2_middle_D05,substantive_rewriting,1,1,0,0,0,Replaces the multi-relation prompt with an appearance requirement without explicitly reversing a relation.
+P013,T2_middle_C03,corrective_rewriting,1,1,1,0,1,Reverses the direction of gaze and shifts camera focus to the other character.
+P014,T2_middle_D03,substantive_rewriting,1,1,0,0,0,Replaces spatial and camera instructions with character appearance and affect.
+P014,T2_middle_D06,substantive_rewriting,1,1,1,0,0,Replaces positional composition with a new entrance and kissing action.
+P016,T2_middle_A04,substantive_rewriting,1,1,1,0,1,Replaces positional composition with water-throwing involving a third person.
+P016,T2_middle_E03,substantive_rewriting,1,1,1,0,1,Replaces a two-character bookshelf composition with stairs and multiple people.
+P023,T2_middle_C02,substantive_rewriting,1,1,1,0,0,Rewrites generic character relations as conversation plus camera movement.
+P023,T2_middle_A04,substantive_rewriting,1,1,1,0,0,Replaces train composition with an interior and foreground-window requirement.
+P024,T2_middle_E04,corrective_rewriting,1,1,1,0,1,Changes moderate camera distance to explicitly distant observation and rewrites the event.
+P024,T2_middle_A05,corrective_rewriting,1,1,1,0,0,Changes gaze behavior and replaces moderate distance with a long-to-close shot transition.

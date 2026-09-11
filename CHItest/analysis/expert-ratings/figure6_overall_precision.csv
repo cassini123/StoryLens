@@ -1,0 +1,7 @@
+outcome,group,block,n,mean,sd,ci95_low,ci95_high
+overall_precision,Scaffold,early,15,5.133,1.123,4.511,5.755
+overall_precision,Scaffold,middle,15,5.358,1.021,4.793,5.924
+overall_precision,Scaffold,transfer,15,5.317,1.361,4.563,6.070
+overall_precision,Control,early,10,5.662,0.768,5.113,6.212
+overall_precision,Control,middle,10,5.575,1.019,4.846,6.304
+overall_precision,Control,transfer,10,5.825,0.487,5.477,6.173
