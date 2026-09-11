@@ -1,0 +1,5 @@
+file: CHI2027-Anonymous-Supplementary.zip
+bytes: 5830358
+megabytes: 5.56
+sha256: cdf4280cf4eb1f3138c41b64c92d22005ce2f874e8a26eea522b48b66547d2a8
+packets: 26
