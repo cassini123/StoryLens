@@ -1,0 +1,5 @@
+expert_id,n_ratings,mean_interpretability,mean_spatial_specificity,mean_temporal_action_specificity,mean_executability,mean_overall_precision,mean_reconstructable
+expert_01,120,5.692,4.717,5.117,5.033,5.158,0.867
+expert_02,120,5.542,4.983,4.767,5.375,5.192,0.883
+expert_03,120,5.492,4.675,4.658,5.342,5.342,0.850
+expert_04,120,5.750,5.092,5.225,5.650,5.617,0.850

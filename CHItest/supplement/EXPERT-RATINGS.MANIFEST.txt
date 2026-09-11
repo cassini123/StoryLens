@@ -1,0 +1,9 @@
+file: CHI2027-Expert-Agent-Ratings-Anonymous.zip
+bytes: 27302
+megabytes: 0.03
+sha256: 28b504bf42f8fa78d72b236537ce4c61db37983ae6d70dcd5396d9322a7e7965
+rating_rows: 480
+comments: 42
+items: 120
+zip_entries: 16
+source_ref: origin/cursor/expert-blind-ratings-2046

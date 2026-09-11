@@ -11,11 +11,19 @@ python3 CHItest/scripts/pack_chi_supplement.py
 
 Upload **`CHI2027-Anonymous-Supplementary.zip`** to the conference system only.
 
-The archive contains:
+A second archive, **`CHI2027-Expert-Agent-Ratings-Anonymous.zip`**, is only
+the four expert-agent score tables (480 rows). Rebuild it with:
+
+```bash
+python3 CHItest/scripts/export_expert_agent_ratings.py
+```
+
+The main archive contains:
 
 - `experiment-design/` protocol + questionnaires
 - `image-library/` full PNG + SVG still pool
 - `participants/` P001–P026 official tables
 - `ratings/` self-alignment and demographics
 
-Author names, product names, and repository URLs are stripped inside the ZIP.
+Author names, product names, expert real names, and repository URLs are
+stripped inside both ZIPs.
