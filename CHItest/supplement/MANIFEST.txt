@@ -1,0 +1,5 @@
+file: CHI2027-SceneSketch-Supplementary.zip
+bytes: 14291900
+megabytes: 13.63
+sha256: 40a9239a4a91cfa1c907a32fdf9fcabfae78c16fe714dfc2fb8ce56f53113196
+packets: 26
