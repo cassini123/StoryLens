@@ -22,7 +22,7 @@ def read_disk_csv(path: Path) -> list[dict[str, str]]:
 
 
 def member(zf: zipfile.ZipFile, suffix: str) -> str | None:
-    matches = [name for name in zf.namelist() if name.endswith(suffix)]
+    matches = [name for name in zf.namelist() if Path(name).name == suffix]
     return matches[0] if matches else None
 
 
@@ -83,6 +83,12 @@ def select_auto_prompt(
     eligible.sort(key=lambda row: (integer(row.get("round")), row.get("timestamp", "")))
     if eligible:
         return eligible[-1], "latest_prompt_at_or_before_satisfied_round"
+    # Legacy packets can number Auto Prompt records one round ahead of
+    # tasks.satisfied_round. Preserve the mismatch explicitly while selecting
+    # the latest available prompt rather than dropping the trace.
+    candidates.sort(key=lambda row: (integer(row.get("round")), row.get("timestamp", "")))
+    if candidates:
+        return candidates[-1], "latest_prompt_legacy_round_mismatch"
     return None, "missing"
 
 
@@ -182,8 +188,15 @@ def main() -> None:
 
     if len(records) != 20:
         raise ValueError(f"Expected 20 strict-valid T2 traces, found {len(records)}")
-    if any(not row["selected_auto_prompt"] or not row["final_text"] for row in records):
-        raise ValueError("Every trace must contain selected Auto Prompt and final text")
+    incomplete = [
+        f"{row['participant_id']}/{row['task_id']} "
+        f"(auto={bool(row['selected_auto_prompt'])}, final={bool(row['final_text'])}, "
+        f"method={row['selected_auto_prompt_method']})"
+        for row in records
+        if not row["selected_auto_prompt"] or not row["final_text"]
+    ]
+    if incomplete:
+        raise ValueError("Incomplete traces: " + "; ".join(incomplete))
 
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "strict_t2_traces.json").write_text(
