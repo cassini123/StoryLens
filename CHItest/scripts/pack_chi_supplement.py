@@ -521,23 +521,86 @@ def compile_ratings(out_dir: Path, index: list[dict]) -> None:
                 expert_fields = expert_fields or list(reader.fieldnames or [])
                 expert_rows.extend(list(reader))
     write_csv(ratings_dir / "self_alignment.csv", align_rows)
+    write_csv(ratings_dir / "评分表-被试自评.csv", align_rows)
     write_csv(ratings_dir / "demographics.csv", demo_rows)
+
+    sheet_rows: list[dict] = []
+    for meta in index:
+        folder = packets / meta["id"]
+        tasks_path = folder / "tasks.csv"
+        if not tasks_path.exists():
+            continue
+        for task in csv.DictReader(tasks_path.open(encoding="utf-8")):
+            stage = (task.get("stage") or "").strip()
+            if stage == "T0":
+                continue
+            sheet_rows.append(
+                {
+                    "participant_id": meta["id"],
+                    "group": meta.get("group", ""),
+                    "task_id": task.get("task_id", ""),
+                    "stage": stage,
+                    "block": task.get("block", ""),
+                    "image_id": task.get("image_id", ""),
+                    "self_alignment_1to7": task.get("self_alignment_rating", ""),
+                    "result_alignment_1to7": task.get("result_alignment_rating", ""),
+                    "expert_id": "",
+                    "timepoint": "final",
+                    "intent_precision_0to3": "",
+                    "intent_interpretability_0to3": "",
+                    "spatial_specificity_0to3": "",
+                    "executability_0to3": "",
+                    "naturalness": "",
+                    "P_norm": task.get("P_norm", ""),
+                    "comment": "",
+                }
+            )
+    write_csv(ratings_dir / "评分表.csv", sheet_rows)
+    write_csv(ratings_dir / "scoring-sheet.csv", sheet_rows)
+
     if expert_rows:
         write_csv(ratings_dir / "expert_ratings.csv", expert_rows)
     else:
         (ratings_dir / "expert_ratings.csv").write_text(
             "participant_id,session_id,task_id,stage,expert_id,timepoint,"
-            "precision,interpretability,spatial_specificity,executability,naturalness,comment\n",
+            "intent_precision,intent_interpretability,spatial_specificity,executability,naturalness,comment\n",
             encoding="utf-8",
         )
+
+    person = CHITEST / "docs" / "n20-person-table.csv"
+    if person.exists():
+        redact_person_table_from_src(person, ratings_dir / "session-index.csv")
+
     (ratings_dir / "README.md").write_text(
-        """# Ratings
+        """# Scoring tables
 
-- `self_alignment.csv` — per-task 1–7 self-alignment and result-alignment (all sessions).
+## Filled (this study)
+
+- `评分表-被试自评.csv` / `self_alignment.csv` — per-task participant ratings, 1–7.
+  `self_alignment` = how well the final wording matched the intended change.
+  `result_alignment` = how well the generated image matched the intended picture.
+- `评分表.csv` / `scoring-sheet.csv` — one row per participant × task, with the
+  filled 1–7 columns and empty expert 0–3 columns (`P_norm` empty).
 - `demographics.csv` — cinematography / visual / generative-AI experience.
-- `expert_ratings.csv` — expert 0–3 rubric / P_norm. **This deployment did not collect expert ratings;** the file is header-only.
+- `session-index.csv` — completeness flags for the n=20 freeze.
 
-End-of-session Likert (perceived control / usefulness / effort / confidence) was shown in the client but was not written into the official export tables.
+## Expert rubric (not yet filled)
+
+Experts score the **wording**, not likeness to the still. Scale 0–3 on:
+
+- intent_precision
+- intent_interpretability
+- spatial_specificity
+- executability
+
+`P_i` = sum of active criteria. `P_norm` = P_i / (3 × number of active criteria).
+Plain language can receive 3 if it is executable. Jargon is never enough for a 3.
+
+`expert_ratings.csv` is header-only: no expert submitted scores in this deployment.
+Fill `评分表.csv` expert columns (or export from the expert page) and replace that file.
+
+End-of-session Likert (control / usefulness / effort / confidence) was shown in
+the client but was not written into the official export tables.
 """,
         encoding="utf-8",
     )
@@ -663,9 +726,13 @@ participants/
   INDEX.csv
   P001/ … P026/             official session tables (no embedded images)
 ratings/
-  self_alignment.csv        per-task 1–7 ratings
+  评分表.csv                  participant 1–7 + empty expert 0–3 columns
+  评分表-被试自评.csv           filled self-alignment / result-alignment
+  self_alignment.csv
+  scoring-sheet.csv
   demographics.csv
-  expert_ratings.csv        expert rubric (empty in this deployment)
+  session-index.csv
+  expert_ratings.csv           expert rubric (empty in this deployment)
 ```
 
 ## Participants
@@ -798,6 +865,8 @@ def main() -> None:
     (ZIP_PATH.parent / "CHI2027-Anonymous-Supplementary.MANIFEST.txt").write_text(manifest, encoding="utf-8")
     (CHITEST / "supplement").mkdir(parents=True, exist_ok=True)
     (CHITEST / "supplement" / "MANIFEST.txt").write_text(manifest, encoding="utf-8")
+    # Local copy for download; gitignored so it is not published on the identifiable repo.
+    shutil.copy2(ZIP_PATH, CHITEST / "supplement" / ZIP_NAME)
 
     print(manifest)
     if size_mb >= 300:
