@@ -19,3 +19,8 @@ P017,Scaffold,yes,0,timing_complete: required timing events are not closed,All 7
 P018,Scaffold,yes,0,timing_complete: required timing events are not closed,All 7 tasks ended and have final_text. Same timing-log flag as P003.
 P019,Scaffold,yes,0,task_unfinished: T2_middle_A02 was skipped or not finished,Session marked complete. T2_middle_A02 has no ended_at but has final_text (included). Other 6 tasks ended.
 P020,Scaffold,yes,0,"task_unfinished: T2_middle_A05 and T2_middle_E01 not finished",Session marked complete. Both unfinished T2 tasks still have final_text (included). Other 5 tasks ended.
+P021,Control,yes,1,,export_ready and all 7 tasks ended
+P022,Control,yes,0,timing_complete: required timing events are not closed,All 7 tasks ended and have final_text. export_ready failed only on logging timestamps not closed. Efficacy uses final text not timing completeness.
+P023,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P024,Scaffold,yes,1,,export_ready and all 7 tasks ended
+P025,Control,yes,1,,export_ready and all 7 tasks ended
